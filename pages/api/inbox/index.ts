@@ -42,11 +42,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         COALESCE(t.last_replied_at, ''),
         COALESCE(er.received_at, '')
       ) AS replied_at,
-      r.id AS run_id,
-      r.account_id AS linkedin_account_id,
-      la.name AS linkedin_account_name,
-      r.workflow_id,
-      w.name AS workflow_name,
+      CASE WHEN t.email_replied_at IS NOT NULL OR er.id IS NOT NULL THEN r.id ELSE NULL END AS run_id,
+      NULL AS linkedin_account_id,
+      NULL AS linkedin_account_name,
+      CASE WHEN t.email_replied_at IS NOT NULL OR er.id IS NOT NULL THEN r.workflow_id ELSE NULL END AS workflow_id,
+      CASE WHEN t.email_replied_at IS NOT NULL OR er.id IS NOT NULL THEN w.name ELSE NULL END AS workflow_name,
       ea.id AS email_account_id,
       ea.name AS email_account_name,
       ea.from_email AS email_account_from,
@@ -62,7 +62,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     LEFT JOIN run_profiles rp ON rp.target_id = t.id
     LEFT JOIN runs r ON r.id = rp.run_id AND r.status IN ('running', 'paused', 'completed')
     LEFT JOIN workflows w ON w.id = r.workflow_id
-    LEFT JOIN accounts la ON la.id = r.account_id
     LEFT JOIN email_accounts ea ON ea.id = rp.email_account_id
     LEFT JOIN (
       SELECT er1.* FROM email_replies er1

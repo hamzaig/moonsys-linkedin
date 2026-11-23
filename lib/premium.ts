@@ -41,6 +41,9 @@ export interface RepliesSurface {
 export interface InMailSurface {
   // Sends a Sales Nav InMail via a live browser page (playwright Page type is open-core).
   sendInMail(page: any, salesNavUrl: string, subject: string, body: string): Promise<void>;
+  // Adapter must invoke beforeSend synchronously immediately before delivery.
+  // Older adapters are held until they implement this cancellation contract.
+  sendInMailGuarded?(page: any, salesNavUrl: string, subject: string, body: string, beforeSend: () => void): Promise<void>;
 }
 
 export interface PremiumSurface {

@@ -30,6 +30,7 @@ export function initInboxSchema(db: Database.Database): void {
       id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL REFERENCES linkedin_conversations(id) ON DELETE CASCADE,
       provider_urn TEXT NOT NULL, direction TEXT NOT NULL CHECK(direction IN ('in','out')),
       text TEXT NOT NULL, delivered_at_ms INTEGER NOT NULL, unsupported INTEGER NOT NULL DEFAULT 0,
+      sender_urn TEXT,
       UNIQUE(conversation_id, provider_urn)
     );
     CREATE INDEX IF NOT EXISTS idx_linkedin_messages_thread_time ON linkedin_messages(conversation_id, delivered_at_ms);
@@ -39,11 +40,23 @@ export function initInboxSchema(db: Database.Database): void {
       received_at_ms INTEGER NOT NULL, PRIMARY KEY(message_id,run_profile_id)
     );
     CREATE INDEX IF NOT EXISTS idx_linkedin_reply_profile ON linkedin_reply_effects(run_profile_id);
+    CREATE TABLE IF NOT EXISTS linkedin_thread_coverage (
+      account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE, provider_urn TEXT NOT NULL,
+      head_at_ms INTEGER NOT NULL, enrollment_ms INTEGER NOT NULL,
+      PRIMARY KEY(account_id,provider_urn)
+    );
   `);
+  if (!(db.prepare("PRAGMA table_info(linkedin_messages)").all() as {name:string}[]).some(column=>column.name==="sender_urn"))
+    db.exec("ALTER TABLE linkedin_messages ADD COLUMN sender_urn TEXT");
 }
 
 export function databaseTimeMs(value: string): number {
   return Date.parse(/(?:Z|[+-]\d\d:\d\d)$/i.test(value) ? value : `${value.replace(" ", "T")}Z`);
+}
+// Old SQLite enrollment timestamps lost the fractional second. Exclude that
+// ambiguous second rather than treating an earlier message as a campaign reply.
+export function enrollmentTimeMs(value:string):number {
+  return databaseTimeMs(value)+( /\.\d+/.test(value)?0:1000 );
 }
 export function canonicalProfileUrl(value: string | null | undefined): string | null {
   if (!value) return null;
@@ -61,12 +74,15 @@ export function profileKey(urn: string | null | undefined): string | null {
 type Enrollment = { id: string; run_id: string; target_id: string; created_at: string; full_name: string | null; linkedin_url: string | null; linkedin_member_urn: string | null };
 export function matchCampaignContact(db: Database.Database, accountId: string, peer: Participant): Enrollment[] {
   const url = canonicalProfileUrl(peer.profileUrl);
-  const member = peer.memberUrn?.match(/^urn:li:member:\d+$/)?.[0] ?? null;
+  const member = (peer.memberUrn??peer.urn).match(/^urn:li:member:\d+$/)?.[0] ?? null;
   const rows = db.prepare(`SELECT rp.id,rp.run_id,rp.target_id,rp.created_at,t.full_name,t.linkedin_url,t.linkedin_member_urn
     FROM run_profiles rp JOIN runs r ON r.id=rp.run_id JOIN targets t ON t.id=rp.target_id
     WHERE r.account_id=?`).all(accountId) as Enrollment[];
-  const matches = rows.filter(row => (url !== null && canonicalProfileUrl(row.linkedin_url) === url)
-    || (member !== null && row.linkedin_member_urn === member));
+  const matches = rows.filter(row => {
+    if(member&&row.linkedin_member_urn&&row.linkedin_member_urn!==member)return false;
+    return (url !== null && canonicalProfileUrl(row.linkedin_url) === url)
+      || (member !== null && row.linkedin_member_urn === member);
+  });
   // Conflicting stable identifiers are not a reason to choose one candidate.
   return new Set(matches.map(row => row.target_id)).size === 1 ? matches : [];
 }
@@ -80,7 +96,7 @@ export function ingestConversation(db: Database.Database, accountId: string, con
   const peer = others[0]; const peerKey = profileKey(peer.urn);
   const enrollments = matchCampaignContact(db, accountId, peer);
   if (!enrollments.length) return empty;
-  const earliest = Math.min(...enrollments.map(row => databaseTimeMs(row.created_at)));
+  const earliest = Math.min(...enrollments.map(row => enrollmentTimeMs(row.created_at)));
   const messages = conversation.messages.filter(message => message.urn && Number.isFinite(message.deliveredAt)
     && message.deliveredAt >= earliest && (profileKey(message.senderUrn) === selfKey || profileKey(message.senderUrn) === peerKey));
   if (!messages.length) return empty;
@@ -88,13 +104,16 @@ export function ingestConversation(db: Database.Database, accountId: string, con
     let messagesAdded = 0; let tracksStopped = 0;
     db.prepare(`INSERT INTO linkedin_conversations(id,account_id,provider_urn,target_id,peer_urn) VALUES(?,?,?,?,?)
       ON CONFLICT(account_id,provider_urn) DO NOTHING`).run(randomUUID(),accountId,conversation.urn,enrollments[0].target_id,peer.urn);
-    const thread = db.prepare("SELECT id,target_id FROM linkedin_conversations WHERE account_id=? AND provider_urn=?").get(accountId,conversation.urn) as {id:string;target_id:string};
-    if (thread.target_id !== enrollments[0].target_id) throw new Error("Conversation identity changed; sync requires review");
+    const thread = db.prepare("SELECT id,target_id,peer_urn FROM linkedin_conversations WHERE account_id=? AND provider_urn=?").get(accountId,conversation.urn) as {id:string;target_id:string;peer_urn:string};
+    if (thread.target_id !== enrollments[0].target_id||profileKey(thread.peer_urn)!==peerKey) throw new Error("Conversation identity changed; sync requires review");
     for (const message of messages) {
       const incoming = profileKey(message.senderUrn) === peerKey;
       const text = message.unsupported ? "[Unsupported LinkedIn content]" : message.text.slice(0,100_000);
-      const inserted = db.prepare(`INSERT INTO linkedin_messages(id,conversation_id,provider_urn,direction,text,delivered_at_ms,unsupported)
-        VALUES(?,?,?,?,?,?,?) ON CONFLICT(conversation_id,provider_urn) DO NOTHING`).run(randomUUID(),thread.id,message.urn,incoming?"in":"out",text,message.deliveredAt,message.unsupported?1:0);
+      const previous=db.prepare("SELECT id,direction,delivered_at_ms,sender_urn FROM linkedin_messages WHERE conversation_id=? AND provider_urn=?").get(thread.id,message.urn) as {id:string;direction:string;delivered_at_ms:number;sender_urn:string|null}|undefined;
+      if(previous&&(previous.direction!==(incoming?"in":"out")||previous.delivered_at_ms!==message.deliveredAt||(previous.sender_urn&&profileKey(previous.sender_urn)!==profileKey(message.senderUrn))))
+        throw new Error("Message identity changed; sync requires review");
+      const inserted = db.prepare(`INSERT INTO linkedin_messages(id,conversation_id,provider_urn,direction,text,delivered_at_ms,unsupported,sender_urn)
+        VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(conversation_id,provider_urn) DO NOTHING`).run(randomUUID(),thread.id,message.urn,incoming?"in":"out",text,message.deliveredAt,message.unsupported?1:0,message.senderUrn);
       messagesAdded += inserted.changes;
       db.prepare(`UPDATE linkedin_conversations SET last_message_at_ms=MAX(last_message_at_ms,?),
         last_incoming_at_ms=CASE WHEN ? THEN MAX(COALESCE(last_incoming_at_ms,0),?) ELSE last_incoming_at_ms END WHERE id=?`)
@@ -102,7 +121,7 @@ export function ingestConversation(db: Database.Database, accountId: string, con
       if (!incoming) continue;
       const stored = db.prepare("SELECT id FROM linkedin_messages WHERE conversation_id=? AND provider_urn=?").get(thread.id,message.urn) as {id:string};
       for (const enrollment of enrollments) {
-        if (message.deliveredAt < databaseTimeMs(enrollment.created_at)) continue;
+        if (message.deliveredAt < enrollmentTimeMs(enrollment.created_at)) continue;
         const effect = db.prepare(`INSERT INTO linkedin_reply_effects(message_id,run_profile_id,received_at_ms) VALUES(?,?,?)
           ON CONFLICT(message_id,run_profile_id) DO NOTHING`).run(stored.id,enrollment.id,message.deliveredAt);
         if (!effect.changes) continue;
@@ -123,9 +142,9 @@ export function hasRunReply(db: Database.Database, runProfileId: string): boolea
 export function listConversations(db: Database.Database, accountId?: string): StoredConversation[] {
   return db.prepare(`SELECT c.*,a.name AS account_name,t.full_name,t.linkedin_url,
     COALESCE((SELECT m.text FROM linkedin_messages m WHERE m.conversation_id=c.id ORDER BY m.delivered_at_ms DESC,m.id DESC LIMIT 1),'') AS last_message,
-    (SELECT rp.run_id FROM run_profiles rp JOIN runs r ON r.id=rp.run_id WHERE rp.target_id=c.target_id AND r.account_id=c.account_id ORDER BY rp.created_at DESC LIMIT 1) AS run_id,
-    (SELECT r.workflow_id FROM runs r JOIN run_profiles rp ON rp.run_id=r.id WHERE rp.target_id=c.target_id AND r.account_id=c.account_id ORDER BY rp.created_at DESC LIMIT 1) AS workflow_id,
-    (SELECT w.name FROM workflows w JOIN runs r ON r.workflow_id=w.id JOIN run_profiles rp ON rp.run_id=r.id WHERE rp.target_id=c.target_id AND r.account_id=c.account_id ORDER BY rp.created_at DESC LIMIT 1) AS workflow_name
+    (SELECT rp.run_id FROM run_profiles rp JOIN runs r ON r.id=rp.run_id WHERE rp.target_id=c.target_id AND r.account_id=c.account_id AND julianday(rp.created_at)<=julianday(c.last_message_at_ms/1000.0,'unixepoch') ORDER BY julianday(rp.created_at) DESC LIMIT 1) AS run_id,
+    (SELECT r.workflow_id FROM runs r JOIN run_profiles rp ON rp.run_id=r.id WHERE rp.target_id=c.target_id AND r.account_id=c.account_id AND julianday(rp.created_at)<=julianday(c.last_message_at_ms/1000.0,'unixepoch') ORDER BY julianday(rp.created_at) DESC LIMIT 1) AS workflow_id,
+    (SELECT w.name FROM workflows w JOIN runs r ON r.workflow_id=w.id JOIN run_profiles rp ON rp.run_id=r.id WHERE rp.target_id=c.target_id AND r.account_id=c.account_id AND julianday(rp.created_at)<=julianday(c.last_message_at_ms/1000.0,'unixepoch') ORDER BY julianday(rp.created_at) DESC LIMIT 1) AS workflow_name
     FROM linkedin_conversations c JOIN accounts a ON a.id=c.account_id JOIN targets t ON t.id=c.target_id
     WHERE (? IS NULL OR c.account_id=?) ORDER BY c.last_message_at_ms DESC`).all(accountId??null,accountId??null) as StoredConversation[];
 }

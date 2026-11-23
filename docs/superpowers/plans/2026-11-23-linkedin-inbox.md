@@ -1,6 +1,6 @@
 # Automatic LinkedIn Inbox Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Read campaign-period LinkedIn conversations automatically, show account-scoped threads and stop eligible follow-ups on incoming replies.
 
@@ -33,10 +33,10 @@
 
 **Interfaces:** Produce schema initialization, normalized participant/message/conversation types, exact identity matching, `ingestConversation(db, accountId, conversation)`, account/run reply guard, stored thread/list queries and sync-state queries. Use provider identifiers plus account ID for uniqueness; effect eligibility is evaluated against each run profile's enrollment timestamp.
 
-- [ ] Write failing in-memory SQLite tests for idempotent migrations, exact matching, own/system/group events, old-history exclusion, per-run boundaries, cross-account isolation, duplicate/out-of-order messages, atomic rollback and cancellation across both tracks.
-- [ ] Run `npm test`; expect new behavioral tests to fail while the existing 11 scheduler tests remain green.
-- [ ] Implement store/schema and migration integration without live data access.
-- [ ] Run the whole suite; expect all tests green. Commit this task in the isolated feature branch.
+- [x] Write failing in-memory SQLite tests for idempotent migrations, exact matching, own/system/group events, old-history exclusion, per-run boundaries, cross-account isolation, duplicate/out-of-order messages, atomic rollback and cancellation across both tracks.
+- [x] Run `npm test`; expect new behavioral tests to fail while the existing 11 scheduler tests remain green.
+- [x] Implement store/schema and migration integration without live data access.
+- [x] Run the whole suite; expect all tests green. Commit this task in the isolated feature branch.
 
 ## Task 2: Read-only adapter and sync orchestration
 
@@ -44,11 +44,11 @@
 
 **Interfaces:** Consume Task 1 normalized types/store. Produce a read-only account provider and `syncLinkedInInbox(db, accountId, provider, now)` with persisted continuation, last attempt/complete success, overlap exclusion, safe failure/backoff and bounded work. Keep external transport injectable for real-response fixtures and local HTTP tests.
 
-- [ ] Verify the real account's read-only endpoint/payload shape without sending messages; save sanitized structural findings, not cookies/bodies.
-- [ ] Write failing adapter/orchestration tests: recognized empty response vs unknown shape, normal pagination, partial continuation, replay, overlapping calls, timeout, 401/reconnect, 429/backoff and generic failures.
-- [ ] Run new tests and confirm intended failures.
-- [ ] Implement bounded normalization/transport and orchestration. Unsupported live API shapes remain visible failures, never success guesses.
-- [ ] Run the whole suite; expect all green. Commit.
+- [x] Verify the real account's read-only endpoint/payload shape without sending messages; save sanitized structural findings, not cookies/bodies.
+- [x] Write failing adapter/orchestration tests: recognized empty response vs unknown shape, normal pagination, partial continuation, replay, overlapping calls, timeout, 401/reconnect, 429/backoff and generic failures.
+- [x] Run new tests and confirm intended failures.
+- [x] Implement bounded normalization/transport and orchestration. Unsupported live API shapes remain visible failures, never success guesses.
+- [x] Run the whole suite; expect all green. Commit.
 
 ## Task 3: Worker and sender guard
 
@@ -56,10 +56,10 @@
 
 **Interfaces:** Consume `syncLinkedInInbox`, sync-state/freshness and account/run reply guard. Produce one globally guarded independent worker, five-minute staggered scheduling and regular-message preflight hold behavior with visible status/logging.
 
-- [ ] Write failing tests for fresh/stale/failed account states, account-specific guard, first-message and follow-up gating, retry recovery and keeping connection timing intact.
-- [ ] Run tests and verify expected failures.
-- [ ] Implement worker startup, replace absent premium LinkedIn sync path with core integration, and add final reply/freshness checks before regular message delivery.
-- [ ] Run all tests and TypeScript; expect green. Commit.
+- [x] Write failing tests for fresh/stale/failed account states, account-specific guard, first-message and follow-up gating, retry recovery and keeping connection timing intact.
+- [x] Run tests and verify expected failures.
+- [x] Implement worker startup, replace absent premium LinkedIn sync path with core integration, and add final reply/freshness checks before regular message delivery.
+- [x] Run all tests and TypeScript; expect green. Commit.
 
 ## Task 4: Inbox APIs and MoonSys interface
 
@@ -67,10 +67,10 @@
 
 **Interfaces:** Consume account-scoped list/thread/status queries and manual sync entry point. Preserve existing email fields/handlers; identify each LinkedIn row by conversation/account, with sender and campaign fields. Provide status and read-only thread content plus a LinkedIn link.
 
-- [ ] Write failing fixture API/SSR tests for separate account conversations, unknown identifiers, sender filtering, failed/never-synced/empty states and escaped message text; retain email response/composer behavior.
-- [ ] Run and confirm failures.
-- [ ] Implement authenticated handlers and existing MoonSys-styled UI. Do not add a LinkedIn Send action in this feature.
-- [ ] Run suite, TypeScript, relevant lint and isolated production build; expect no new lint diagnostics and green tests/build. Commit.
+- [x] Write failing fixture API/SSR tests for separate account conversations, unknown identifiers, sender filtering, failed/never-synced/empty states and escaped message text; retain email response/composer behavior.
+- [x] Run and confirm failures.
+- [x] Implement authenticated handlers and existing MoonSys-styled UI. Do not add a LinkedIn Send action in this feature.
+- [x] Run suite, TypeScript, relevant lint and isolated production build; expect no new lint diagnostics and green tests/build. Commit.
 
 ## Task 5: Review and live read-only verification
 
@@ -78,12 +78,16 @@
 
 **Interfaces:** Consume completed feature, full test results and protected campaign baseline. Produce evidence of actual read-only sync and explicit limitations.
 
-- [ ] Run full tests/build and review the complete feature diff with a fresh reviewer; fix material findings with failing regression tests first.
-- [ ] Back up the live database; apply only validated additive schema changes and completed feature files to the original checkout.
-- [ ] Start/verify the updated worker without creating another live sender process. Check authenticated HTTP routes and actual read-only account sync, with no artificial messages/invitations.
-- [ ] Compare original run steps/timing and unrelated profiles, explain legitimate stop-on-reply changes if real replies exist, and report fixture-only positive coverage if no qualifying live reply exists.
-- [ ] Record completion evidence and remaining limitations. Leave changes local and keep the original app running.
+- [x] Run full tests/build and review the complete feature diff with a fresh reviewer; fix material findings with failing regression tests first.
+- [x] Back up the live database; apply only validated additive schema changes and completed feature files to the original checkout.
+- [x] Start/verify the updated worker without creating another live sender process. Check authenticated HTTP routes and actual read-only account sync, with no artificial messages/invitations.
+- [x] Compare original run steps/timing and unrelated profiles, explain legitimate stop-on-reply changes if real replies exist, and report fixture-only positive coverage if no qualifying live reply exists.
+- [x] Record completion evidence and remaining limitations. Leave changes local and keep the original app running.
 
 ## Execution decision
 
 The owner explicitly approved “feature 1 implement karein”. Continue under that authorization without repeating permission questions for the same scope. Implement inline with TDD, isolated source/data and one fresh final code review. Preserve prior uncommitted work; local feature commits are for isolation/review and are not publication.
+
+## Completion evidence
+
+See [validation](../../LINKEDIN-INBOX-VALIDATION.md). All local implementation and verification steps complete. Positive live reading remains unverified because the owner cannot reconnect; manual sync correctly persists authentication failure without freshness. No publication or test outreach performed.

@@ -1,3 +1,4 @@
+import { loadInboxReplies } from "@/lib/inbox/loader";
 import LinkedInThread from "@/components/inbox/LinkedInThread";
 import LinkedInInboxControls from "@/components/inbox/LinkedInInboxControls";
 import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
@@ -351,6 +352,7 @@ function ReplyModal({ reply, onClose, onActionDone, hasPremium }: ReplyModalProp
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function InboxPage() {
+  const inboxRequest = useRef<AbortController | null>(null);
   const [replies, setReplies] = useState<InboxReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -412,17 +414,19 @@ export default function InboxPage() {
     const params = new URLSearchParams();
     if (channel !== "all") params.set("channel", channel);
     if (senderAccount) params.set("accountId", senderAccount);
-    fetch(`/api/inbox?${params}`)
-      .then(async response => { if (!response.ok) throw new Error("Could not load Inbox"); return response.json(); })
-      .then((data) => { setReplies(data.replies ?? []); setLoadError(""); })
-      .catch(() => setLoadError("Inbox could not be loaded. Please retry."))
-      .finally(() => setLoading(false));
+    void loadInboxReplies(`/api/inbox?${params}`, inboxRequest, {
+      onData: data => { setReplies(data); setLoadError(""); },
+      onError: () => setLoadError("Inbox could not be loaded. Please retry."),
+      onSettled: () => setLoading(false),
+    });
   }
 
   useEffect(() => {
+    const requests = inboxRequest;
+    setReplies([]);
     load();
     const timer = setInterval(() => load(true), 30000);
-    return () => clearInterval(timer);
+    return () => { clearInterval(timer); requests.current?.abort(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel, senderAccount]);
 

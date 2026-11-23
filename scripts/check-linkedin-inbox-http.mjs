@@ -20,10 +20,12 @@ for (const table of ["accounts", "targets", "runs"]) assert.equal(db.prepare(`SE
 db.transaction(() => {
   for (const [id, name] of [["fixture-a", "Sender A"], ["fixture-b", "Sender B"]]) db.prepare("INSERT INTO accounts(id,name,email,is_authenticated) VALUES(?,?,?,0)").run(id, name, id + "@example.invalid");
   db.prepare("INSERT INTO targets(id,full_name,linkedin_url,email,email_replied_at) VALUES(?,?,?,?,?)").run("fixture-lead", "Fixture Lead", "https://www.linkedin.com/in/fixture-lead/", "lead@example.invalid", "2026-11-23 11:00:00");
+  db.prepare("INSERT INTO targets(id,full_name,linkedin_url,last_replied_at) VALUES(?,?,?,?)").run("fixture-legacy", "Legacy Lead", "https://www.linkedin.com/in/fixture-legacy/", "2026-11-23 11:00:00");
   db.prepare("INSERT INTO workflows(id,name) VALUES(?,?)").run("fixture-workflow", "Fixture campaign");
   for (const [run, account, profile] of [["fixture-run-a", "fixture-a", "fixture-profile-a"], ["fixture-run-b", "fixture-b", "fixture-profile-b"]]) {
     db.prepare("INSERT INTO runs(id,workflow_id,account_id,status) VALUES(?,?,?,'paused')").run(run, "fixture-workflow", account);
     db.prepare("INSERT INTO run_profiles(id,run_id,target_id,created_at) VALUES(?,?,?,?)").run(profile, run, "fixture-lead", "2026-11-23 10:00:00");
+    db.prepare("INSERT INTO run_profiles(id,run_id,target_id,created_at) VALUES(?,?,?,?)").run(profile + "-legacy", run, "fixture-legacy", "2026-11-23 10:00:00");
     db.prepare("INSERT INTO run_profile_tracks(id,run_profile_id,track,state,current_step,next_step_at) VALUES(?,?,'linkedin','in_progress',0,'2026-11-25T11:00:00Z')").run(profile + "-track", profile);
   }
 })();
@@ -43,8 +45,10 @@ async function request(route, method = "GET", body, expected = 200, authenticate
 }
 try {
   const inbox = await request("/api/inbox?channel=linkedin");
-  assert.equal(inbox.replies.length, 2);
-  assert.equal(new Set(inbox.replies.map(row => row.inbox_key)).size, 2);
+  assert.equal(inbox.replies.length, 3);
+  assert.equal(new Set(inbox.replies.filter(row => row.linkedin_conversation_id).map(row => row.inbox_key)).size, 2);
+  const legacy = inbox.replies.find(row => row.id === "fixture-legacy");
+  assert.equal(legacy.linkedin_account_id, null); assert.equal(legacy.run_id, null);
   const filtered = await request("/api/inbox?channel=linkedin&accountId=fixture-b");
   assert.equal(filtered.replies.length, 1); assert.equal(filtered.replies[0].linkedin_account_id, "fixture-b");
   const email = await request("/api/inbox?channel=email"); assert.equal(email.replies.length, 1); assert.equal(email.replies[0].channel, "email");

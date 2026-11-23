@@ -1,11 +1,11 @@
 import type Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
-import { databaseTimeMs, ingestConversation, matchCampaignContact, profileKey } from "./store.ts";
+import { enrollmentTimeMs, ingestConversation, matchCampaignContact, profileKey } from "./store.ts";
 import { ProviderError } from "./provider.ts";
 import type { InboxProvider, ConversationSummary } from "./provider.ts";
 
 export interface InboxSyncState { account_id:string; status:string; attempted_at_ms:number|null; success_at_ms:number|null; retry_at_ms:number|null; last_error_code:string|null; last_error:string|null; continuation:string|null; self_urn:string|null; lease_owner:string|null; lease_until_ms:number }
-interface Continuation { cursor: string|null; queue:ConversationSummary[]; messageCursor:string|null; listed:boolean; started:number; boundary:number|null }
+interface Continuation { cursor:string|null; queue:ConversationSummary[]; messageCursor:string|null; listed:boolean; started:number; boundary:number|null; listCursors:string[]; messageCursors:string[]; threadHead:number }
 export function getInboxStatus(db:Database.Database,accountId:string):InboxSyncState {
   return db.prepare("SELECT * FROM linkedin_inbox_sync WHERE account_id=?").get(accountId) as InboxSyncState
     ?? {account_id:accountId,status:"never",attempted_at_ms:null,success_at_ms:null,retry_at_ms:null,last_error_code:null,last_error:null,continuation:null,self_urn:null,lease_owner:null,lease_until_ms:0};
@@ -27,27 +27,45 @@ export async function syncLinkedInInbox(db:Database.Database,accountId:string,pr
     db.prepare(`UPDATE linkedin_inbox_sync SET status=?,continuation=?,success_at_ms=?,retry_at_ms=?,last_error_code=?,last_error=?
       WHERE account_id=? AND lease_owner=?`).run(status,continuation,success,retry,errorCode,error,accountId,owner);
   };
-  let state:Continuation={cursor:null,queue:[],messageCursor:null,listed:false,started:at,boundary:before.success_at_ms===null?null:before.success_at_ms-300000};
+  const newScan=():Continuation=>({cursor:null,queue:[],messageCursor:null,listed:false,started:clock(),boundary:before.success_at_ms===null?null:before.success_at_ms-300000,listCursors:[],messageCursors:[],threadHead:0});
+  let state=newScan();
+  const checkLease=()=>{const lease=getInboxStatus(db,accountId);if(lease.lease_owner!==owner||lease.lease_until_ms<=clock())throw new ProviderError("lease","Sync lease expired")};
   try {
-    if(before.continuation)state=JSON.parse(before.continuation) as Continuation;
-    const self=await provider.identity();db.prepare("UPDATE linkedin_inbox_sync SET self_urn=? WHERE account_id=? AND lease_owner=?").run(self.urn,accountId,owner);
+    const self=await provider.identity();checkLease();
+    if(!profileKey(self.urn))throw new ProviderError("unsupported","Unsupported mailbox identity");
+    if(before.self_urn&&profileKey(before.self_urn)!==profileKey(self.urn))throw new ProviderError("owner_changed","LinkedIn mailbox owner changed");
+    db.prepare("UPDATE linkedin_inbox_sync SET self_urn=? WHERE account_id=? AND lease_owner=? AND self_urn IS NULL").run(self.urn,accountId,owner);
+    if(before.continuation){state={...state,...JSON.parse(before.continuation)};state.listCursors??=[];state.messageCursors??=[];state.threadHead??=0;}
     const enrollments=db.prepare(`SELECT rp.created_at FROM run_profiles rp JOIN runs r ON r.id=rp.run_id WHERE r.account_id=?`).all(accountId) as {created_at:string}[];
-    const earliest=Math.min(...enrollments.map(row=>databaseTimeMs(row.created_at)));
+    const earliest=Math.min(...enrollments.map(row=>enrollmentTimeMs(row.created_at)));
     const maxRequests=Math.max(1,Math.min(options.maxRequests??5,10));
     let requests=0;
     while(requests<maxRequests){
-      const lease=getInboxStatus(db,accountId);if(lease.lease_owner!==owner||lease.lease_until_ms<=clock())throw new ProviderError("lease","Sync lease expired");
+      checkLease();
       if(state.queue.length){
-        const conversation=state.queue[0];const page=await provider.messages(conversation,state.messageCursor);requests++;
-        const currentLease=getInboxStatus(db,accountId);if(currentLease.lease_owner!==owner||currentLease.lease_until_ms<=clock())throw new ProviderError("lease","Sync lease expired");
+        const conversation=state.queue[0];
+        const peers=conversation.participants.filter(person=>profileKey(person.urn)!==profileKey(self.urn));
+        const matches=peers.length===1?matchCampaignContact(db,accountId,peers[0]):[];
+        if(!matches.length)throw new ProviderError("unsupported","Conversation binding changed");
+        const cutoff=Math.min(...matches.map(row=>enrollmentTimeMs(row.created_at)));
+        const covered=db.prepare("SELECT head_at_ms,enrollment_ms FROM linkedin_thread_coverage WHERE account_id=? AND provider_urn=?").get(accountId,conversation.urn) as {head_at_ms:number;enrollment_ms:number}|undefined;
+        const boundary=covered&&covered.enrollment_ms<=cutoff?Math.max(cutoff,covered.head_at_ms):cutoff;
+        const page=await provider.messages(conversation,state.messageCursor);requests++;checkLease();
+        if(page.nextCursor&&(page.nextCursor===state.messageCursor||state.messageCursors.includes(page.nextCursor)))throw new ProviderError("unsupported","LinkedIn message pagination did not advance");
         const participants=conversation.participants.some(person=>profileKey(person.urn)===profileKey(self.urn))?conversation.participants:[self,...conversation.participants];
         const result=ingestConversation(db,accountId,{...conversation,self,participants,messages:page.messages});messagesAdded+=result.messagesAdded;tracksStopped+=result.tracksStopped;
-        const oldPage=page.messages.length>0&&page.messages.every(message=>message.deliveredAt<earliest);
-        if(page.nextCursor&&!oldPage){if(page.nextCursor===state.messageCursor)throw new ProviderError("unsupported","LinkedIn message pagination did not advance");state.messageCursor=page.nextCursor;}
-        else{state.queue.shift();state.messageCursor=null;}
+        state.threadHead=Math.max(state.threadHead,...page.messages.map(message=>message.deliveredAt));
+        const reached=page.messages.some(message=>message.deliveredAt<=boundary);
+        if(page.nextCursor&&!reached){state.messageCursors.push(page.nextCursor);state.messageCursor=page.nextCursor;}
+        else{
+          db.prepare(`INSERT INTO linkedin_thread_coverage(account_id,provider_urn,head_at_ms,enrollment_ms) VALUES(?,?,?,?)
+            ON CONFLICT(account_id,provider_urn) DO UPDATE SET head_at_ms=MAX(head_at_ms,excluded.head_at_ms),enrollment_ms=excluded.enrollment_ms`).run(accountId,conversation.urn,state.threadHead,cutoff);
+          state.queue.shift();state.messageCursor=null;state.messageCursors=[];state.threadHead=0;
+        }
       }else if(!state.listed||state.cursor){
-        const cursor=state.cursor;const page=await provider.list(cursor);requests++;
-        if(page.nextCursor&&page.nextCursor===cursor)throw new ProviderError("unsupported","LinkedIn inbox pagination did not advance");
+        const cursor=state.cursor;const page=await provider.list(cursor);requests++;checkLease();
+        if(page.nextCursor&&(page.nextCursor===cursor||state.listCursors.includes(page.nextCursor)))throw new ProviderError("unsupported","LinkedIn inbox pagination did not advance");
+        if(page.nextCursor)state.listCursors.push(page.nextCursor);
         state.queue=page.conversations.filter(conversation=>!conversation.isGroup&&conversation.lastActivityAt>=earliest&&conversation.participants.some(person=>profileKey(person.urn)!==profileKey(self.urn)&&matchCampaignContact(db,accountId,person).length));
         const boundary=state.boundary===null?earliest:Math.max(earliest,state.boundary);
         const reached=page.conversations.length>0&&page.conversations.every(conversation=>conversation.lastActivityAt<boundary);
@@ -55,16 +73,19 @@ export async function syncLinkedInInbox(db:Database.Database,accountId:string,pr
       }else break;
       save("syncing",JSON.stringify(state),before.success_at_ms,null,null,null);
     }
-    const finalLease=getInboxStatus(db,accountId);
-    if(finalLease.lease_owner!==owner||finalLease.lease_until_ms<=clock())throw new ProviderError("lease","Sync lease expired");
-    const complete=state.listed&&!state.cursor&&!state.queue.length;
+    checkLease();
+    let complete=state.listed&&!state.cursor&&!state.queue.length;
+    // A long first backfill cannot keep outbound messages stale indefinitely.
+    // Preserve its thread coverage, then re-read the head in a new bounded pass.
+    if(complete&&clock()-state.started>300000){state=newScan();complete=false;}
     save(complete?"ok":"partial",complete?null:JSON.stringify(state),complete?state.started:before.success_at_ms,null,null,null);
     return {status:complete?"ok":"partial",messagesAdded,tracksStopped};
   }catch(error){
     const code=error instanceof ProviderError?error.code:"network";
-    const status=code==="auth"?"auth_required":code==="rate_limit"?"rate_limited":"error";
-    const delay=code==="rate_limit"?Math.min(86400000,Math.max(60000,error instanceof ProviderError?error.retryAfterMs??900000:900000)):code==="unsupported"?1800000:300000;
-    const message=code==="auth"?"Reconnect LinkedIn to read messages.":code==="rate_limit"?"LinkedIn requested a pause. Sync will retry later.":code==="unsupported"?"LinkedIn returned an unsupported inbox response. No complete sync was recorded.":"LinkedIn inbox could not be checked. Sync will retry later.";
+    const status=code==="auth"||code==="owner_changed"?"auth_required":code==="rate_limit"?"rate_limited":"error";
+    const retry=error instanceof ProviderError&&Number.isFinite(error.retryAfterMs)?error.retryAfterMs!:900000;
+    const delay=code==="rate_limit"?Math.min(86400000,Math.max(60000,retry)):code==="unsupported"?1800000:300000;
+    const message=code==="owner_changed"?"A different LinkedIn account was connected. Reconnect the original account; inbox sync is on hold.":code==="auth"?"Reconnect LinkedIn to read messages.":code==="rate_limit"?"LinkedIn requested a pause. Sync will retry later.":code==="unsupported"?"LinkedIn returned an unsupported inbox response. No complete sync was recorded.":"LinkedIn inbox could not be checked. Sync will retry later.";
     save(status,JSON.stringify(state),before.success_at_ms,clock()+delay,code,message);return {status,messagesAdded,tracksStopped};
   }finally{db.prepare("UPDATE linkedin_inbox_sync SET lease_owner=NULL,lease_until_ms=0 WHERE account_id=? AND lease_owner=?").run(accountId,owner);}
 }

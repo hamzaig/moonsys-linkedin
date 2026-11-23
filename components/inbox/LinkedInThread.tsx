@@ -9,7 +9,7 @@ export function LinkedInThreadContent({thread,onClose}:{thread:Thread;onClose?:(
   return <div className="flex h-full min-h-0 flex-col">
     <div className="flex shrink-0 items-start justify-between gap-4 border-b border-base-300 p-5">
       <div><p className="mb-1 flex items-center gap-1.5 text-xs text-muted"><RiLinkedinBoxLine aria-hidden="true"/>LinkedIn · {conversation.account_name}</p><h2 id="linkedin-thread-title" className="text-lg font-semibold">{conversation.full_name??"Campaign conversation"}</h2>
-        {conversation.last_incoming_at_ms!==null&&<p className="mt-1 text-xs text-success">Incoming reply saved · matching queued follow-ups stopped</p>}
+        {conversation.last_incoming_at_ms!==null&&<p className="mt-1 text-xs text-success">Incoming reply saved</p>}
       </div>{onClose&&<button type="button" className="ms-icon-button" onClick={onClose} aria-label="Close conversation"><RiCloseLine size={20}/></button>}
     </div>
     <div className="flex-1 space-y-4 overflow-y-auto p-5">

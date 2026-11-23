@@ -33,4 +33,3 @@ export interface InboxReply {
   dispatch_result_json: string | null;
   manually_edited: number;
 }
-

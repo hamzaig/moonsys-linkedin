@@ -2,6 +2,7 @@ import type Database from "better-sqlite3";
 import { getSessionContext, saveSessionState } from "@/lib/linkedin/session";
 import { createLinkedInProvider, ProviderError } from "./provider";
 import { syncLinkedInInbox } from "./sync";
+import { readLinkedInResponse } from "./transport";
 
 export async function syncAccountInbox(db:Database.Database,accountId:string,options:{force?:boolean}={}) {
   const account=db.prepare("SELECT is_authenticated FROM accounts WHERE id=?").get(accountId) as {is_authenticated:number}|undefined;
@@ -22,10 +23,7 @@ export async function syncAccountInbox(db:Database.Database,accountId:string,opt
       if(attempt===0&&[301,302,307,308].includes(response.status())&&location){
         const redirect=new URL(location,url);if(redirect.origin===url.origin&&redirect.pathname===url.pathname&&redirect.search===url.search){await response.dispose();continue;}
       }
-      const retryValue=headers["retry-after"];const retryAfterMs=retryValue?(/^[\d.]+$/.test(retryValue)?Number(retryValue)*1000:Math.max(0,Date.parse(retryValue)-Date.now())):undefined;
-      let json:unknown=null;
-      try{if(headers["content-type"]?.includes("json")){const body=await response.body();if(body.length>5000000)throw new ProviderError("unsupported","LinkedIn response too large");json=JSON.parse(body.toString("utf8"));}}finally{await response.dispose()}
-      return {status:response.status(),json,retryAfterMs};
+      return readLinkedInResponse(response);
     }
     throw new ProviderError("auth","Reconnect LinkedIn");
   },process.env.LINKEDIN_CONVERSATIONS_QUERY_ID||undefined);

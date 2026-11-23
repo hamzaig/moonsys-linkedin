@@ -28,7 +28,7 @@ export class PendingInviteError extends Error {}
  * Throws WeeklyLimitError if the weekly limit popup appears.
  * Throws AlreadyConnectedError / PendingInviteError if already in that state.
  */
-export async function sendConnectionRequest(page: Page, linkedinUrl: string): Promise<void> {
+export async function sendConnectionRequest(page: Page, linkedinUrl: string, beforeSend?: () => void): Promise<void> {
   await page.goto(linkedinUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
   await page.waitForTimeout(2000 + Math.random() * 1000);
 
@@ -68,6 +68,7 @@ export async function sendConnectionRequest(page: Page, linkedinUrl: string): Pr
     'a[aria-label*="Invite"][aria-label*="to connect"]:visible, a[href*="custom-invite"]:visible, button[aria-label*="Invite"][aria-label*="to connect"]:visible'
   ).first();
   if (await directConnect.count() > 0) {
+    beforeSend?.();
     await openConnectControl(page, directConnect);
   } else {
     // Case 2: Connect is inside the top card's "More" menu. Since the Nov 2026
@@ -84,6 +85,7 @@ export async function sendConnectionRequest(page: Page, linkedinUrl: string): Pr
 
     const connectOption = page.locator('[role="menuitem"]:visible').filter({ hasText: /^\s*Connect\s*$/ });
     if (await connectOption.count() === 0) throw new Error("Connect option not found in More menu");
+    beforeSend?.();
     await openConnectControl(page, connectOption.first());
   }
 
@@ -100,6 +102,7 @@ export async function sendConnectionRequest(page: Page, linkedinUrl: string): Pr
     // "Connection request sent" although nothing was sent.
     throw new Error("Send invitation dialog not found after clicking Connect");
   }
+  beforeSend?.();
   await sendBtn.first().click({ force: true });
   await page.waitForTimeout(1500);
 

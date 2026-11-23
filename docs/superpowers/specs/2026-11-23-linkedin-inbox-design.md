@@ -139,3 +139,7 @@ These are implementation proposals for the owner's review, not claims that the o
 ## Reference
 
 HeyReach's own [Unified Inbox page](https://www.heyreach.io/unified-inbox) describes multi-sender conversations and campaign-conversation privacy. Its [sequence guide](https://help.heyreach.io/en/articles/10493916-what-can-be-automated-in-heyreach-sequence) describes outreach actions. These inform the feature goal; this first iteration does not claim complete HeyReach parity or instant synchronization.
+
+## Implementation evidence (2026-11-23)
+
+Implemented and applied locally after owner approval. See [validation and remaining limitations](../../LINKEDIN-INBOX-VALIDATION.md). The disconnected account correctly reports `auth_required`; a positive live provider sync is still pending reconnection. 71 tests and 15 isolated HTTP checks pass; build/typecheck pass. Campaign profiles, tracks/times, steps and account settings were compared unchanged after the additive migration.
