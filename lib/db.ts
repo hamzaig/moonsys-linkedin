@@ -1,3 +1,4 @@
+import { initInboxSchema } from "@/lib/linkedin/inbox/store";
 import Database from "better-sqlite3";
 import path from "path";
 import { randomUUID } from "crypto";
@@ -15,6 +16,7 @@ export function getDb(): Database.Database {
     db.pragma("foreign_keys = ON");
     initDb(db);
     runMigrations(db);
+    initInboxSchema(db);
     scheduleUpdateCheck();
   }
   return db;
