@@ -21,4 +21,4 @@ Each feature gets a reviewed design, a concrete implementation plan, meaningful 
 
 Feature 1 is implemented and applied locally: account-scoped Inbox, periodic reader and stop-on-reply. 71 tests, build and 15 fixture HTTP checks pass. Live positive reading remains pending account reconnection; the app currently shows `auth_required`. See [validation](LINKEDIN-INBOX-VALIDATION.md). Feature 2 is not yet approved or implemented.
 
-Feature 2 design was approved on 24 November 2026. Manual reply implementation is in isolated verification/final review; see [guide](LINKEDIN-REPLIES.md). Positive live delivery remains pending reconnection and an explicit user Send.
+Feature 2 design was approved on 24 November 2026. Manual replies are implemented and applied locally; 130 tests, production build and 23 fixture HTTP checks pass. See [guide](LINKEDIN-REPLIES.md) and [validation](LINKEDIN-REPLIES-VALIDATION.md). Positive live delivery remains pending reconnection and an explicit user Send.

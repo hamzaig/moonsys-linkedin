@@ -131,3 +131,7 @@ A fresh builder check raised four material questions, resolved here as proposed 
 4. Deletion: purge text/provider identities but retain minimal idempotency tombstones independent of cascades. Cost: opaque operation metadata remains after deletion so an old request can never deliver again.
 
 UI design uses the existing MoonSys MASTER and focused UI/UX Pro Max form guidance. The Next.js dataset's newer App Router recommendation does not apply to this existing Pages Router application; the matching React 19.2 controlled-input and effect-cleanup guidance does.
+
+## Implementation evidence (2026-11-24)
+
+Implemented and applied locally after owner approval. A fresh final review and TDD fix pass are complete; 130 tests, typecheck, feature lint, production build and 23 isolated HTTP checks pass. Backup/migration and unchanged campaign data verified. Real account remains disconnected and no delivery was attempted. See [validation](../../LINKEDIN-REPLIES-VALIDATION.md).
