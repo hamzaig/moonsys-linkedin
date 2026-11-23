@@ -65,3 +65,9 @@ test('late positive acknowledgment upgrades the same expired sending attempt wit
  const f=pending(t);let time=now;const p=provider(f,{send:async(_,before)=>{before();time+=120001;assert.equal(getReply(f.db,f.op.id,time).status,'unknown');return ack}});
  assert.equal((await dispatchReply(f.db,f.op.id,async()=>p,()=>time)).status,'sent');
 });
+
+test('a POST 429 is unconfirmed with persistent manual backoff and no automatic retry',async t=>{
+ const f=pending(t);let writes=0;const p=provider(f,{send:async(_,before)=>{before();writes++;throw new ProviderError('rate_limit','untrusted body',429,NaN)}});
+ const result=await dispatchReply(f.db,f.op.id,async()=>p,()=>now);assert.equal(result.status,'unknown');assert.ok(f.db.prepare("SELECT retry_at_ms FROM linkedin_reply_accounts WHERE account_id='a'").get().retry_at_ms>=now+60000);
+ await dispatchReply(f.db,f.op.id,async()=>p,()=>now+1);assert.equal(writes,1);
+});
