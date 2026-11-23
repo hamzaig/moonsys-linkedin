@@ -1,0 +1,29 @@
+MoonSys Source-Available License 1.0
+
+Copyright (c) 2026 MoonSys.
+
+
+Permission is granted, free of charge, to any person obtaining a copy of this
+software and its associated documentation (the "Software"), to use, copy, modify,
+merge, publish, distribute, sublicense, and sell copies of the Software for any
+purpose, including commercial purposes, subject to the following conditions:
+
+1. The above copyright notice and this license must be included in all copies or
+   substantial portions of the Software. Redistribution and sublicensing must
+   preserve the restriction in section 2 and may not grant rights prohibited by it.
+
+2. You may not offer the Software, or a modified version substantially derived
+   from it, to third parties as a hosted or managed software-as-a-service (SaaS)
+   product, whether paid or free. Running the Software on your own infrastructure
+   for personal use or your own organization's internal business use is allowed.
+   Selling or distributing copies for others to run themselves is allowed.
+   SaaS rights require separate written permission from MoonSys.
+
+Third-party dependencies remain subject to their respective licenses. This
+license does not replace or remove their copyright notices or license terms.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL MOONSYS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
+ARISING FROM THE USE OF THE SOFTWARE.
