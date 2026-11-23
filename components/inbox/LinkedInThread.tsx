@@ -1,10 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import LinkedInReplyComposer from "./LinkedInReplyComposer";
+import { ReplyDraftRegistry } from "@/lib/inbox/reply-client";
+import type { PublicReply,ReplyCapability } from "@/lib/linkedin/inbox/reply-types";
+import type { ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RiCloseLine, RiExternalLinkLine, RiLinkedinBoxLine } from "react-icons/ri";
 import type { StoredConversation, StoredMessage } from "@/lib/linkedin/inbox/store";
 import { linkedInConversationUrl } from "@/lib/linkedin/inbox/presentation";
 
-type Thread={conversation:StoredConversation;messages:StoredMessage[]};
-export function LinkedInThreadContent({thread,onClose}:{thread:Thread;onClose?:()=>void}) {
+type Thread={conversation:StoredConversation;messages:StoredMessage[];replyCapability:ReplyCapability;replySends:PublicReply[]};
+export function LinkedInThreadContent({thread,onClose,composer}:{thread:Thread;onClose?:()=>void;composer?:ReactNode}) {
   const {conversation,messages}=thread;const url=linkedInConversationUrl(conversation.provider_urn);
   return <div className="flex h-full min-h-0 flex-col">
     <div className="flex shrink-0 items-start justify-between gap-4 border-b border-base-300 p-5">
@@ -18,14 +22,31 @@ export function LinkedInThreadContent({thread,onClose}:{thread:Thread;onClose?:(
         <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.text||"[Unsupported LinkedIn content]"}</p>
       </article>)}
     </div>
+    {composer}
     <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-base-300 p-5"><p className="text-xs text-muted">Campaign conversations · checked periodically</p>{url&&<a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-accent-content">Reply on LinkedIn <RiExternalLinkLine aria-hidden="true"/></a>}</div>
   </div>;
 }
-export default function LinkedInThread({id,onClose}:{id:string;onClose:()=>void}) {
-  const dialog=useRef<HTMLDialogElement>(null);const [thread,setThread]=useState<Thread|null>(null);const [error,setError]=useState("");
-  useEffect(()=>{dialog.current?.showModal()},[]);
-  useEffect(()=>{const controller=new AbortController();fetch(`/api/inbox/linkedin/thread?id=${encodeURIComponent(id)}`,{signal:controller.signal}).then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data.error??"Could not load conversation");setThread(data)}).catch(reason=>{if(reason.name!=="AbortError")setError(reason.message)});return()=>controller.abort()},[id]);
-  return <dialog ref={dialog} className="ms-thread-dialog" aria-labelledby="linkedin-thread-title" onClose={onClose} onCancel={onClose}>
-    {thread?<LinkedInThreadContent thread={thread} onClose={onClose}/>:<div className="p-6"><div className="flex items-center justify-between"><h2 id="linkedin-thread-title" className="text-lg font-semibold">LinkedIn conversation</h2><button type="button" className="ms-icon-button" onClick={onClose} aria-label="Close conversation"><RiCloseLine size={20}/></button></div><p role={error?"alert":"status"} className={`py-12 text-center text-sm ${error?"text-error":"text-muted"}`}>{error||"Loading stored conversation…"}</p></div>}
+export default function LinkedInThread({id,onClose,drafts}:{id:string;onClose:()=>void;drafts:ReplyDraftRegistry}) {
+  const dialog=useRef<HTMLDialogElement>(null),request=useRef<AbortController|null>(null),lifecycle=useRef<AbortController|null>(null);
+  const [thread,setThread]=useState<Thread|null>(null),[error,setError]=useState("");
+  const load=useCallback(async()=>{
+    request.current?.abort();const controller=new AbortController();request.current=controller;
+    try{
+      const response=await fetch(`/api/inbox/linkedin/thread?id=${encodeURIComponent(id)}`,{signal:controller.signal,cache:"no-store"});const data=await response.json();
+      if(!response.ok)throw new Error(data.error??"Could not load conversation");
+      if(controller.signal.aborted)return;
+      for(const operation of data.replySends??[])drafts.apply(id,operation);
+      setThread(data);setError("");
+    }catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:"Could not load conversation")}
+  },[id,drafts]);
+  useEffect(()=>{
+    const controller=new AbortController();lifecycle.current=controller;dialog.current?.showModal();void load();
+    return()=>{controller.abort();request.current?.abort()};
+  },[load]);
+  const active=thread?.replySends.some(op=>op.status==="preparing"||op.status==="sending");
+  useEffect(()=>{const timer=setInterval(()=>void load(),active?2000:15000);return()=>clearInterval(timer)},[load,active]);
+  const close=()=>{lifecycle.current?.abort();request.current?.abort();onClose()};
+  return <dialog ref={dialog} className="ms-thread-dialog" aria-labelledby="linkedin-thread-title" onClose={close} onCancel={close}>
+    {thread?<><LinkedInThreadContent thread={thread} onClose={close} composer={<LinkedInReplyComposer conversationId={id} sender={thread.conversation.account_name} capability={thread.replyCapability} operations={thread.replySends} drafts={drafts} getSignal={()=>lifecycle.current?.signal??null} onChanged={()=>void load()}/>}/>{error&&<p role="alert" className="px-5 pb-3 text-xs text-error">{error}</p>}</>:<div className="p-6"><div className="flex items-center justify-between"><h2 id="linkedin-thread-title" className="text-lg font-semibold">LinkedIn conversation</h2><button type="button" className="ms-icon-button" onClick={close} aria-label="Close conversation"><RiCloseLine size={20}/></button></div><p role={error?"alert":"status"} className={`py-12 text-center text-sm ${error?"text-error":"text-muted"}`}>{error||"Loading stored conversation…"}</p></div>}
   </dialog>;
 }
