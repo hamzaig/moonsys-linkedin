@@ -89,14 +89,15 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
       <div className="flex items-center gap-1.5">
         <button
           type="button"
+          aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
           className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border text-sm text-left transition-colors ${open ? "border-primary/40 bg-primary/5" : "border-base-300/40 bg-base-200/60 hover:border-base-300/80"}`}
         >
-          <RiCalendarLine size={14} className="text-base-content/40 shrink-0" />
-          <span className={value ? "text-base-content/90" : "text-base-content/30"}>{value ? fmt(value) : placeholder}</span>
+          <RiCalendarLine size={14} className="text-muted shrink-0" />
+          <span className={value ? "text-base-content/90" : "text-muted"}>{value ? fmt(value) : placeholder}</span>
         </button>
         {clearable && value && (
-          <button type="button" onClick={() => onChange("")} title="Clear" className="w-8 h-8 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors">
+          <button type="button" onClick={() => onChange("")} title="Clear date and time" aria-label="Clear date and time" className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors">
             <RiCloseLine size={14} />
           </button>
         )}
@@ -116,11 +117,11 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-base-content/80">{MONTHS[view.getMonth()]} {view.getFullYear()}</span>
               <div className="flex gap-0.5">
-                <button type="button" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))} className="w-7 h-7 flex items-center justify-center rounded-md text-base-content/50 hover:bg-base-300/50"><RiArrowLeftSLine size={16} /></button>
-                <button type="button" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))} className="w-7 h-7 flex items-center justify-center rounded-md text-base-content/50 hover:bg-base-300/50"><RiArrowRightSLine size={16} /></button>
+                <button type="button" aria-label="Previous month" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))} className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:bg-base-300/50"><RiArrowLeftSLine size={16} /></button>
+                <button type="button" aria-label="Next month" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))} className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:bg-base-300/50"><RiArrowRightSLine size={16} /></button>
               </div>
             </div>
-            <div className="grid grid-cols-7 text-center text-[11px] text-base-content/30 mb-1">
+            <div className="grid grid-cols-7 text-center text-[11px] text-muted mb-1">
               {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => <span key={d}>{d}</span>)}
             </div>
             <div className="grid grid-cols-7 gap-0.5">
@@ -132,11 +133,14 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
                   <button
                     key={d.toISOString()}
                     type="button"
+                    aria-label={d.toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                    aria-pressed={isSel}
+                    aria-current={isToday ? "date" : undefined}
                     onClick={() => setDay(d)}
                     className={`h-7 rounded-lg text-sm transition-colors ${
-                      isSel ? "bg-primary text-primary-content font-semibold"
+                      isSel ? "bg-accent text-accent-content font-semibold"
                         : isToday ? "ring-1 ring-primary/50 text-base-content hover:bg-base-300/60"
-                        : inMonth ? "text-base-content/75 hover:bg-base-300/60" : "text-base-content/20 hover:bg-base-300/40"
+                        : inMonth ? "text-base-content/75 hover:bg-base-300/60" : "text-muted hover:bg-base-300/40"
                     }`}
                   >{d.getDate()}</button>
                 );
@@ -145,12 +149,12 @@ export default function DateTimePicker({ value, onChange, placeholder = "Pick da
           </div>
 
           <div className="flex items-center gap-2 pt-2.5 border-t border-base-300/40">
-            <span className="text-xs font-medium text-base-content/60 mr-1">Time</span>
-            <select value={hh} onChange={(e) => setTime(Number(e.target.value), mm)} className={selCls}>
+            <span className="text-xs font-medium text-muted mr-1">Time</span>
+            <select aria-label="Hour" value={hh} onChange={(e) => setTime(Number(e.target.value), mm)} className={selCls}>
               {Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{pad(h)}</option>)}
             </select>
-            <span className="text-base-content/30">:</span>
-            <select value={mm - (mm % 5)} onChange={(e) => setTime(hh, Number(e.target.value))} className={selCls}>
+            <span className="text-muted">:</span>
+            <select aria-label="Minute" value={mm - (mm % 5)} onChange={(e) => setTime(hh, Number(e.target.value))} className={selCls}>
               {Array.from({ length: 12 }, (_, i) => i * 5).map((m) => <option key={m} value={m}>{pad(m)}</option>)}
             </select>
             <button type="button" onClick={() => setOpen(false)} className="ml-auto px-4 py-1.5 rounded-lg text-xs font-medium bg-primary/90 text-primary-content hover:bg-primary transition-colors">Done</button>

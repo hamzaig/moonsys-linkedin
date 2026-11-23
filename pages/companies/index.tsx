@@ -1,3 +1,5 @@
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useState } from "react";
 import { GetServerSideProps } from "next";
@@ -108,37 +110,36 @@ export default function CompaniesPage({ initialCompanies }: { initialCompanies: 
         <meta name="robots" content="noindex, nofollow" />
       </Head>
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <PageHeader className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-semibold">Companies</h1>
-            <p className="text-base-content/50 text-sm mt-0.5">Organisations associated with your contacts</p>
+            <PageTitle className="text-xl font-semibold">Companies</PageTitle>
+            <PageDescription className="text-muted text-sm mt-0.5">Organisations associated with your contacts</PageDescription>
           </div>
           <button
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors"
             onClick={openCreate}
           >
             <RiAddLine size={15} /> Add Company
           </button>
-        </div>
+        </PageHeader>
 
         <div className="mb-4">
           <input
-            className="input input-bordered input-sm w-72 bg-base-300/50"
+            className="input input-bordered input-sm w-full max-w-72 bg-base-200"
             placeholder="Search companies..."
+            aria-label="Search companies"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         {filtered.length === 0 ? (
-          <div className="text-center py-16 text-base-content/40 text-sm">
-            {search ? "No companies match your search." : "No companies yet."}
-          </div>
+          <EmptyState title={search ? "No companies found" : "Keep your companies together"} description={search ? "Try another company name or clear your search." : "Add a company to connect organisations with your contacts."} />
         ) : (
           <div className="overflow-x-auto rounded-lg border border-base-300/50">
             <table className="table w-full text-sm">
               <thead>
-                <tr className="border-base-300/50 text-base-content/50 text-xs uppercase tracking-wide">
+                <tr className="border-base-300/50 text-muted text-xs uppercase tracking-wide">
                   <th>Name</th>
                   <th>Domain</th>
                   <th>Industry</th>
@@ -153,27 +154,27 @@ export default function CompaniesPage({ initialCompanies }: { initialCompanies: 
                     <td>
                       <div className="flex items-center gap-2">
                         <span className="w-6 h-6 rounded-md bg-base-300 flex items-center justify-center shrink-0">
-                          <RiBuildingLine size={12} className="text-base-content/40" />
+                          <RiBuildingLine size={12} className="text-muted" />
                         </span>
                         <Link href={`/companies/${c.id}`} className="font-medium hover:text-primary transition-colors cursor-pointer">
                           {c.name}
                         </Link>
                       </div>
                     </td>
-                    <td className="text-base-content/50 text-xs">
+                    <td className="text-muted text-xs">
                       {c.domain ? (
                         <span className="inline-flex items-center gap-1">
                           <RiGlobalLine size={11} /> {c.domain}
                         </span>
-                      ) : <span className="text-base-content/25">—</span>}
+                      ) : <span className="text-muted">—</span>}
                     </td>
-                    <td className="text-base-content/60 text-xs">{c.industry ?? <span className="text-base-content/25">—</span>}</td>
-                    <td className="text-base-content/60 text-xs">{c.location ?? <span className="text-base-content/25">—</span>}</td>
-                    <td className="text-base-content/60 text-xs">{c.contact_count}</td>
+                    <td className="text-muted text-xs">{c.industry ?? <span className="text-muted">—</span>}</td>
+                    <td className="text-muted text-xs">{c.location ?? <span className="text-muted">—</span>}</td>
+                    <td className="text-muted text-xs">{c.contact_count}</td>
                     <td>
                       <div className="flex justify-end gap-1">
                         <button
-                          className="inline-flex items-center px-2 py-1 rounded-md text-xs text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                          className="inline-flex items-center px-2 py-1 rounded-md text-xs text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                           onClick={() => openEdit(c)}
                         >
                           Edit
@@ -199,40 +200,40 @@ export default function CompaniesPage({ initialCompanies }: { initialCompanies: 
               <h3 className="font-semibold text-base mb-4">{editId ? "Edit Company" : "Add Company"}</h3>
               <form onSubmit={submit} className="flex flex-col gap-3">
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Company name <span className="text-error">*</span></label>
+                  <label className="label text-xs text-muted pb-1">Company name <span className="text-error">*</span></label>
                   <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="Acme Inc." value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">Domain</label>
+                    <label className="label text-xs text-muted pb-1">Domain</label>
                     <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="acme.com" value={form.domain} onChange={(e) => setForm({ ...form, domain: e.target.value })} />
                   </div>
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">Industry</label>
+                    <label className="label text-xs text-muted pb-1">Industry</label>
                     <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="SaaS" value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">Location</label>
+                    <label className="label text-xs text-muted pb-1">Location</label>
                     <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="Berlin, Germany" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
                   </div>
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">Website</label>
+                    <label className="label text-xs text-muted pb-1">Website</label>
                     <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="https://acme.com" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
                   </div>
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">LinkedIn URL</label>
+                  <label className="label text-xs text-muted pb-1">LinkedIn URL</label>
                   <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="https://linkedin.com/company/acme" value={form.linkedin_url} onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })} />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Notes</label>
+                  <label className="label text-xs text-muted pb-1">Notes</label>
                   <textarea className="textarea textarea-bordered w-full bg-base-300/50 text-sm h-20 resize-none" placeholder="Any notes..." value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                 </div>
                 <div className="modal-action mt-1">
-                  <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowModal(false)}>Cancel</button>
-                  <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={loading}>
+                  <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowModal(false)}>Cancel</button>
+                  <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={loading}>
                     {loading ? <span className="loading loading-spinner loading-xs" /> : (editId ? "Save Changes" : "Add Company")}
                   </button>
                 </div>

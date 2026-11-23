@@ -1,3 +1,5 @@
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { GetServerSideProps } from "next";
@@ -68,7 +70,7 @@ function ConnectionIcon({ t }: { t: Contact }) {
     return <span title="Request sent" className="text-warning"><RiUserAddLine size={14} /></span>;
   }
   return (
-    <span title={t.degree === 2 ? "2nd degree" : t.degree === 3 ? "3rd degree" : "Not connected"} className="text-base-content/20">
+    <span title={t.degree === 2 ? "2nd degree" : t.degree === 3 ? "3rd degree" : "Not connected"} className="text-muted">
       <RiUserLine size={14} />
     </span>
   );
@@ -219,32 +221,32 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
       )}
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <PageHeader className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-semibold">Contacts</h1>
-            <p className="text-base-content/50 text-sm mt-0.5">
+            <PageTitle className="text-xl font-semibold">Contacts</PageTitle>
+            <PageDescription className="text-muted text-sm mt-0.5">
               {total.toLocaleString()} contact{total !== 1 ? "s" : ""}
               {hasActiveFilters ? " matching filters" : " total"}
-            </p>
+            </PageDescription>
           </div>
           <button
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors"
             onClick={() => setShowNewContact(true)}
           >
             <RiAddLine size={15} /> New Contact
           </button>
-        </div>
+        </PageHeader>
 
         {/* Filter row */}
         <div className="flex items-center gap-3 mb-5 flex-wrap" data-tour="contacts-filters">
           {/* Search */}
           <div className="relative">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-base-content/30 pointer-events-none">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none">
               <RiSearchLine size={13} />
             </span>
             <input
               type="text"
-              className="w-56 bg-base-200 border border-base-300/50 rounded-lg pl-8 pr-3 py-1.5 text-sm text-base-content placeholder:text-base-content/30 focus:outline-none focus:border-primary/40"
+              className="w-56 bg-base-200 border border-base-300/50 rounded-lg pl-8 pr-3 py-1.5 text-sm text-base-content placeholder:text-muted focus:outline-none focus:border-primary/40"
               placeholder="Search name, company…"
               value={search}
               onChange={(e) => changeSearch(e.target.value)}
@@ -274,7 +276,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
 
         {selected.size > 0 && (
           <div className="flex items-center gap-3 mb-3 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
-            <span className="text-xs text-base-content/60 flex-1">{selected.size} selected</span>
+            <span className="text-xs text-muted flex-1">{selected.size} selected</span>
             <button
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-base-300/60 text-base-content/70 hover:bg-base-300 transition-colors"
               onClick={() => setShowAddToList(true)}
@@ -288,7 +290,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
               <RiDeleteBinLine size={13} /> Delete
             </button>
             <button
-              className="text-xs text-base-content/40 hover:text-base-content transition-colors"
+              className="text-xs text-muted hover:text-base-content transition-colors"
               onClick={() => setSelected(new Set())}
             >
               Clear
@@ -298,19 +300,17 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
 
         {/* Table */}
         {loading && contacts.length === 0 ? (
-          <div className="flex items-center justify-center py-20 text-base-content/30 text-sm gap-2">
+          <div className="flex items-center justify-center py-20 text-muted text-sm gap-2">
             <span className="loading loading-spinner loading-sm" /> Loading...
           </div>
         ) : contacts.length === 0 ? (
-          <div className="text-center py-20 text-base-content/30 text-sm">
-            {hasActiveFilters ? "No contacts match these filters." : listId ? "No contacts in this list." : "No contacts yet. Import from a list."}
-          </div>
+          <EmptyState title={hasActiveFilters ? "No matching contacts" : listId ? "This list is ready for contacts" : "Build your contact workspace"} description={hasActiveFilters ? "Adjust your filters to find the contacts you need." : "Import contacts from a lead list to get started."} />
         ) : (
           <>
             <div className="overflow-x-auto rounded-lg border border-base-300/50">
               <table className="table w-full text-sm">
                 <thead>
-                  <tr className="border-base-300/50 text-base-content/50 text-xs uppercase tracking-wide">
+                  <tr className="border-base-300/50 text-muted text-xs uppercase tracking-wide">
                     <th className="w-8" data-tour="contacts-select">
                       <input type="checkbox" className="w-3.5 h-3.5 rounded border border-base-300 bg-base-300/50 accent-primary cursor-pointer" checked={allPageSelected} onChange={toggleAll} />
                     </th>
@@ -340,22 +340,22 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                       </td>
                       <td>
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-base-300 flex items-center justify-center text-xs font-semibold text-base-content/50 shrink-0">
+                          <div className="w-7 h-7 rounded-full bg-base-300 flex items-center justify-center text-xs font-semibold text-muted shrink-0">
                             {(c.full_name ?? "?").charAt(0).toUpperCase()}
                           </div>
                           <span className="font-medium truncate max-w-36">{c.full_name ?? "—"}</span>
                         </div>
                       </td>
-                      <td className="text-base-content/60 max-w-44 truncate">{c.title ?? "—"}</td>
-                      <td className="text-base-content/60 truncate max-w-36">{c.company ?? "—"}</td>
-                      <td className="text-base-content/40 text-xs truncate max-w-32">{c.location ?? "—"}</td>
-                      <td className="text-base-content/60 text-xs font-mono max-w-40" onClick={(e) => e.stopPropagation()}>
+                      <td className="text-muted max-w-44 truncate">{c.title ?? "—"}</td>
+                      <td className="text-muted truncate max-w-36">{c.company ?? "—"}</td>
+                      <td className="text-muted text-xs truncate max-w-32">{c.location ?? "—"}</td>
+                      <td className="text-muted text-xs font-mono max-w-40" onClick={(e) => e.stopPropagation()}>
                         {c.email ? (
                           <button onClick={() => setEmailTo(c)} title="Send email" className="group flex items-center gap-1.5 max-w-full hover:text-primary transition-colors">
                             <span className="truncate">{c.email}</span>
                             <RiMailSendLine size={12} className="shrink-0 opacity-0 group-hover:opacity-100" />
                           </button>
-                        ) : <span className="text-base-content/20">—</span>}
+                        ) : <span className="text-muted">—</span>}
                       </td>
                       <td onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-1.5">
@@ -373,7 +373,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                             <span title={`Email (${c.email_status ?? "unverified"})`} className="text-warning"><RiAtLine size={13} /></span>
                           )}
                           {c.apollo_enriched_at && !c.email && (
-                            <span title="Apollo enriched — no email" className="text-base-content/20"><RiMailLine size={13} /></span>
+                            <span title="Apollo enriched — no email" className="text-muted"><RiMailLine size={13} /></span>
                           )}
                         </div>
                       </td>
@@ -383,7 +383,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                             href={c.linkedin_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center p-1 rounded text-base-content/30 hover:text-base-content transition-colors"
+                            className="inline-flex items-center p-1 rounded text-muted hover:text-base-content transition-colors"
                           >
                             <RiExternalLinkLine size={13} />
                           </a>
@@ -396,13 +396,13 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
             </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-3 text-sm text-base-content/50">
+              <div className="flex items-center justify-between mt-3 text-sm text-muted">
                 <span>
                   {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total.toLocaleString()}
                 </span>
                 <div className="flex items-center gap-1">
                   <button
-                    className="inline-flex items-center justify-center w-6 h-6 rounded text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center w-6 h-6 rounded text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     onClick={() => setPage((p) => p - 1)}
                     disabled={page === 0 || loading}
                   >
@@ -410,7 +410,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                   </button>
                   <span className="px-2">{page + 1} / {totalPages}</span>
                   <button
-                    className="inline-flex items-center justify-center w-6 h-6 rounded text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center w-6 h-6 rounded text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     onClick={() => setPage((p) => p + 1)}
                     disabled={page >= totalPages - 1 || loading}
                   >
@@ -421,7 +421,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
             )}
 
             {loading && contacts.length > 0 && (
-              <div className="flex items-center gap-1.5 mt-3 text-xs text-base-content/30">
+              <div className="flex items-center gap-1.5 mt-3 text-xs text-muted">
                 <span className="loading loading-spinner loading-xs" /> Loading...
               </div>
             )}
@@ -435,7 +435,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
             <form onSubmit={createContact} className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <label className="label text-xs text-base-content/50 pb-1">Full name *</label>
+                  <label className="label text-xs text-muted pb-1">Full name *</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="Jane Smith"
@@ -445,7 +445,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="label text-xs text-base-content/50 pb-1">LinkedIn URL</label>
+                  <label className="label text-xs text-muted pb-1">LinkedIn URL</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50 font-mono text-xs"
                     placeholder="https://linkedin.com/in/..."
@@ -454,7 +454,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                   />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Title</label>
+                  <label className="label text-xs text-muted pb-1">Title</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="CEO"
@@ -463,7 +463,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                   />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Company</label>
+                  <label className="label text-xs text-muted pb-1">Company</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="Acme Inc."
@@ -472,7 +472,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                   />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Location</label>
+                  <label className="label text-xs text-muted pb-1">Location</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="Berlin, Germany"
@@ -481,7 +481,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                   />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Email</label>
+                  <label className="label text-xs text-muted pb-1">Email</label>
                   <input
                     type="email"
                     className="input input-bordered input-sm w-full bg-base-300/50"
@@ -491,7 +491,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                   />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Phone</label>
+                  <label className="label text-xs text-muted pb-1">Phone</label>
                   <input
                     type="tel"
                     className="input input-bordered input-sm w-full bg-base-300/50"
@@ -502,7 +502,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                 </div>
                 {lists.length > 0 && (
                   <div className="col-span-2">
-                    <label className="label text-xs text-base-content/50 pb-1">Add to list (optional)</label>
+                    <label className="label text-xs text-muted pb-1">Add to list (optional)</label>
                     <select
                       className="w-full px-3 py-1.5 rounded-lg text-sm bg-base-300 border border-base-300/80 text-base-content focus:outline-none focus:border-primary/50 cursor-pointer"
                       value={newContactForm.list_id}
@@ -517,12 +517,12 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
                 )}
               </div>
               <div className="modal-action mt-2">
-                <button type="button" className="btn btn-ghost btn-sm text-base-content/60" onClick={() => setShowNewContact(false)}>
+                <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={() => setShowNewContact(false)}>
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50"
                   disabled={newContactLoading}
                 >
                   {newContactLoading ? <span className="loading loading-spinner loading-xs" /> : "Create"}
@@ -537,7 +537,7 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
         <div className="modal modal-open">
           <div className="modal-box bg-base-200 border border-base-300/50 max-w-sm">
             <h3 className="font-semibold text-base mb-1">Add to list</h3>
-            <p className="text-xs text-base-content/50 mb-4">
+            <p className="text-xs text-muted mb-4">
               {selected.size} contact{selected.size !== 1 ? "s" : ""} will be added. Contacts already in the list are skipped.
             </p>
             <select
@@ -551,12 +551,12 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
               ))}
             </select>
             <div className="modal-action mt-4">
-              <button type="button" className="btn btn-ghost btn-sm text-base-content/60" onClick={() => { setShowAddToList(false); setAddToListId(""); }}>
+              <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={() => { setShowAddToList(false); setAddToListId(""); }}>
                 Cancel
               </button>
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50"
                 disabled={!addToListId || addToListLoading}
                 onClick={addSelectedToList}
               >
@@ -571,11 +571,11 @@ export default function ContactsPage({ lists, total: initialTotal }: { lists: Li
         <div className="modal modal-open">
           <div className="modal-box bg-base-200 border border-base-300/50 max-w-sm">
             <h3 className="font-semibold text-base mb-1">Delete {selected.size} contact{selected.size !== 1 ? "s" : ""}?</h3>
-            <p className="text-xs text-base-content/50 mb-4 leading-relaxed">
+            <p className="text-xs text-muted mb-4 leading-relaxed">
               This permanently deletes {selected.size === 1 ? "this contact" : "these contacts"} and their run history — not just from this list, but from MoonSys LinkedIn entirely. This can&apos;t be undone.
             </p>
             <div className="modal-action mt-2">
-              <button type="button" className="btn btn-ghost btn-sm text-base-content/60" onClick={() => setShowDeleteConfirm(false)} disabled={deleteLoading}>
+              <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={() => setShowDeleteConfirm(false)} disabled={deleteLoading}>
                 Cancel
               </button>
               <button

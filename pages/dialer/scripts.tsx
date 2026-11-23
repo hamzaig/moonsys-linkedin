@@ -1,3 +1,4 @@
+import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -116,22 +117,22 @@ export default function ScriptsPage() {
   return (
     <>
       <Head><title>Call scripts — MoonSys LinkedIn</title></Head>
-      <div className="-m-6 h-screen flex overflow-hidden">
-        <div className="w-72 shrink-0 border-r border-base-300/40 flex flex-col">
-          <div className="px-4 pt-5 pb-3 flex items-center justify-between">
+      <div className="ms-split-workspace">
+        <div className="ms-split-sidebar w-72 flex flex-col">
+          <PageHeader className="px-4 pt-5 pb-3 flex items-center justify-between ms-page-header--compact">
             <div>
-              <h1 className="text-base font-semibold text-base-content tracking-tight">Scripts</h1>
-              <p className="text-xs text-base-content/40 mt-1">What you read during a call</p>
+              <PageTitle className="text-base font-semibold text-base-content tracking-tight">Scripts</PageTitle>
+              <PageDescription className="text-xs text-muted mt-1">What you read during a call</PageDescription>
             </div>
             <button onClick={() => guard(() => create(false))} title="New script" className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
               <RiAddLine size={16} />
             </button>
-          </div>
+          </PageHeader>
           <div className="flex-1 overflow-y-auto px-3 pb-4 flex flex-col gap-1">
-            {scripts === null ? <p className="text-center text-xs text-base-content/30 py-16">Loading…</p>
+            {scripts === null ? <p className="text-center text-xs text-muted py-16">Loading…</p>
               : scripts.length === 0 ? (
                 <div className="text-center py-12 px-4">
-                  <p className="text-xs text-base-content/40 mb-3">No scripts yet.</p>
+                  <p className="text-xs text-muted mb-3">No scripts yet.</p>
                   <button onClick={() => create(true)} className="px-3 py-2 rounded-xl text-xs bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20">Start from a template</button>
                 </div>
               ) : scripts.map((s) => (
@@ -141,7 +142,7 @@ export default function ScriptsPage() {
                   className={`text-left px-3 py-2.5 rounded-xl border transition-colors ${s.id === selId ? "bg-primary/10 border-primary/30" : "bg-base-200/50 border-base-300/30 hover:bg-base-200"}`}
                 >
                   <p className="text-sm font-medium text-base-content truncate">{s.name}</p>
-                  <p className="text-[11px] text-base-content/35 truncate mt-0.5">{s.body.replace(/[#>*\n]+/g, " ").trim() || "Empty"}</p>
+                  <p className="text-[11px] text-muted truncate mt-0.5">{s.body.replace(/[#>*\n]+/g, " ").trim() || "Empty"}</p>
                 </button>
               ))}
           </div>
@@ -149,21 +150,22 @@ export default function ScriptsPage() {
 
         <div className="flex-1 min-w-0 flex flex-col">
           {!sel ? (
-            <div className="flex-1 flex items-center justify-center text-sm text-base-content/30">Create a script to get started.</div>
+            <div className="flex-1 flex items-center justify-center text-sm text-muted">Create a script to get started.</div>
           ) : (
             <>
-              <div className="shrink-0 px-6 py-3 border-b border-base-300/40 flex items-center gap-3">
+              <div className="shrink-0 px-5 py-3 border-b border-base-300/40 flex flex-wrap items-center gap-3">
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  aria-label="Script name"
                   placeholder="Script name"
-                  className="flex-1 bg-transparent text-base font-semibold text-base-content placeholder-base-content/25 focus:outline-none"
+                  className="min-w-0 flex-1 bg-transparent text-base font-semibold text-base-content placeholder:text-muted focus:outline-none"
                 />
                 <div className="flex bg-base-200 border border-base-300/40 rounded-lg p-0.5">
-                  <button onClick={() => setPreview(false)} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs ${!preview ? "bg-base-300 text-base-content" : "text-base-content/40"}`}><RiEditLine size={12} /> Edit</button>
-                  <button onClick={() => setPreview(true)} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs ${preview ? "bg-base-300 text-base-content" : "text-base-content/40"}`}><RiEyeLine size={12} /> Preview</button>
+                  <button aria-pressed={!preview} onClick={() => setPreview(false)} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs ${!preview ? "bg-base-300 text-base-content" : "text-muted"}`}><RiEditLine size={12} /> Edit</button>
+                  <button aria-pressed={preview} onClick={() => setPreview(true)} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs ${preview ? "bg-base-300 text-base-content" : "text-muted"}`}><RiEyeLine size={12} /> Preview</button>
                 </div>
-                <button onClick={remove} title="Delete" className="w-8 h-8 flex items-center justify-center rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 transition-colors"><RiDeleteBinLine size={15} /></button>
+                <button onClick={remove} title="Delete" className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:text-error hover:bg-error/10 transition-colors"><RiDeleteBinLine size={15} /></button>
                 <button
                   onClick={save}
                   disabled={!dirty || saving || !name.trim()}
@@ -174,25 +176,26 @@ export default function ScriptsPage() {
               {preview ? (
                 <div className="flex-1 overflow-y-auto px-10 py-8">
                   <div className="max-w-3xl mx-auto">
-                    <p className="text-[11px] text-base-content/30 mb-4">Preview with sample contact ({SAMPLE.full_name}, {SAMPLE.company})</p>
+                    <p className="text-[11px] text-muted mb-4">Preview with sample contact ({SAMPLE.full_name}, {SAMPLE.company})</p>
                     <ScriptView body={fillScript(body, SAMPLE)} large />
                   </div>
                 </div>
               ) : (
                 <div className="flex-1 flex flex-col min-h-0 px-6 py-4 gap-3">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[11px] text-base-content/40 mr-1">Insert</span>
+                    <span className="text-[11px] text-muted mr-1">Insert</span>
                     {SCRIPT_VARS.map((v) => (
-                      <button key={v} onClick={() => insertVar(v)} className="px-2 py-1 rounded-md text-[11px] font-mono bg-base-200 text-base-content/60 border border-base-300/40 hover:text-primary hover:border-primary/30 transition-colors">{`{{${v}}}`}</button>
+                      <button key={v} onClick={() => insertVar(v)} className="px-2 py-1 rounded-md text-[11px] font-mono bg-base-200 text-muted border border-base-300/40 hover:text-primary hover:border-primary/30 transition-colors">{`{{${v}}}`}</button>
                     ))}
-                    <span className="ml-auto text-[11px] text-base-content/30">Markdown · Ctrl/⌘+S to save</span>
+                    <span className="ml-auto text-[11px] text-muted">Markdown · Ctrl/⌘+S to save</span>
                   </div>
                   <textarea
                     ref={bodyRef}
+                    aria-label="Script content"
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
                     placeholder="Write what you want to say. Use ### for sections, - for bullets, > for quotes, **bold** for emphasis."
-                    className="flex-1 w-full bg-base-200/60 border border-base-300/40 rounded-xl px-5 py-4 text-sm font-mono text-base-content/80 placeholder-base-content/25 leading-relaxed focus:outline-none focus:border-base-300/80 resize-none"
+                    className="flex-1 w-full bg-base-200/60 border border-base-300/40 rounded-xl px-5 py-4 text-sm font-mono text-base-content/80 placeholder:text-muted leading-relaxed focus:outline-none focus:border-base-300/80 resize-none"
                   />
                 </div>
               )}

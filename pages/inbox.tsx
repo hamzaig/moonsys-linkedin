@@ -1,3 +1,7 @@
+import { loadInboxReplies } from "@/lib/inbox/loader";
+import LinkedInThread from "@/components/inbox/LinkedInThread";
+import LinkedInInboxControls from "@/components/inbox/LinkedInInboxControls";
+import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
@@ -49,14 +53,15 @@ const VERDICT_BADGES: Record<string, { label: string; cls: string }> = {
   call_task: { label: "Call task", cls: "bg-success/15 text-success" },
   human_reply: { label: "Human reply", cls: "bg-info/15 text-info" },
   not_interested: { label: "Not interested", cls: "bg-error/15 text-error" },
-  cancelled: { label: "Cancelled", cls: "bg-base-300/60 text-base-content/50" },
+  cancelled: { label: "Cancelled", cls: "bg-base-300/60 text-muted" },
 };
 
 function verdictBadge(reply: InboxReply): { label: string; cls: string } {
+  if (reply.linkedin_conversation_id) return { label: reply.last_replied_at ? "Reply received" : "Conversation", cls: "bg-primary/10 text-primary" };
   if (reply.classification_error) return { label: "Failed", cls: "bg-error/15 text-error" };
-  if (reply.reply_id && !reply.classified_at) return { label: "Pending", cls: "bg-base-300/60 text-base-content/50" };
+  if (reply.reply_id && !reply.classified_at) return { label: "Pending", cls: "bg-base-300/60 text-muted" };
   if (reply.reply_kind && VERDICT_BADGES[reply.reply_kind]) return VERDICT_BADGES[reply.reply_kind];
-  return { label: "—", cls: "bg-base-300/40 text-base-content/30" };
+  return { label: "—", cls: "bg-base-300/40 text-muted" };
 }
 
 // Stable key for filtering — matches the categories the badge renders.
@@ -203,16 +208,17 @@ function ReplyModal({ reply, onClose, onActionDone, hasPremium }: ReplyModalProp
             <div className="font-semibold text-base-content">
               {reply.full_name ?? reply.email ?? "Unknown"}
             </div>
-            <div className="text-xs text-base-content/40 mt-0.5">
+            <div className="text-xs text-muted mt-0.5">
               {reply.email && <span>{reply.email}</span>}
               {reply.email_account_from && (
-                <span className="ml-2 text-base-content/30">via {reply.email_account_from}</span>
+                <span className="ml-2 text-muted">via {reply.email_account_from}</span>
               )}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-base-content/40 hover:text-base-content transition-colors p-1"
+            aria-label="Close reply"
+            className="text-muted hover:text-base-content transition-colors p-1"
           >
             <RiCloseLine size={18} />
           </button>
@@ -226,21 +232,21 @@ function ReplyModal({ reply, onClose, onActionDone, hasPremium }: ReplyModalProp
                 {verdict.label}
               </span>
               {reply.manually_edited === 1 && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300/60 text-base-content/50">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300/60 text-muted">
                   edited
                 </span>
               )}
               {reply.reply_summary && (
-                <span className="text-xs text-base-content/60">{reply.reply_summary}</span>
+                <span className="text-xs text-muted">{reply.reply_summary}</span>
               )}
             </div>
 
             {reply.classification_error && (
-              <div className="text-xs text-error/80">Classifier error: {reply.classification_error}</div>
+              <div className="text-xs text-error">Classifier error: {reply.classification_error}</div>
             )}
 
             {dispatch && (
-              <div className="text-xs text-base-content/45 space-y-0.5">
+              <div className="text-xs text-muted space-y-0.5">
                 {scheduledFor && <div>Follow-up scheduled for {formatDate(scheduledFor)}</div>}
                 {dispatch.substitute_target_id ? <div>Substitute enrolled</div> : null}
                 {dispatch.todo_id ? <div>Call task created{dispatch.phone_number ? ` · ${dispatch.phone_number}` : ""}</div> : null}
@@ -275,12 +281,12 @@ function ReplyModal({ reply, onClose, onActionDone, hasPremium }: ReplyModalProp
         {/* Thread */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 min-h-0">
           {loadingThread ? (
-            <div className="flex items-center justify-center gap-2 text-base-content/30 py-10">
+            <div className="flex items-center justify-center gap-2 text-muted py-10">
               <RiLoader4Line size={18} className="animate-spin" />
               <span className="text-sm">Loading thread…</span>
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center text-base-content/30 text-sm py-10">
+            <div className="text-center text-muted text-sm py-10">
               {canReply ? "No messages found in thread" : "No email account linked to this reply"}
             </div>
           ) : (
@@ -296,8 +302,8 @@ function ReplyModal({ reply, onClose, onActionDone, hasPremium }: ReplyModalProp
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-base-content/60">{msg.from}</span>
-                    <span className="text-xs text-base-content/30">{formatDate(msg.date)}</span>
+                    <span className="text-xs font-medium text-muted">{msg.from}</span>
+                    <span className="text-xs text-muted">{formatDate(msg.date)}</span>
                   </div>
                   <p className="text-sm text-base-content whitespace-pre-wrap leading-relaxed">
                     {msg.text || "(no text content)"}
@@ -317,20 +323,20 @@ function ReplyModal({ reply, onClose, onActionDone, hasPremium }: ReplyModalProp
               value={replySubject}
               onChange={(e) => setReplySubject(e.target.value)}
               placeholder="Subject"
-              className="w-full bg-base-200 border border-base-300/50 rounded-lg px-3 py-1.5 text-sm text-base-content placeholder:text-base-content/30 focus:outline-none focus:border-primary/40"
+              className="w-full bg-base-200 border border-base-300/50 rounded-lg px-3 py-1.5 text-sm text-base-content placeholder:text-muted focus:outline-none focus:border-primary/40"
             />
             <textarea
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder={`Reply to ${reply.full_name ?? reply.email}…`}
               rows={4}
-              className="w-full bg-base-200 border border-base-300/50 rounded-lg px-3 py-2 text-sm text-base-content placeholder:text-base-content/30 focus:outline-none focus:border-primary/40 resize-none"
+              className="w-full bg-base-200 border border-base-300/50 rounded-lg px-3 py-2 text-sm text-base-content placeholder:text-muted focus:outline-none focus:border-primary/40 resize-none"
             />
             <div className="flex justify-end">
               <button
                 onClick={handleSend}
                 disabled={!replyText.trim() || sending}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {sending ? <RiLoader4Line size={14} className="animate-spin" /> : <RiSendPlaneLine size={14} />}
                 {sending ? "Sending…" : "Send"}
@@ -346,9 +352,12 @@ function ReplyModal({ reply, onClose, onActionDone, hasPremium }: ReplyModalProp
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function InboxPage() {
+  const inboxRequest = useRef<AbortController | null>(null);
   const [replies, setReplies] = useState<InboxReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [senderAccount, setSenderAccount] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [channel, setChannel] = useState<ChannelFilter>("all");
   const [verdict, setVerdict] = useState<string>("all");
   const [selectedReply, setSelectedReply] = useState<InboxReply | null>(null);
@@ -356,7 +365,7 @@ export default function InboxPage() {
   const [backfilling, setBackfilling] = useState(false);
   // Open-core: AI reply classification + backfill are premium (ee/). Replies are still
   // shown; only the AI action controls are gated behind an upgrade.
-  const [hasPremium, setHasPremium] = useState(true);
+  const [hasPremium, setHasPremium] = useState(false);
   useEffect(() => {
     fetch("/api/premium-status").then((r) => r.ok ? r.json() : null)
       .then((d) => { if (d) setHasPremium(!!d.hasPremium); }).catch(() => {});
@@ -400,26 +409,33 @@ export default function InboxPage() {
     }
   }
 
-  function load() {
-    setLoading(true);
+  function load(background = false) {
+    if (!background) setLoading(true);
     const params = new URLSearchParams();
     if (channel !== "all") params.set("channel", channel);
-    fetch(`/api/inbox?${params}`)
-      .then((r) => r.json())
-      .then((d) => setReplies(d.replies ?? []))
-      .finally(() => setLoading(false));
+    if (senderAccount) params.set("accountId", senderAccount);
+    void loadInboxReplies(`/api/inbox?${params}`, inboxRequest, {
+      onData: data => { setReplies(data); setLoadError(""); },
+      onError: () => setLoadError("Inbox could not be loaded. Please retry."),
+      onSettled: () => setLoading(false),
+    });
   }
 
   useEffect(() => {
+    const requests = inboxRequest;
+    setReplies([]);
     load();
+    const timer = setInterval(() => load(true), 30000);
+    return () => { clearInterval(timer); requests.current?.abort(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel]);
+  }, [channel, senderAccount]);
 
   const filtered = replies.filter((r) => {
     if (verdict !== "all" && verdictKey(r) !== verdict) return false;
     if (!search) return true;
     const q = search.toLowerCase();
     return (
+      (r.last_message ?? "").toLowerCase().includes(q) ||
       (r.full_name ?? "").toLowerCase().includes(q) ||
       (r.email ?? "").toLowerCase().includes(q) ||
       (r.company ?? "").toLowerCase().includes(q) ||
@@ -434,7 +450,7 @@ export default function InboxPage() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      {selectedReply && (
+      {selectedReply?.linkedin_conversation_id ? <LinkedInThread id={selectedReply.linkedin_conversation_id} onClose={() => setSelectedReply(null)} /> : selectedReply && (
         <ReplyModal
           reply={selectedReply}
           onClose={() => setSelectedReply(null)}
@@ -444,17 +460,17 @@ export default function InboxPage() {
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
+      <PageHeader className="flex items-center gap-3 mb-5">
         <div className="flex-1">
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-semibold">Inbox</h1>
+            <PageTitle className="text-xl font-semibold">Inbox</PageTitle>
             {!loading && filtered.length > 0 && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-success/15 text-success">
                 {filtered.length} repl{filtered.length !== 1 ? "ies" : "y"}
               </span>
             )}
           </div>
-          <p className="text-base-content/40 text-sm mt-0.5">Contacts who replied to your outreach</p>
+          <PageDescription>Campaign conversations and incoming replies</PageDescription>
         </div>
         <div className="flex items-center gap-2">
           {hasPremium ? (
@@ -480,18 +496,21 @@ export default function InboxPage() {
             </>
           ) : null}
         </div>
-      </div>
+      </PageHeader>
 
+      <LinkedInInboxControls accountId={senderAccount} onAccountChange={setSenderAccount} onSynced={() => load(true)} />
+      {loadError && <div role="alert" className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-error/20 bg-error/5 p-3 text-sm text-error">{loadError}<button type="button" onClick={() => load()} className="underline">Retry</button></div>}
       {/* Toolbar */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-base-content/30 pointer-events-none">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none">
             <RiSearchLine size={13} />
           </span>
           <input
             type="text"
-            className="w-56 bg-base-200 border border-base-300/50 rounded-lg pl-8 pr-3 py-1.5 text-sm text-base-content placeholder:text-base-content/30 focus:outline-none focus:border-primary/40"
+            className="w-56 bg-base-200 border border-base-300/50 rounded-lg pl-8 pr-3 py-1.5 text-sm text-base-content placeholder:text-muted focus:outline-none focus:border-primary/40"
             placeholder="Name, email, company…"
+            aria-label="Search inbox"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -503,11 +522,12 @@ export default function InboxPage() {
           {CHANNEL_TABS.map((tab) => (
             <button
               key={tab.key}
+              aria-pressed={channel === tab.key}
               onClick={() => setChannel(tab.key)}
               className={`h-7 px-3 rounded-lg text-xs font-medium transition-colors ${
                 channel === tab.key
                   ? "bg-primary/15 text-primary border border-primary/30"
-                  : "text-base-content/50 hover:text-base-content hover:bg-base-300/50"
+                  : "text-muted hover:text-base-content hover:bg-base-300/50"
               }`}
             >
               {tab.label}
@@ -518,6 +538,7 @@ export default function InboxPage() {
         <div className="w-px h-4 bg-base-300/60" />
 
         <select
+          aria-label="Filter by reply classification"
           value={verdict}
           onChange={(e) => setVerdict(e.target.value)}
           className="h-7 bg-base-200 border border-base-300/50 rounded-lg px-2.5 text-xs font-medium text-base-content/70 focus:outline-none focus:border-primary/40 cursor-pointer"
@@ -530,39 +551,39 @@ export default function InboxPage() {
 
       {/* Body */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center gap-3 text-base-content/30 py-24">
+        <div className="flex flex-col items-center justify-center gap-3 text-muted py-24">
           <span className="loading loading-spinner loading-md" />
-          <span className="text-sm">Loading replies…</span>
+          <span className="text-sm">Loading conversations…</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 text-base-content/30 py-24">
+        <div className="flex flex-col items-center justify-center gap-3 text-muted py-24">
           <RiInboxLine size={36} className="opacity-30" />
           <div className="text-center">
             <p className="text-sm font-medium">
-              {search ? "No replies match your search" : "No replies yet"}
+              {search ? "No conversations match your search" : "No campaign conversations yet"}
             </p>
-            <p className="text-xs mt-1 text-base-content/25">
-              {!search && "Replies are detected automatically by the runner"}
+            <p className="text-xs mt-1 text-muted">
+              {!search && "LinkedIn sync status is shown above. New campaign replies will appear here after a successful check."}
             </p>
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-base-300/50 overflow-hidden">
+        <div className="rounded-lg border border-base-300/50 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-base-300/50 bg-base-200/60">
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-base-content/40">Contact</th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-base-content/40">Channel</th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-base-content/40">Verdict</th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-base-content/40">From</th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-base-content/40">Campaign</th>
-                <th className="text-right px-4 py-2.5 text-xs font-medium text-base-content/40">Replied</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Contact</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Channel</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Verdict</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Sender</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Campaign</th>
+                <th className="text-right px-4 py-2.5 text-xs font-medium text-muted">Last activity</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((r) => (
                 <tr
-                  key={r.id}
+                  key={r.inbox_key ?? r.id}
                   className="border-b border-base-300/30 hover:bg-base-200/40 transition-colors cursor-pointer"
                   onClick={() => setSelectedReply(r)}
                 >
@@ -571,22 +592,23 @@ export default function InboxPage() {
                     <div className="flex items-center gap-2.5">
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-medium text-base-content">
+                          <button type="button" className="text-left font-medium text-base-content" onClick={event => { event.stopPropagation(); setSelectedReply(r); }} aria-label={`Read conversation with ${r.full_name ?? r.email ?? "contact"}`}>
                             {r.full_name ?? r.email ?? r.linkedin_url ?? "Unknown"}
-                          </span>
+                          </button>
                           {r.linkedin_url && (
                             <a
                               href={r.linkedin_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-base-content/25 hover:text-primary transition-colors"
+                              className="text-muted hover:text-primary transition-colors"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <RiExternalLinkLine size={12} />
                             </a>
                           )}
                         </div>
-                        <div className="text-xs text-base-content/40 mt-0.5">
+                        {r.last_message && <p className="mt-1 max-w-72 truncate text-xs text-muted">{r.last_message}</p>}
+                        <div className="text-xs text-muted mt-0.5">
                           {r.company ? (
                             <span>{r.company}</span>
                           ) : r.email ? (
@@ -623,7 +645,7 @@ export default function InboxPage() {
                             {v.label}
                           </span>
                           {r.reply_summary && (
-                            <span className="text-xs text-base-content/35 truncate max-w-[16rem]" title={r.reply_summary}>
+                            <span className="text-xs text-muted truncate max-w-[16rem]" title={r.reply_summary}>
                               {r.reply_summary}
                             </span>
                           )}
@@ -634,12 +656,12 @@ export default function InboxPage() {
 
                   {/* From (email account) */}
                   <td className="px-4 py-3">
-                    {r.email_account_from ? (
-                      <span className="text-xs text-base-content/50">
-                        {r.email_account_name ?? r.email_account_from}
+                    {r.linkedin_account_name || r.email_account_from ? (
+                      <span className="text-xs text-muted">
+                        {r.linkedin_conversation_id ? r.linkedin_account_name : r.email_account_name ?? r.email_account_from ?? r.linkedin_account_name}
                       </span>
                     ) : (
-                      <span className="text-xs text-base-content/25">—</span>
+                      <span className="text-xs text-muted">—</span>
                     )}
                   </td>
 
@@ -648,19 +670,19 @@ export default function InboxPage() {
                     {r.workflow_id ? (
                       <Link
                         href={`/workflows/${r.workflow_id}`}
-                        className="text-xs text-base-content/60 hover:text-base-content transition-colors"
+                        className="text-xs text-muted hover:text-base-content transition-colors"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {r.workflow_name ?? r.workflow_id}
                       </Link>
                     ) : (
-                      <span className="text-xs text-base-content/25">—</span>
+                      <span className="text-xs text-muted">—</span>
                     )}
                   </td>
 
                   {/* Replied */}
                   <td className="px-4 py-3 text-right">
-                    <span className="text-xs text-base-content/40">{timeAgo(r.replied_at)}</span>
+                    <span className="text-xs text-muted">{timeAgo(r.replied_at)}</span>
                   </td>
                 </tr>
               ))}

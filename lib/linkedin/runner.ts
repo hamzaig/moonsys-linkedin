@@ -1,3 +1,5 @@
+import { trAdvance, trWait, trReschedule, trSkip, trFail } from "@/lib/linkedin/track-state";
+import { assertQueuedOutreach, OutreachHeldError } from "@/lib/linkedin/inbox/guard";
 import { renderTemplate } from "@/lib/template";
 import { getDb } from "@/lib/db";
 import { randomUUID } from "crypto";
@@ -12,6 +14,7 @@ import { enrichProfile } from "@/lib/linkedin/enrich";
 import { matchPerson } from "@/lib/apollo";
 import { premium } from "@/lib/premium";
 import { decryptSecret } from "@/lib/crypto";
+import { enrollInitialTracks, getLocalParts, nextScheduledSlot, zonedHourMs, type ScheduleConfig } from "@/lib/linkedin/schedule";
 
 // Minimum gap between Sales Nav profile enrichment calls per account (ms)
 const SALES_NAV_ENRICH_MIN_GAP_MS = 5 * 60 * 1000;
@@ -39,13 +42,6 @@ const PROFILE_DELAY_MAX = 20;
 // Poll interval (ms)
 const POLL_INTERVAL_MS = 30_000;
 
-interface ScheduleConfig {
-  active_hours_start: number;
-  active_hours_end: number;
-  timezone: string;
-  working_days: string;
-}
-
 interface AccountLimits extends ScheduleConfig {
   daily_connection_limit: number;
   daily_message_limit: number;
@@ -65,38 +61,12 @@ function effectiveEmailLimit(account: EmailAccountLimits): number {
   return Math.min(account.daily_email_limit, ramped);
 }
 
-function getLocalParts(tz: string, date = new Date()): { hour: number; minute: number; isoWeekday: number } {
-  const safeZone = (() => { try { Intl.DateTimeFormat(undefined, { timeZone: tz }); return tz; } catch { return "UTC"; } })();
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: safeZone,
-    hour: "numeric", minute: "numeric", weekday: "short", hour12: false,
-  }).formatToParts(date);
-  const get = (t: string) => parts.find(p => p.type === t)?.value ?? "";
-  const hour = parseInt(get("hour"), 10) % 24;
-  const minute = parseInt(get("minute"), 10);
-  const weekdayMap: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
-  return { hour, minute, isoWeekday: weekdayMap[get("weekday")] ?? 1 };
-}
-
 function isWithinSchedule(account: ScheduleConfig): boolean {
   const { hour, minute, isoWeekday } = getLocalParts(account.timezone || "UTC");
   const allowedDays = (account.working_days || "1,2,3,4,5").split(",").map(Number);
   if (!allowedDays.includes(isoWeekday)) return false;
   const frac = hour + minute / 60;
   return frac >= (account.active_hours_start ?? 9) && frac < (account.active_hours_end ?? 18);
-}
-
-/**
- * UTC epoch ms of `hourFrac` o'clock on the calendar day that `date` falls on in
- * timezone `tz`. Active hours are defined in the ACCOUNT's timezone, so building
- * them with Date#setHours (the server's local zone) shifted the window by the
- * server's UTC offset — e.g. a 9–18 UTC window became 04:00–13:00 UTC on a PKT host,
- * scheduling slots hours in the past that then all fired at once.
- */
-function zonedHourMs(tz: string, hourFrac: number, date = new Date()): number {
-  const { hour, minute } = getLocalParts(tz, date);
-  const minuteStart = Math.floor(date.getTime() / 60_000) * 60_000;
-  return minuteStart + (hourFrac - (hour + minute / 60)) * 3600_000;
 }
 
 function randomSlotInActiveWindow(account: ScheduleConfig, targetDate?: Date): string {
@@ -113,25 +83,6 @@ function rescheduleToTomorrow(account: ScheduleConfig): string {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   return randomSlotInActiveWindow(account, tomorrow);
-}
-
-function nextScheduledSlot(account: ScheduleConfig): string {
-  const tz = account.timezone || "UTC";
-  const allowedDays = (account.working_days || "1,2,3,4,5").split(",").map(Number);
-  const end = account.active_hours_end ?? 18;
-  const { hour: nowHour, minute: nowMin, isoWeekday: nowDay } = getLocalParts(tz);
-  const nowFrac = nowHour + nowMin / 60;
-  if (allowedDays.includes(nowDay) && nowFrac < end - 0.25) {
-    const remaining = (end - nowFrac) * 3600_000;
-    return new Date(Date.now() + Math.random() * remaining).toISOString();
-  }
-  const candidate = new Date();
-  for (let i = 1; i <= 14; i++) {
-    candidate.setDate(candidate.getDate() + 1);
-    const { isoWeekday } = getLocalParts(tz, candidate);
-    if (allowedDays.includes(isoWeekday)) return randomSlotInActiveWindow(account, candidate);
-  }
-  return new Date(Date.now() + 86_400_000).toISOString();
 }
 
 interface WorkflowStep {
@@ -213,49 +164,17 @@ function log(db: ReturnType<typeof getDb>, runId: string, targetId: string | nul
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 function randomDelay(minSec: number, maxSec: number) { return sleep((minSec + Math.random() * (maxSec - minSec)) * 1000); }
 function nowIso() { return new Date().toISOString(); }
-function addHours(h: number) { return new Date(Date.now() + h * 3600_000).toISOString(); }
 function hoursSince(isoStr: string) { return (Date.now() - new Date(isoStr).getTime()) / 3600_000; }
 
 // ─── TrackRun verb layer ─────────────────────────────────────────────────────
 // These are the only functions that write to run_profile_tracks rows.
 
-function trAdvance(db: ReturnType<typeof getDb>, tr: TrackRun, steps: WorkflowStep[]) {
-  const nextIndex = tr.current_step + 1;
-  if (nextIndex >= steps.length) {
-    db.prepare(
-      "UPDATE run_profile_tracks SET state = 'completed', current_step = ?, last_step_at = datetime('now'), next_step_at = NULL WHERE id = ?"
-    ).run(nextIndex, tr.id);
-  } else {
-    const nextStep = steps[nextIndex];
-    const nextAt = nextStep.delay_seconds > 0 ? new Date(Date.now() + nextStep.delay_seconds * 1000).toISOString() : null;
-    db.prepare(
-      "UPDATE run_profile_tracks SET current_step = ?, last_step_at = datetime('now'), next_step_at = ? WHERE id = ?"
-    ).run(nextIndex, nextAt, tr.id);
-  }
-}
-
-function trWait(db: ReturnType<typeof getDb>, tr: TrackRun, hours: number) {
-  db.prepare("UPDATE run_profile_tracks SET next_step_at = ? WHERE id = ?").run(addHours(hours), tr.id);
-}
-
-function trReschedule(db: ReturnType<typeof getDb>, tr: TrackRun, isoTimestamp: string) {
-  db.prepare("UPDATE run_profile_tracks SET next_step_at = ? WHERE id = ?").run(isoTimestamp, tr.id);
-}
-
-function trSkip(db: ReturnType<typeof getDb>, tr: TrackRun, reason: string) {
-  db.prepare("UPDATE run_profile_tracks SET state = 'skipped', error_message = ? WHERE id = ?").run(reason, tr.id);
-}
-
-function trFail(db: ReturnType<typeof getDb>, tr: TrackRun, reason: string) {
-  db.prepare("UPDATE run_profile_tracks SET state = 'failed', error_message = ? WHERE id = ?").run(reason, tr.id);
-}
-
 function trRecordContext(db: ReturnType<typeof getDb>, tr: TrackRun, ctx: { linkedinMessage?: string; emailSubject?: string; emailBody?: string }) {
   if (ctx.linkedinMessage !== undefined) {
-    db.prepare("UPDATE run_profile_tracks SET last_linkedin_message = ? WHERE id = ?").run(ctx.linkedinMessage, tr.id);
+    db.prepare("UPDATE run_profile_tracks SET last_linkedin_message = ? WHERE id = ? AND state = 'in_progress'").run(ctx.linkedinMessage, tr.id);
   }
   if (ctx.emailSubject !== undefined || ctx.emailBody !== undefined) {
-    db.prepare("UPDATE run_profile_tracks SET last_email_subject = ?, last_email_body = ? WHERE id = ?")
+    db.prepare("UPDATE run_profile_tracks SET last_email_subject = ?, last_email_body = ? WHERE id = ? AND state = 'in_progress'")
       .run(ctx.emailSubject ?? null, ctx.emailBody ?? null, tr.id);
   }
 }
@@ -463,7 +382,7 @@ async function ensureApolloEnriched(db: ReturnType<typeof getDb>, target: Target
 
 // ─── step execution ──────────────────────────────────────────────────────────
 
-async function executeStep(
+export async function executeStep(
   db: ReturnType<typeof getDb>,
   runId: string,
   tr: TrackRun,
@@ -476,19 +395,14 @@ async function executeStep(
   campaignPrompt?: string | null
 ): Promise<void> {
   const stepIndex = tr.current_step;
-  if (stepIndex >= steps.length) {
-    db.prepare("UPDATE run_profile_tracks SET state = 'completed', last_step_at = datetime('now') WHERE id = ?").run(tr.id);
+  try { assertQueuedOutreach(db, tr.id, accountId, steps[stepIndex]?.step_type ?? "done"); }
+  catch (error) {
+    if (!(error instanceof OutreachHeldError)) throw error;
+    if (error.reason === "sync_stale") log(db, runId, target.id, "info", "LinkedIn message held: waiting for a fresh inbox check");
     return;
   }
-
-  // Auto-unenroll if lead has replied on either channel — mark ALL track-runs for this profile skipped
-  const replyCheck = db.prepare("SELECT last_replied_at, email_replied_at FROM targets WHERE id = ?").get(target.id) as { last_replied_at: string | null; email_replied_at: string | null };
-  if (replyCheck?.last_replied_at || replyCheck?.email_replied_at) {
-    const channel = replyCheck.email_replied_at ? "email" : "LinkedIn";
-    log(db, runId, target.id, "info", `${target.full_name ?? target.linkedin_url} replied via ${channel} — unenrolling from workflow`);
-    db.prepare(
-      "UPDATE run_profile_tracks SET state = 'skipped', error_message = 'Lead replied' WHERE run_profile_id = ? AND state NOT IN ('completed', 'failed', 'skipped')"
-    ).run(tr.run_profile_id);
+  if (stepIndex >= steps.length) {
+    db.prepare("UPDATE run_profile_tracks SET state = 'completed', last_step_at = datetime('now') WHERE id = ? AND state = 'in_progress'").run(tr.id);
     return;
   }
 
@@ -503,7 +417,7 @@ async function executeStep(
     }
 
     if (step.step_type === "visit") {
-      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ?").run(tr.id);
+      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ? AND state = 'in_progress'").run(tr.id);
       log(db, runId, target.id, "info", `Visiting ${name}`);
       const linkedinUrl = await getLinkedinUrl(db, target, accountId);
       const page = await getSessionPage(accountId);
@@ -545,11 +459,11 @@ async function executeStep(
         return;
       }
 
-      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ?").run(tr.id);
+      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ? AND state = 'in_progress'").run(tr.id);
       log(db, runId, target.id, "info", `Sending connection request to ${name}`);
       const linkedinUrl = await getLinkedinUrl(db, target, accountId);
       const page = await getSessionPage(accountId);
-      try { await sendConnectionRequest(page, linkedinUrl); } finally { await page.close(); }
+      try { await sendConnectionRequest(page, linkedinUrl, () => assertQueuedOutreach(db, tr.id, accountId, "connect")); } finally { await page.close(); }
       await saveSessionState(accountId);
       db.prepare("UPDATE targets SET connection_requested_at = ? WHERE id = ?").run(nowIso(), target.id);
       trWait(db, tr, CONNECTION_RECHECK_HOURS);
@@ -634,13 +548,14 @@ async function executeStep(
         return;
       }
 
-      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ?").run(tr.id);
-      log(db, runId, target.id, "info", `Sending message to ${name}`);
       const messageLinkedinUrl = await getLinkedinUrl(db, target, accountId);
       const page = await getSessionPage(accountId);
       try {
+        assertQueuedOutreach(db, tr.id, accountId, "message");
+        db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ? AND state = 'in_progress'").run(tr.id);
+        log(db, runId, target.id, "info", `Sending message to ${name}`);
         if (!target.full_name) throw new Error(`Target ${target.id} has no full_name — cannot search messaging`);
-        const result = await sendMessage(page, target.full_name, messageText, messageLinkedinUrl, freshTarget.messaging_urn);
+        const result = await sendMessage(page, target.full_name, messageText, messageLinkedinUrl, freshTarget.messaging_urn, () => assertQueuedOutreach(db, tr.id, accountId, "message"));
         if (result.messagingUrn) {
           db.prepare("UPDATE targets SET messaging_urn = COALESCE(messaging_urn, ?) WHERE id = ?").run(result.messagingUrn, target.id);
         }
@@ -669,6 +584,11 @@ async function executeStep(
       if (!premium?.inmail) {
         log(db, runId, target.id, "warn", `Sales Nav InMail is a premium feature — not available in this build. Skipping ${name}`);
         trAdvance(db, tr, steps);
+        return;
+      }
+      if (!premium.inmail.sendInMailGuarded) {
+        log(db, runId, target.id, "warn", "InMail held: adapter needs a delivery-time reply guard");
+        trWait(db, tr, CONNECTION_RECHECK_HOURS);
         return;
       }
       await ensureSalesNavEnriched(db, target, accountId);
@@ -751,11 +671,13 @@ async function executeStep(
         return;
       }
 
-      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ?").run(tr.id);
+      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ? AND state = 'in_progress'").run(tr.id);
       log(db, runId, target.id, "info", `Sending InMail to ${name}`);
       const page = await getSessionPage(accountId);
       try {
-        await premium.inmail.sendInMail(page, freshTarget.sales_nav_url, inmailSubject, inmailBody);
+        assertQueuedOutreach(db, tr.id, accountId, "sales_inmail");
+        await premium.inmail.sendInMailGuarded(page, freshTarget.sales_nav_url, inmailSubject, inmailBody,
+          () => assertQueuedOutreach(db, tr.id, accountId, "sales_inmail"));
       } finally {
         await page.close();
       }
@@ -850,7 +772,7 @@ async function executeStep(
         emailBody = result.body;
         // One-shot: consume the OOO reply context so later follow-ups don't re-acknowledge it
         if (tr.pending_reply_context) {
-          db.prepare("UPDATE run_profile_tracks SET pending_reply_context = NULL WHERE id = ?").run(tr.id);
+          db.prepare("UPDATE run_profile_tracks SET pending_reply_context = NULL WHERE id = ? AND state = 'in_progress'").run(tr.id);
         }
       } else {
         emailSubject = renderTemplate(step.email_subject ?? "", freshTarget);
@@ -898,8 +820,9 @@ async function executeStep(
       // Step-level signature takes precedence; null means fall back to email account default
       const sig = (step.email_signature !== null ? step.email_signature : emailAccount.signature)?.trim();
       const finalEmailBody = sig ? `${emailBody}\n\n--\n${sig}` : emailBody;
-      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ?").run(tr.id);
+      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ? AND state = 'in_progress'").run(tr.id);
       log(db, runId, target.id, "info", `Sending email to ${name} <${freshTarget.email}>`);
+      assertQueuedOutreach(db, tr.id, accountId, "email");
       await sendEmail({ ...emailAccount, password: decryptSecret(emailAccount.password)! }, freshTarget.email, emailSubject, finalEmailBody);
       trRecordContext(db, tr, { emailSubject, emailBody });
       trAdvance(db, tr, steps);
@@ -907,6 +830,10 @@ async function executeStep(
     }
 
   } catch (err) {
+    if (err instanceof OutreachHeldError) {
+      log(db, runId, target.id, "info", `Outreach held: ${err.reason}`);
+      return;
+    }
     const msg = err instanceof Error ? err.message : String(err);
     if (err instanceof WeeklyLimitError) {
       log(db, runId, target.id, "error", `Weekly connection limit reached — pausing run`);
@@ -1012,25 +939,7 @@ async function tick(db: ReturnType<typeof getDb>): Promise<void> {
     }
   }
 
-  // LinkedIn inbox reply detection (messaging GraphQL) — once per 15min per
-  // account. Sets targets.last_replied_at so the runner auto-unenrolls repliers.
-  // LinkedIn reply detection is a premium feature (AI classifier layer) — no-op without ee/.
-  for (const accountId of seenAccounts) {
-    if (premium?.replies?.shouldSyncInbox(accountId)) {
-      try {
-        console.log(`[runner] Starting LinkedIn inbox sync for account ${accountId}`);
-        const replies = await premium.replies.syncAccountInbox(accountId);
-        console.log(`[runner] LinkedIn inbox sync complete — ${replies} new repl${replies === 1 ? "y" : "ies"}`);
-        if (replies > 0) {
-          for (const r of activeRuns.filter(x => x.account_id === accountId)) {
-            log(db, r.run_id, null, "info", `LinkedIn inbox sync: ${replies} new repl${replies === 1 ? "y" : "ies"} detected`);
-          }
-        }
-      } catch (e) {
-        console.warn("[runner] LinkedIn inbox sync error:", e instanceof Error ? e.message : e);
-      }
-    }
-  }
+  // LinkedIn replies are read by the independent core inbox worker.
 
   // Sync email IMAP inboxes for each unique email account in active run profiles
   const activeRunIds = activeRuns.map(r => r.run_id);
@@ -1422,38 +1331,12 @@ function spreadEnrollBatch(
   limits: ScheduleConfig,
   track: string
 ) {
-  const batchSize = pending.length;
-  if (batchSize === 0) return;
-  const tz = limits.timezone || "UTC";
-  const start = limits.active_hours_start ?? 9;
-  const end = limits.active_hours_end ?? 18;
-  const allowedDays = (limits.working_days || "1,2,3,4,5").split(",").map(Number);
-  // Spread over what is LEFT of today's window (in the account's timezone), never
-  // over hours already gone — past slots are due immediately and fire back-to-back.
-  const nowMs = Date.now();
-  const windowStartMs = Math.max(nowMs, zonedHourMs(tz, start));
-  const windowEndMs = zonedHourMs(tz, end);
-  const usableToday = allowedDays.includes(getLocalParts(tz).isoWeekday) && windowEndMs - windowStartMs > 15 * 60_000;
-  const bucketMs = (windowEndMs - windowStartMs) / batchSize;
-
-  for (let i = 0; i < pending.length; i++) {
-    const row = pending[i];
-    const claimed = db.prepare(
-      "UPDATE run_profile_tracks SET state = 'in_progress' WHERE id = ? AND state = 'pending'"
-    ).run(row.id);
-    if (claimed.changes === 0) continue;
-    const slot = (() => {
-      if (!usableToday) return nextScheduledSlot(limits);
-      const bucketStart = windowStartMs + i * bucketMs;
-      const bucketEnd = bucketStart + bucketMs;
-      return new Date(bucketStart + Math.random() * (bucketEnd - bucketStart)).toISOString();
-    })();
-    db.prepare("UPDATE run_profile_tracks SET next_step_at = ? WHERE id = ?").run(slot, row.id);
+  const enrolled = enrollInitialTracks(db, runId, pending, limits, track);
+  for (const row of enrolled) {
     const tgt = db.prepare("SELECT full_name, linkedin_url FROM targets WHERE id = (SELECT target_id FROM run_profiles WHERE id = ?)").get(row.run_profile_id) as { full_name: string | null; linkedin_url: string } | undefined;
-    log(db, runId, null, "info", `[${track}] Scheduled ${tgt?.full_name ?? tgt?.linkedin_url ?? row.run_profile_id} within active window`);
+    log(db, runId, null, "info", `[${track}] Scheduled ${tgt?.full_name ?? tgt?.linkedin_url ?? row.run_profile_id} for ${row.next_step_at} within active window`);
   }
 }
-
 // ─── public API ──────────────────────────────────────────────────────────────
 
 export function startRun(runId: string): void {

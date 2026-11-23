@@ -138,13 +138,13 @@ export default function CallWizard({ row, stats, logOnly = false, onClose, onDon
       <a ref={dialRef} href={`tel:${row.phone}`} className="hidden" aria-hidden />
 
       {/* Top bar */}
-      <div className="shrink-0 h-16 px-6 flex items-center gap-4 border-b border-base-300/40 bg-base-200/60">
+      <div className="shrink-0 min-h-16 px-4 py-3 sm:px-6 flex flex-wrap items-center gap-3 border-b border-base-300/40 bg-base-200/60">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-base-content truncate">{name}</h2>
-            {row.call_attempts > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-base-300 text-base-content/50">{row.call_attempts}× tried</span>}
+            {row.call_attempts > 0 && <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-base-300 text-muted">{row.call_attempts}× tried</span>}
           </div>
-          <p className="text-xs text-base-content/40 truncate">{[row.title, row.company].filter(Boolean).join(" · ")}</p>
+          <p className="text-xs text-muted truncate">{[row.title, row.company].filter(Boolean).join(" · ")}</p>
         </div>
 
         {phase === "call" ? (
@@ -154,40 +154,40 @@ export default function CallWizard({ row, stats, logOnly = false, onClose, onDon
               <span className="font-mono text-2xl font-semibold tabular-nums text-base-content">{clock(seconds)}</span>
             </div>
             <button onClick={endCall} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-error/90 text-error-content hover:bg-error transition-colors">
-              <RiPhoneFill size={15} className="rotate-[135deg]" /> End call <kbd className="text-[9px] opacity-60">↵</kbd>
+              <RiPhoneFill size={15} className="rotate-[135deg]" /> End call <kbd className="text-[11px] opacity-60">↵</kbd>
             </button>
           </>
         ) : (
-          <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors">
+          <button onClick={onClose} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs text-muted hover:text-base-content hover:bg-base-300/50 transition-colors">
             <RiCloseLine size={15} /> Discard
           </button>
         )}
       </div>
 
       {phase === "call" ? (
-        <div className="flex-1 min-h-0 flex">
+        <div className="ms-call-body">
           {/* Script */}
           <div className="flex-1 min-w-0 flex flex-col">
-            <div className="shrink-0 px-8 py-3 flex items-center gap-3 border-b border-base-300/30">
-              <span className="text-[11px] uppercase tracking-wide text-base-content/40">Script</span>
+            <div className="shrink-0 px-5 sm:px-8 py-3 flex flex-wrap items-center gap-3 border-b border-base-300/30">
+              <span className="text-[11px] uppercase tracking-wide text-muted">Script</span>
               {scripts && scripts.length > 0 && (
-                <select value={scriptId} onChange={(e) => pickScript(e.target.value)} className="px-3 py-1.5 bg-base-200 border border-base-300/40 rounded-lg text-xs text-base-content/80 focus:outline-none max-w-xs">
+                <select aria-label="Call script" value={scriptId} onChange={(e) => pickScript(e.target.value)} className="px-3 py-1.5 bg-base-200 border border-base-300/40 rounded-lg text-xs text-base-content/80 focus:outline-none max-w-xs">
                   {scripts.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               )}
-              <a href="/dialer/scripts" target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-[11px] text-base-content/40 hover:text-primary">
+              <a href="/dialer/scripts" target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-[11px] text-muted hover:text-primary">
                 Manage scripts <RiExternalLinkLine size={11} />
               </a>
             </div>
-            <div className="flex-1 overflow-y-auto px-10 py-8">
+            <div className="flex-1 overflow-y-auto px-5 sm:px-10 py-6 sm:py-8">
               <div className="max-w-3xl mx-auto">
                 {scripts === null ? null : script ? (
                   <ScriptView body={filled} large />
                 ) : (
                   <div className="text-center py-20">
-                    <p className="text-sm text-base-content/50">No script yet.</p>
+                    <p className="text-sm text-muted">No script yet.</p>
                     <a href="/dialer/scripts" target="_blank" rel="noopener noreferrer" className="inline-block mt-3 px-4 py-2 rounded-xl text-sm bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20">Write your first script</a>
-                    <p className="text-xs text-base-content/30 mt-3">Wing it for now — you&apos;ve got this.</p>
+                    <p className="text-xs text-muted mt-3">Wing it for now — you&apos;ve got this.</p>
                   </div>
                 )}
               </div>
@@ -195,7 +195,7 @@ export default function CallWizard({ row, stats, logOnly = false, onClose, onDon
           </div>
 
           {/* Side: cheerleader + context + scratchpad */}
-          <div className="w-[340px] shrink-0 border-l border-base-300/40 bg-base-200/30 flex flex-col overflow-hidden">
+          <div className="ms-call-context">
             <div className="shrink-0 px-5 pt-4 pb-2 flex justify-center">
               <Cheerleader seconds={seconds} size={140} />
             </div>
@@ -204,18 +204,19 @@ export default function CallWizard({ row, stats, logOnly = false, onClose, onDon
                 <div className="flex items-center justify-between">
                   <a href={`tel:${row.phone}`} className="inline-flex items-center gap-2 text-sm font-semibold text-success hover:underline"><RiPhoneLine size={14} /> {row.phone}</a>
                   <span className="flex gap-1">
-                    <button title="Copy number" onClick={() => { navigator.clipboard?.writeText(row.phone); toast.success("Copied"); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50"><RiFileCopyLine size={13} /></button>
-                    <a title="Open contact" href={`/contacts/${row.id}`} target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50"><RiExternalLinkLine size={13} /></a>
+                    <button title="Copy number" onClick={() => { navigator.clipboard?.writeText(row.phone); toast.success("Copied"); }} className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-base-content hover:bg-base-300/50"><RiFileCopyLine size={13} /></button>
+                    <a title="Open contact" href={`/contacts/${row.id}`} target="_blank" rel="noopener noreferrer" className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-base-content hover:bg-base-300/50"><RiExternalLinkLine size={13} /></a>
                   </span>
                 </div>
-                {clk && <p className="text-[11px] text-base-content/40 inline-flex items-center gap-1"><RiTimeLine size={11} /> {clk} their time ({row.timezone})</p>}
-                {!av.noHours && av.open && <p className="text-[11px] text-success/80">Open · closes in {humanSec((av.closesIn ?? 0) * 60)}</p>}
+                {clk && <p className="text-[11px] text-muted inline-flex items-center gap-1"><RiTimeLine size={11} /> {clk} their time ({row.timezone})</p>}
+                {!av.noHours && av.open && <p className="text-[11px] text-success">Open · closes in {humanSec((av.closesIn ?? 0) * 60)}</p>}
               </div>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                aria-label="Call notes"
                 placeholder="Quick notes while you talk — they go into the log"
-                className="flex-1 min-h-16 w-full bg-base-200/60 border border-base-300/40 rounded-xl px-3 py-2.5 text-sm text-base-content/80 placeholder-base-content/25 leading-relaxed focus:outline-none focus:border-base-300/80 resize-none"
+                className="flex-1 min-h-16 w-full bg-base-200/60 border border-base-300/40 rounded-xl px-3 py-2.5 text-sm text-base-content/80 placeholder:text-muted leading-relaxed focus:outline-none focus:border-base-300/80 resize-none"
               />
               <LegendBar {...stats} compact />
             </div>
@@ -223,15 +224,15 @@ export default function CallWizard({ row, stats, logOnly = false, onClose, onDon
         </div>
       ) : (
         /* Wrap-up — one step per screen, never scrolls */
-        <div className="flex-1 min-h-0 flex items-center justify-center px-6">
+        <div className="flex-1 min-h-0 overflow-y-auto flex items-start sm:items-center justify-center px-5 py-6">
           {phase === "outcome" ? (
             <div key="outcome" className="w-full max-w-2xl flex flex-col items-center dialer-pop">
               <Dialy size={96} mood="celebrate" />
               <h3 className="text-xl font-semibold text-base-content mt-2">{logOnly ? "Log a call" : "Nice work!"}</h3>
-              <p className="text-sm text-base-content/50 mt-1 text-center">
+              <p className="text-sm text-muted mt-1 text-center">
                 {logOnly ? `How did it go with ${name}?` : <>Call lasted <span className="font-mono text-base-content/80">{humanSec(dur)}</span>. How did it go?</>}
               </p>
-              <div className="grid grid-cols-3 gap-2.5 w-full mt-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 w-full mt-6">
                 {OUTCOMES.map((o, i) => (
                   <button
                     key={o.key}
@@ -240,7 +241,7 @@ export default function CallWizard({ row, stats, logOnly = false, onClose, onDon
                   >
                     <span className="text-2xl">{o.emoji}</span>
                     {o.label}
-                    <kbd className="text-[9px] opacity-50">{i + 1}</kbd>
+                    <kbd className="text-[11px] opacity-50">{i + 1}</kbd>
                   </button>
                 ))}
               </div>
@@ -248,16 +249,16 @@ export default function CallWizard({ row, stats, logOnly = false, onClose, onDon
           ) : (
             <div key="callback" className="w-full max-w-md dialer-pop">
               <h3 className="text-lg font-semibold text-base-content">⏰ Call back when?</h3>
-              <p className="text-sm text-base-content/50 mt-1 mb-4">Pick a date and time — {name} moves to &quot;Waiting&quot; until then.</p>
+              <p className="text-sm text-muted mt-1 mb-4">Pick a date and time — {name} moves to &quot;Waiting&quot; until then.</p>
               <DateTimePicker value={callbackAt} onChange={setCallbackAt} placeholder="Pick a date & time" defaultOpen clearable={false} />
               <div className="flex items-center justify-between mt-5">
-                <button onClick={() => setPhase("outcome")} className="px-3 py-2 rounded-xl text-sm text-base-content/50 hover:text-base-content hover:bg-base-300/40">← Back</button>
+                <button onClick={() => setPhase("outcome")} className="px-3 py-2 rounded-xl text-sm text-muted hover:text-base-content hover:bg-base-300/40">← Back</button>
                 <button
                   onClick={() => setShowLog(true)}
                   disabled={!callbackAt}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-primary/90 text-primary-content hover:bg-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  <RiCheckLine size={16} /> Continue <kbd className="text-[9px] opacity-60">↵</kbd>
+                  <RiCheckLine size={16} /> Continue <kbd className="text-[11px] opacity-60">↵</kbd>
                 </button>
               </div>
             </div>

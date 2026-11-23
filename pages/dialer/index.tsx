@@ -1,3 +1,4 @@
+import PageHeader, { PageTitle } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -41,7 +42,7 @@ function localClock(tz: string | null, now: number) {
 }
 
 function Pill({ cls, children }: { cls: string; children: React.ReactNode }) {
-  return <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium whitespace-nowrap ${cls}`}>{children}</span>;
+  return <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-medium whitespace-nowrap ${cls}`}>{children}</span>;
 }
 
 const LIST_KEY = "dialer.listId";
@@ -217,18 +218,18 @@ export default function DialerPage() {
       <Head><title>Dialer — MoonSys LinkedIn</title></Head>
       {wizard && <CallWizard row={wizard.row} logOnly={wizard.logOnly} stats={stats} onClose={() => setWizard(null)} onDone={onWizardDone} />}
       {emailTo && <SendEmailModal targetId={emailTo.id} toName={emailTo.name} toEmail={emailTo.email} onClose={() => setEmailTo(null)} />}
-      <div className="-m-6 h-screen flex overflow-hidden">
+      <div className="ms-split-workspace">
         {/* Queue */}
-        <div className="w-[380px] shrink-0 border-r border-base-300/40 flex flex-col bg-base-100">
-          <div className="px-4 pt-5 pb-3">
-            <h1 className="text-base font-semibold text-base-content tracking-tight">Dialer</h1>
+        <div className="ms-split-sidebar w-[360px] flex flex-col">
+          <PageHeader className="px-4 pt-5 pb-3 ms-page-header--compact">
+            <PageTitle className="text-base font-semibold text-base-content tracking-tight">Dialer</PageTitle>
             <div className="mt-3">
               <LegendBar {...stats} compact />
               <div className="flex items-center gap-2 mt-2 px-1">
                 <div className="flex-1 h-1.5 rounded-full bg-base-300/60 overflow-hidden">
                   <div className="h-full rounded-full bg-success transition-all duration-700" style={{ width: `${Math.min(100, (calledToday / 30) * 100)}%` }} />
                 </div>
-                <span className="text-[10px] text-base-content/40 shrink-0">{calledToday}/30 today{reachedToday > 0 && <> · <span className="text-success">{reachedToday} reached</span></>}</span>
+                <span className="text-[11px] text-muted shrink-0">{calledToday}/30 today{reachedToday > 0 && <> · <span className="text-success">{reachedToday} reached</span></>}</span>
               </div>
             </div>
             <select
@@ -239,25 +240,25 @@ export default function DialerPage() {
               <option value="">All contacts with a phone</option>
               {lists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
             </select>
-          </div>
+          </PageHeader>
 
           <div className="flex gap-0.5 mx-4 mb-2 bg-base-200 border border-base-300/40 rounded-xl p-1">
             {TABS.map((t) => (
               <button
                 key={t.key}
                 onClick={() => chooseTab(t.key)}
-                className={`flex-1 px-0.5 py-1 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${tab === t.key ? "bg-base-300 text-base-content shadow-sm" : "text-base-content/40 hover:text-base-content/70"}`}
+                className={`flex-1 px-0.5 py-1 rounded-lg text-[11px] font-medium transition-colors whitespace-nowrap ${tab === t.key ? "bg-base-300 text-base-content shadow-sm" : "text-muted hover:text-base-content/70"}`}
               >
-                {t.label} <span className={tab === t.key ? "text-base-content/50" : "text-base-content/25"}>{buckets[t.key].length}</span>
+                {t.label} <span className={tab === t.key ? "text-muted" : "text-muted"}>{buckets[t.key].length}</span>
               </button>
             ))}
           </div>
 
           <div className="flex-1 overflow-y-auto px-3 pb-4 flex flex-col gap-1">
             {loading ? (
-              <p className="text-center text-xs text-base-content/30 py-16">Loading…</p>
+              <p className="text-center text-xs text-muted py-16">Loading…</p>
             ) : list.length === 0 ? (
-              <p className="text-center text-xs text-base-content/30 py-16 px-6 leading-relaxed">
+              <p className="text-center text-xs text-muted py-16 px-6 leading-relaxed">
                 {rows.length === 0
                   ? "No contacts with a phone number yet. Add a phone and opening hours on a contact."
                   : tab === "now" ? "Nobody is available right now." : tab === "nohours" ? "Everyone has opening hours set. 👏" : "Nothing here."}
@@ -274,20 +275,20 @@ export default function DialerPage() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-base-content truncate">{name(r)}</span>
                     {tab === "now" && <Pill cls={(av.closesIn ?? 99) <= 30 ? "bg-warning/15 text-warning" : "bg-success/15 text-success"}>closes {fmtDur(av.closesIn ?? 0)}</Pill>}
-                    {tab === "later" && <Pill cls="bg-base-300 text-base-content/50">opens in {fmtDur(av.opensIn ?? 0)}</Pill>}
+                    {tab === "later" && <Pill cls="bg-base-300 text-muted">opens in {fmtDur(av.opensIn ?? 0)}</Pill>}
                     {tab === "waiting" && waitUntil && <Pill cls="bg-info/15 text-info">retry {hhmm(waitUntil)}</Pill>}
-                    {tab === "nohours" && <Pill cls="bg-base-300 text-base-content/40">any time</Pill>}
-                    {tab === "done" && r.call_status && <Pill cls={r.call_status === "reached" ? "bg-success/15 text-success" : "bg-base-300 text-base-content/50"}>{OUTCOME_LABEL[r.call_status]}</Pill>}
+                    {tab === "nohours" && <Pill cls="bg-base-300 text-muted">any time</Pill>}
+                    {tab === "done" && r.call_status && <Pill cls={r.call_status === "reached" ? "bg-success/15 text-success" : "bg-base-300 text-muted"}>{OUTCOME_LABEL[r.call_status]}</Pill>}
                   </div>
                   <div className="flex items-center justify-between gap-2 mt-0.5">
-                    <span className="text-xs text-base-content/40 truncate">{[r.title, r.company].filter(Boolean).join(" · ") || r.phone}</span>
+                    <span className="text-xs text-muted truncate">{[r.title, r.company].filter(Boolean).join(" · ") || r.phone}</span>
                     <span className="flex items-center gap-1.5 shrink-0">
-                      {clk && <span className="text-[10px] text-base-content/30">{clk} local</span>}
-                      {r.call_attempts > 0 && tab !== "done" && <span className="text-[10px] text-base-content/30">{r.call_attempts}× tried</span>}
+                      {clk && <span className="text-[11px] text-muted">{clk} local</span>}
+                      {r.call_attempts > 0 && tab !== "done" && <span className="text-[11px] text-muted">{r.call_attempts}× tried</span>}
                       {tab === "done" && (
                         <span
                           onClick={(e) => { e.stopPropagation(); requeue(r.id); }}
-                          className="text-[10px] text-base-content/30 hover:text-primary cursor-pointer"
+                          className="text-[11px] text-muted hover:text-primary cursor-pointer"
                         >re-queue</span>
                       )}
                     </span>
@@ -296,7 +297,7 @@ export default function DialerPage() {
               );
             })}
           </div>
-          <div className="px-4 py-2 border-t border-base-300/40 text-[10px] text-base-content/25 leading-relaxed">
+          <div className="px-4 py-2 border-t border-base-300/40 text-[11px] text-muted leading-relaxed">
             ↑↓ move · ↵ call · L log · S skip · Esc close · {MY_TZ}
           </div>
         </div>
@@ -309,7 +310,7 @@ export default function DialerPage() {
               <p className="text-sm text-base-content/70 mt-3">
                 {buckets.now.length > 0 ? `${buckets.now.length} available to call right now` : "Nobody is available right now"}
               </p>
-              <p className="text-xs text-base-content/30 mt-1">Pick someone from the queue and hit Call.</p>
+              <p className="text-xs text-muted mt-1">Pick someone from the queue and hit Call.</p>
               <div className="w-full max-w-sm mt-6"><LegendBar {...stats} /></div>
             </div>
           ) : (
@@ -322,36 +323,36 @@ export default function DialerPage() {
                       {selAv && !selAv.noHours && (
                         selAv.open
                           ? <Pill cls="bg-success/15 text-success">open · closes {fmtDur(selAv.closesIn ?? 0)}</Pill>
-                          : <Pill cls="bg-base-300 text-base-content/50">closed · opens in {fmtDur(selAv.opensIn ?? 0)}</Pill>
+                          : <Pill cls="bg-base-300 text-muted">closed · opens in {fmtDur(selAv.opensIn ?? 0)}</Pill>
                       )}
-                      {selAv?.noHours && <Pill cls="bg-base-300 text-base-content/40">no opening hours</Pill>}
-                      {selected.call_attempts > 0 && <Pill cls="bg-base-300 text-base-content/50">{selected.call_attempts}× tried{selected.call_status ? ` · last: ${OUTCOME_LABEL[selected.call_status]}` : ""}</Pill>}
+                      {selAv?.noHours && <Pill cls="bg-base-300 text-muted">no opening hours</Pill>}
+                      {selected.call_attempts > 0 && <Pill cls="bg-base-300 text-muted">{selected.call_attempts}× tried{selected.call_status ? ` · last: ${OUTCOME_LABEL[selected.call_status]}` : ""}</Pill>}
                     </div>
-                    <p className="text-xs text-base-content/40 mt-0.5 truncate">{[selected.title, selected.company].filter(Boolean).join(" · ")}</p>
-                    {selClock && <p className="text-[11px] text-base-content/30 mt-1 inline-flex items-center gap-1"><RiTimeLine size={11} /> {selClock} local ({selected.timezone})</p>}
+                    <p className="text-xs text-muted mt-0.5 truncate">{[selected.title, selected.company].filter(Boolean).join(" · ")}</p>
+                    {selClock && <p className="text-[11px] text-muted mt-1 inline-flex items-center gap-1"><RiTimeLine size={11} /> {selClock} local ({selected.timezone})</p>}
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       title="Send email"
                       onClick={() => emailContact(selected)}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                     ><RiMailSendLine size={15} /></button>
                     <button
                       title="Log a call without dialing (L)"
                       onClick={() => setWizard({ row: selected, logOnly: true })}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                     ><RiEditBoxLine size={15} /></button>
                     <button
                       title="Skip (S)"
                       onClick={skip}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                     ><RiSkipForwardLine size={15} /></button>
                     <a
                       title="Open full contact"
                       href={`/contacts/${selected.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-9 h-9 flex items-center justify-center rounded-xl text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                     ><RiExternalLinkLine size={15} /></a>
                     <button
                       onClick={() => setWizard({ row: selected, logOnly: false })}

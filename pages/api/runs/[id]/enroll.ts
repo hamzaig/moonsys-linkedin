@@ -98,7 +98,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const insertProfile = db.prepare(
-    "INSERT INTO run_profiles (id, run_id, target_id, email_account_id) VALUES (?, ?, ?, ?)"
+    "INSERT INTO run_profiles (id, run_id, target_id, email_account_id, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))"
   );
   const insertTrack = db.prepare(
     "INSERT INTO run_profile_tracks (id, run_profile_id, track, state, current_step) VALUES (?, ?, ?, 'pending', 0)"

@@ -1,9 +1,10 @@
 import Head from "next/head";
-import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { RiLockPasswordLine, RiMailLine, RiKeyLine } from "react-icons/ri";
+import { RiLockPasswordLine, RiMailLine, RiKeyLine, RiContactsLine, RiFlowChart, RiChat3Line, RiArrowRightLine } from "react-icons/ri";
+import MoonSysLogo from "@/components/brand/MoonSysLogo";
+import { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 
 type Mode = "signin" | "signup";
 
@@ -69,119 +70,62 @@ export default function LoginPage() {
 
   return (
     <>
-    <Head>
-      <title>Sign in — MoonSys LinkedIn</title>
-      <meta name="robots" content="noindex, nofollow" />
-    </Head>
-    <div className="min-h-screen bg-base-100 flex items-center justify-center">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex flex-col items-center gap-3 mb-8">
-          <Image src="/logo_moonsys.png" alt="MoonSys LinkedIn" width={40} height={40} className="rounded-xl" />
-          <div className="text-center">
-            <h1 className="text-base-content font-semibold text-lg">MoonSys LinkedIn</h1>
-            <p className="text-base-content/50 text-sm">
-              {mode === "signin" ? "Sign in to continue" : "Create your account"}
-            </p>
-          </div>
-        </div>
-
-        {/* Tab toggle */}
-        <div className="flex bg-base-300/50 rounded-lg p-1 mb-4">
-          <button
-            type="button"
-            onClick={() => switchMode("signin")}
-            className={`flex-1 py-1.5 text-sm rounded-md transition-colors font-medium ${
-              mode === "signin"
-                ? "bg-base-200 text-base-content shadow-sm"
-                : "text-base-content/40 hover:text-base-content/70"
-            }`}
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("signup")}
-            className={`flex-1 py-1.5 text-sm rounded-md transition-colors font-medium ${
-              mode === "signup"
-                ? "bg-base-200 text-base-content shadow-sm"
-                : "text-base-content/40 hover:text-base-content/70"
-            }`}
-          >
-            Sign up
-          </button>
-        </div>
-
-        {/* Form */}
-        <form
-          onSubmit={mode === "signin" ? handleSignIn : handleSignUp}
-          className="bg-base-200 border border-base-300/40 rounded-xl p-6 flex flex-col gap-4"
-        >
-          {/* Email */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-base-content/50 font-medium uppercase tracking-wider">Email</label>
-            <div className="relative">
-              <RiMailLine size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/30" />
-              <input
-                type="email"
-                className="input input-sm w-full pl-8 bg-base-300 border-base-300/50 focus:outline-none focus:border-primary/50"
-                placeholder="you@example.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                autoFocus
-                required
-              />
+      <Head><title>{mode === "signin" ? "Sign in" : "Create account"} — MoonSys LinkedIn</title><meta name="robots" content="noindex, nofollow" /></Head>
+      <div className="ms-auth">
+        <section className="ms-auth-story" aria-label="MoonSys LinkedIn workspace">
+          <MoonSysLogo linked={false} />
+          <div className="ms-auth-story-content">
+            <span className="ms-eyebrow">MoonSys LinkedIn</span>
+            <h2 className="ms-auth-headline">Your outreach,<br />all in one place.</h2>
+            <p>A focused workspace for your prospects, campaigns and conversations. Built around the way you work.</p>
+            <div className="mt-9">
+              <div className="ms-auth-feature"><span><RiContactsLine size={19} aria-hidden="true" /></span>Organize your prospects</div>
+              <div className="ms-auth-feature"><span><RiFlowChart size={19} aria-hidden="true" /></span>Build multi-step campaigns</div>
+              <div className="ms-auth-feature"><span><RiChat3Line size={19} aria-hidden="true" /></span>Keep replies in view</div>
             </div>
           </div>
-
-          {/* Password */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-base-content/50 font-medium uppercase tracking-wider">Password</label>
-            <div className="relative">
-              <RiLockPasswordLine size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/30" />
-              <input
-                type="password"
-                className="input input-sm w-full pl-8 bg-base-300 border-base-300/50 focus:outline-none focus:border-primary/50"
-                placeholder={mode === "signup" ? "Min. 8 characters" : "Your password"}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
+          <p className="ms-auth-footer">Your workspace. Your data. &nbsp; Built by MoonSys.</p>
+        </section>
+        <div className="ms-auth-form-side">
+          <div className="ms-auth-form-container">
+            <div className="ms-auth-mobile-brand"><MoonSysLogo linked={false} /></div>
+            <PageTitle>{mode === "signin" ? "Welcome back." : "Create your account."}</PageTitle>
+            <PageDescription>{mode === "signin" ? "Sign in to your MoonSys workspace." : "Use your workspace invite code to get started."}</PageDescription>
+            <div className="ms-auth-tabs" aria-label="Account access">
+              <button type="button" onClick={() => switchMode("signin")} aria-pressed={mode === "signin"}>Sign in</button>
+              <button type="button" onClick={() => switchMode("signup")} aria-pressed={mode === "signup"}>Create account</button>
             </div>
-          </div>
-
-          {/* Invite code — signup only */}
-          {mode === "signup" && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-base-content/50 font-medium uppercase tracking-wider">Invite code</label>
-              <div className="relative">
-                <RiKeyLine size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/30" />
-                <input
-                  type="password"
-                  className="input input-sm w-full pl-8 bg-base-300 border-base-300/50 focus:outline-none focus:border-primary/50"
-                  placeholder="Ask your admin for the invite code"
-                  value={inviteCode}
-                  onChange={e => setInviteCode(e.target.value)}
-                  required
-                />
+            <form onSubmit={mode === "signin" ? handleSignIn : handleSignUp} className="ms-auth-form" aria-busy={loading}>
+              <div>
+                <label htmlFor="auth-email">Email address</label>
+                <div className="ms-auth-input-wrap">
+                  <RiMailLine size={17} aria-hidden="true" />
+                  <input id="auth-email" name="email" type="email" className="ms-auth-input" placeholder="you@company.com" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} autoFocus required disabled={loading} />
+                </div>
               </div>
-            </div>
-          )}
-
-          {error && <p className="text-xs text-error">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn btn-primary btn-sm w-full"
-          >
-            {loading
-              ? <span className="loading loading-spinner loading-xs" />
-              : mode === "signin" ? "Sign in" : "Create account"}
-          </button>
-        </form>
+              <div>
+                <label htmlFor="auth-password">Password</label>
+                <div className="ms-auth-input-wrap">
+                  <RiLockPasswordLine size={17} aria-hidden="true" />
+                  <input id="auth-password" name="password" type="password" className="ms-auth-input" placeholder={mode === "signup" ? "At least 8 characters" : "Enter your password"} autoComplete={mode === "signup" ? "new-password" : "current-password"} value={password} onChange={event => setPassword(event.target.value)} required disabled={loading} />
+                </div>
+              </div>
+              {mode === "signup" && <div>
+                <label htmlFor="auth-invite">Workspace invite code</label>
+                <div className="ms-auth-input-wrap">
+                  <RiKeyLine size={17} aria-hidden="true" />
+                  <input id="auth-invite" name="inviteCode" type="password" className="ms-auth-input" placeholder="Ask your workspace admin" autoComplete="off" value={inviteCode} onChange={event => setInviteCode(event.target.value)} required disabled={loading} />
+                </div>
+              </div>}
+              {error && <p role="alert" className="text-sm text-error">{error}</p>}
+              <button type="submit" disabled={loading} className="ms-auth-submit">
+                {loading ? <><span className="loading loading-spinner loading-xs" aria-hidden="true" /><span>{mode === "signin" ? "Signing in…" : "Creating account…"}</span></> : <>{mode === "signin" ? "Sign in" : "Create account"}<RiArrowRightLine size={17} aria-hidden="true" /></>}
+              </button>
+            </form>
+            <p className="ms-auth-note">Need access? Ask your workspace admin for an invite code.<br />Learn more at <a href="https://www.moonsys.co" target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-4">MoonSys.co</a>.</p>
+          </div>
+        </div>
       </div>
-    </div>
     </>
   );
 }

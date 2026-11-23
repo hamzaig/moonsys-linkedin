@@ -1,36 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getDb } from "@/lib/db";
 
-export interface InboxReply {
-  id: string;
-  full_name: string | null;
-  linkedin_url: string | null;
-  email: string | null;
-  headline: string | null;
-  company: string | null;
-  channel: "email" | "linkedin" | "both";
-  replied_at: string;
-  email_replied_at: string | null;
-  last_replied_at: string | null;
-  // run context
-  run_id: string | null;
-  workflow_id: string | null;
-  workflow_name: string | null;
-  // email account context
-  email_account_id: string | null;
-  email_account_name: string | null;
-  email_account_from: string | null;
-  // classifier / dispatcher context (from the most recent email_replies row)
-  reply_id: string | null;
-  reply_kind: string | null;
-  reply_summary: string | null;
-  reply_body: string | null;
-  classified_at: string | null;
-  classification_error: string | null;
-  dispatched_at: string | null;
-  dispatch_result_json: string | null;
-  manually_edited: number;
-}
+import type { InboxReply } from "@/lib/inbox/types";
+export type { InboxReply } from "@/lib/inbox/types";
+import { getLinkedInInboxRows } from "@/lib/linkedin/inbox/view";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -69,9 +42,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         COALESCE(t.last_replied_at, ''),
         COALESCE(er.received_at, '')
       ) AS replied_at,
-      r.id AS run_id,
-      r.workflow_id,
-      w.name AS workflow_name,
+      CASE WHEN t.email_replied_at IS NOT NULL OR er.id IS NOT NULL THEN r.id ELSE NULL END AS run_id,
+      NULL AS linkedin_account_id,
+      NULL AS linkedin_account_name,
+      CASE WHEN t.email_replied_at IS NOT NULL OR er.id IS NOT NULL THEN r.workflow_id ELSE NULL END AS workflow_id,
+      CASE WHEN t.email_replied_at IS NOT NULL OR er.id IS NOT NULL THEN w.name ELSE NULL END AS workflow_name,
       ea.id AS email_account_id,
       ea.name AS email_account_name,
       ea.from_email AS email_account_from,
@@ -115,5 +90,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return { ...rest, reply_kind, reply_summary };
   });
 
-  return res.json({ replies });
+  const accountId = typeof req.query.accountId === "string" ? req.query.accountId : undefined;
+  const combined = [...replies, ...(channel === "email" ? [] : getLinkedInInboxRows(db, accountId))]
+    .filter(reply => !accountId || reply.linkedin_account_id === accountId)
+    .sort((a, b) => new Date(b.replied_at).getTime() - new Date(a.replied_at).getTime());
+  return res.json({ replies: combined });
 }

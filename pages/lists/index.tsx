@@ -1,3 +1,5 @@
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import { GetServerSideProps } from "next";
@@ -134,22 +136,22 @@ export default function ListsPage({ initialLists }: { initialLists: List[] }) {
       <meta name="robots" content="noindex, nofollow" />
     </Head>
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <PageHeader className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold">Lists</h1>
-          <p className="text-base-content/50 text-sm mt-0.5">Lead lists imported from Sales Navigator</p>
+          <PageTitle className="text-xl font-semibold">Lists</PageTitle>
+          <PageDescription className="text-muted text-sm mt-0.5">Lead lists imported from Sales Navigator</PageDescription>
         </div>
-        <button data-tour="lists-new" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors" onClick={() => setShowModal(true)}>
+        <button data-tour="lists-new" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors" onClick={() => setShowModal(true)}>
           <RiAddLine size={15} /> New List
         </button>
-      </div>
+      </PageHeader>
 
       {/* Import jobs panel */}
       {activeJobs.length > 0 && (
         <div className="mb-6 rounded-lg border border-base-300/50 bg-base-200/40 p-4" data-tour="lists-jobs">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold">Import jobs</h2>
-            <span className="text-xs text-base-content/50">
+            <span className="text-xs text-muted">
               {importedToday} / {dailyCap} contacts imported today
             </span>
           </div>
@@ -163,7 +165,7 @@ export default function ListsPage({ initialLists }: { initialLists: List[] }) {
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm truncate">{j.list_name ?? "—"}</span>
                       {j.batch_index > 1 && (
-                        <span className="text-xs text-base-content/40">batch {j.batch_index}</span>
+                        <span className="text-xs text-muted">batch {j.batch_index}</span>
                       )}
                       {scheduled ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-warning/15 text-warning">
@@ -180,7 +182,7 @@ export default function ListsPage({ initialLists }: { initialLists: List[] }) {
                         <div className="bg-primary h-1 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                       </div>
                     )}
-                    <span className="text-xs text-base-content/40">
+                    <span className="text-xs text-muted">
                       {scheduled
                         ? `Resumes at page ${j.start_page} — capped at ${dailyCap}/day`
                         : `${j.count} / ${j.total} this batch`}
@@ -200,14 +202,12 @@ export default function ListsPage({ initialLists }: { initialLists: List[] }) {
       )}
 
       {lists.length === 0 ? (
-        <div className="text-center py-16 text-base-content/40 text-sm">
-          No lists yet. Create one and import leads from Sales Navigator.
-        </div>
+        <EmptyState title="Your leads start here" description="Create a list and import leads from Sales Navigator to organise your outreach." />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-base-300/50">
           <table className="table w-full text-sm">
             <thead>
-              <tr className="border-base-300/50 text-base-content/50 text-xs uppercase tracking-wide">
+              <tr className="border-base-300/50 text-muted text-xs uppercase tracking-wide">
                 <th>Name</th>
                 <th>Leads</th>
                 <th>Campaign</th>
@@ -226,20 +226,20 @@ export default function ListsPage({ initialLists }: { initialLists: List[] }) {
                   <td>
                     <span className="font-medium">{l.name}</span>
                     {l.description && (
-                      <p className="text-base-content/40 text-xs mt-0.5">{l.description}</p>
+                      <p className="text-muted text-xs mt-0.5">{l.description}</p>
                     )}
                   </td>
                   <td>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-base-content/60">{l.target_count}</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-muted">{l.target_count}</span>
                   </td>
                   <td>
                     {l.active_run_id ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-base-content/60">
+                      <span className="inline-flex items-center gap-1.5 text-xs text-muted">
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${l.active_run_status === 'running' ? 'bg-success animate-pulse' : 'bg-warning'}`} />
                         {l.active_workflow_name ?? 'Active'}
                       </span>
                     ) : (
-                      <span className="text-base-content/20 text-xs">—</span>
+                      <span className="text-muted text-xs">—</span>
                     )}
                   </td>
                   <td className="min-w-35">
@@ -256,14 +256,14 @@ export default function ListsPage({ initialLists }: { initialLists: List[] }) {
                           <div className="w-full bg-base-300 rounded-full h-1">
                             <div className="bg-primary h-1 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                           </div>
-                          <span className="text-xs text-base-content/40">{job.count} / {job.total}</span>
+                          <span className="text-xs text-muted">{job.count} / {job.total}</span>
                         </div>
                       );
                     })() : (
-                      <span className="text-base-content/20 text-xs">—</span>
+                      <span className="text-muted text-xs">—</span>
                     )}
                   </td>
-                  <td className="text-base-content/40 text-xs">
+                  <td className="text-muted text-xs">
                     {new Date(l.created_at).toLocaleDateString()}
                   </td>
                   <td onClick={(e) => e.stopPropagation()}>
@@ -289,7 +289,7 @@ export default function ListsPage({ initialLists }: { initialLists: List[] }) {
             <h3 className="font-semibold text-base mb-4">New List</h3>
             <form onSubmit={createList} className="flex flex-col gap-3">
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">List name</label>
+                <label className="label text-xs text-muted pb-1">List name</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-300/50"
                   placeholder="e.g. Q1 SaaS Founders"
@@ -299,7 +299,7 @@ export default function ListsPage({ initialLists }: { initialLists: List[] }) {
                 />
               </div>
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Description (optional)</label>
+                <label className="label text-xs text-muted pb-1">Description (optional)</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-300/50"
                   placeholder="e.g. Founders from Sales Nav search"
@@ -308,10 +308,10 @@ export default function ListsPage({ initialLists }: { initialLists: List[] }) {
                 />
               </div>
               <div className="modal-action mt-2">
-                <button type="button" className="btn btn-ghost btn-sm text-base-content/60" onClick={() => setShowModal(false)}>
+                <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={() => setShowModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={loading}>
+                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={loading}>
                   {loading ? <span className="loading loading-spinner loading-xs" /> : "Create"}
                 </button>
               </div>

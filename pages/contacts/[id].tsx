@@ -1,3 +1,4 @@
+import PageHeader, { PageTitle } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
@@ -189,7 +190,7 @@ function TodoDetailModal({ todo, onClose, onSave }: {
       <div className="relative z-10 w-full max-w-lg bg-base-100 border border-base-300/60 rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-base-300/40">
           <h2 className="text-sm font-semibold text-base-content">Edit todo</h2>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors">
             <RiCloseLine size={16} />
           </button>
         </div>
@@ -201,20 +202,20 @@ function TodoDetailModal({ todo, onClose, onSave }: {
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") save(); }}
             placeholder="Task title"
-            className="w-full bg-transparent text-base font-medium text-base-content placeholder-base-content/25 focus:outline-none border-b border-base-300/30 pb-3"
+            className="w-full bg-transparent text-base font-medium text-base-content placeholder:text-muted focus:outline-none border-b border-base-300/30 pb-3"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Add a description..."
             rows={5}
-            className="w-full bg-base-200/60 border border-base-300/40 rounded-xl px-4 py-3 text-sm text-base-content/80 placeholder-base-content/25 leading-relaxed focus:outline-none focus:border-base-300/80 resize-none transition-colors"
+            className="w-full bg-base-200/60 border border-base-300/40 rounded-xl px-4 py-3 text-sm text-base-content/80 placeholder:text-muted leading-relaxed focus:outline-none focus:border-base-300/80 resize-none transition-colors"
           />
           <div>
-            <label className="block text-[11px] text-base-content/40 uppercase tracking-wide mb-1.5">Due date</label>
+            <label className="block text-[11px] text-muted uppercase tracking-wide mb-1.5">Due date</label>
             <div className="flex items-center gap-2">
               <div className="relative w-48">
-                <RiCalendarLine size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/30 pointer-events-none" />
+                <RiCalendarLine size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
                 <input
                   type="date"
                   value={dueDate}
@@ -233,7 +234,7 @@ function TodoDetailModal({ todo, onClose, onSave }: {
           </div>
         </div>
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-base-300/40">
-          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-base-content/50 hover:text-base-content hover:bg-base-300/40 transition-colors">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-muted hover:text-base-content hover:bg-base-300/40 transition-colors">
             Cancel
           </button>
           <button
@@ -294,7 +295,7 @@ function LogDetailModal({ log, onClose, onSave }: {
       <div className="relative z-10 w-full max-w-lg bg-base-100 border border-base-300/60 rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-base-300/40">
           <h2 className="text-sm font-semibold text-base-content">Edit activity</h2>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors">
             <RiCloseLine size={16} />
           </button>
         </div>
@@ -307,7 +308,7 @@ function LogDetailModal({ log, onClose, onSave }: {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
                   type === t
                     ? LOG_TYPE_COLORS[t] + " ring-1 ring-inset ring-current/20"
-                    : "bg-base-200 text-base-content/40 hover:text-base-content/70"
+                    : "bg-base-200 text-muted hover:text-base-content/70"
                 }`}
               >
                 {t}
@@ -320,11 +321,11 @@ function LogDetailModal({ log, onClose, onSave }: {
             onChange={(e) => setBody(e.target.value)}
             placeholder={placeholders[type]}
             rows={6}
-            className="w-full bg-base-200/60 border border-base-300/40 rounded-xl px-4 py-3 text-sm text-base-content/80 placeholder-base-content/25 leading-relaxed focus:outline-none focus:border-base-300/80 resize-none transition-colors"
+            className="w-full bg-base-200/60 border border-base-300/40 rounded-xl px-4 py-3 text-sm text-base-content/80 placeholder:text-muted leading-relaxed focus:outline-none focus:border-base-300/80 resize-none transition-colors"
           />
         </div>
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-base-300/40">
-          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-base-content/50 hover:text-base-content hover:bg-base-300/40 transition-colors">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-muted hover:text-base-content hover:bg-base-300/40 transition-colors">
             Cancel
           </button>
           <button
@@ -344,7 +345,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   if (!value) return null;
   return (
     <div>
-      <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-0.5">{label}</p>
+      <p className="text-[11px] text-muted uppercase tracking-wide mb-0.5">{label}</p>
       <div className="text-sm text-base-content/80">{value}</div>
     </div>
   );
@@ -523,7 +524,7 @@ export default function ContactDetailPage({
     ? { label: "Connected", color: "bg-success/15 text-success" }
     : target.connection_requested_at
     ? { label: "Requested", color: "bg-warning/15 text-warning" }
-    : { label: "Not connected", color: "bg-base-300 text-base-content/40" };
+    : { label: "Not connected", color: "bg-base-300 text-muted" };
 
   return (
     <>
@@ -571,22 +572,22 @@ export default function ContactDetailPage({
       <div>
         {/* Back */}
         <div className={`flex items-center gap-3 mb-6 ${embed ? "hidden" : ""}`}>
-          <button onClick={() => history.back()} className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors">
+          <button onClick={() => history.back()} className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors">
             <RiArrowLeftLine size={16} />
           </button>
-          <span className="text-base-content/40 text-sm">Contact</span>
+          <span className="text-muted text-sm">Contact</span>
         </div>
 
         {/* Header — full width */}
         <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
-          <div className="flex items-start justify-between gap-4">
+          <PageHeader className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-semibold">{target.full_name ?? "—"}</h1>
+                <PageTitle className="text-xl font-semibold">{target.full_name ?? "—"}</PageTitle>
               </div>
-              {target.title && <p className="text-base-content/60 text-sm mt-0.5">{target.title}</p>}
+              {target.title && <p className="text-muted text-sm mt-0.5">{target.title}</p>}
               {target.headline && target.headline !== target.title && (
-                <p className="text-base-content/40 text-xs mt-1 italic">{target.headline}</p>
+                <p className="text-muted text-xs mt-1 italic">{target.headline}</p>
               )}
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${connectionStatus.color}`}>
@@ -607,13 +608,13 @@ export default function ContactDetailPage({
                   )
                 )}
                 {target.seniority && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-base-content/50 capitalize">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-muted capitalize">
                     {target.seniority}
                   </span>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex flex-wrap items-center gap-1.5">
               {email && (
                 <button onClick={() => setShowEmailModal(true)}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors">
@@ -622,36 +623,36 @@ export default function ContactDetailPage({
               )}
               {target.linkedin_url && (
                 <a href={target.linkedin_url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-base-300 text-base-content/60 hover:text-base-content hover:bg-base-300/80 transition-colors">
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-base-300 text-muted hover:text-base-content hover:bg-base-300/80 transition-colors">
                   <RiLinkedinBoxLine size={14} /> LinkedIn
                 </a>
               )}
               {target.sales_nav_url && (
                 <a href={target.sales_nav_url} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-base-content/40 hover:text-base-content/70 transition-colors">
+                  className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs text-muted hover:text-base-content/70 transition-colors">
                   <RiExternalLinkLine size={13} /> Sales Nav
                 </a>
               )}
             </div>
-          </div>
+          </PageHeader>
         </div>
 
         {/* Two-column layout */}
-        <div className="flex gap-4 items-start">
+        <div className="flex flex-col xl:flex-row gap-5 items-start">
 
           {/* Left col — 2/3 */}
-          <div className="flex-1 min-w-0">
+          <div className="w-full flex-1 min-w-0">
 
         {/* Contact info */}
         <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
-          <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-3">Contact info</p>
-          <div className="grid grid-cols-2 gap-4">
+          <p className="text-[11px] text-muted uppercase tracking-wide mb-3">Contact info</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
-                <p className="text-[11px] text-base-content/40 uppercase tracking-wide">Email</p>
+                <p className="text-[11px] text-muted uppercase tracking-wide">Email</p>
                 <button
                   onClick={() => { setEmailDraft(email); setEditingEmail(true); setTimeout(() => emailInputRef.current?.focus(), 50); }}
-                  className="text-base-content/30 hover:text-base-content/60 transition-colors"
+                  className="text-muted hover:text-muted transition-colors"
                   title="Edit email"
                 >
                   <RiEditLine size={11} />
@@ -668,18 +669,18 @@ export default function ContactDetailPage({
                     className="flex-1 px-2 py-0.5 rounded bg-base-300 border border-primary/40 text-sm focus:outline-none focus:border-primary"
                     placeholder="email@example.com"
                   />
-                  <button onClick={saveEmail} className="text-success hover:text-success/80"><RiCheckLine size={14} /></button>
-                  <button onClick={() => setEditingEmail(false)} className="text-base-content/40 hover:text-base-content/70"><RiCloseLine size={14} /></button>
+                  <button onClick={saveEmail} className="text-success hover:text-success"><RiCheckLine size={14} /></button>
+                  <button onClick={() => setEditingEmail(false)} className="text-muted hover:text-base-content/70"><RiCloseLine size={14} /></button>
                 </div>
               ) : email ? (
                 <div className="flex items-center gap-1.5 text-sm text-base-content/80">
-                  <RiMailLine size={13} className="text-base-content/40 shrink-0" />
+                  <RiMailLine size={13} className="text-muted shrink-0" />
                   <a href={`mailto:${email}`} className="hover:text-primary transition-colors">{email}</a>
                   {target.email_status && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                    <span className={`text-[11px] px-1.5 py-0.5 rounded ${
                       target.email_status === "verified" ? "bg-success/15 text-success" :
                       target.email_status === "invalid" ? "bg-error/15 text-error" :
-                      "bg-base-300 text-base-content/40"
+                      "bg-base-300 text-muted"
                     }`}>
                       {target.email_status}
                     </span>
@@ -688,7 +689,7 @@ export default function ContactDetailPage({
               ) : (
                 <button
                   onClick={() => { setEmailDraft(""); setEditingEmail(true); setTimeout(() => emailInputRef.current?.focus(), 50); }}
-                  className="text-sm text-base-content/30 hover:text-base-content/60 transition-colors"
+                  className="text-sm text-muted hover:text-muted transition-colors"
                 >
                   + Add email
                 </button>
@@ -697,17 +698,17 @@ export default function ContactDetailPage({
             <Field label="Location" value={
               target.location ? (
                 <span className="flex items-center gap-1.5">
-                  <RiMapPinLine size={13} className="text-base-content/40 shrink-0" />
+                  <RiMapPinLine size={13} className="text-muted shrink-0" />
                   {target.location}
                 </span>
               ) : null
             } />
             <div>
-              <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-0.5">Anrede</p>
+              <p className="text-[11px] text-muted uppercase tracking-wide mb-0.5">Anrede</p>
               <select
                 value={salutation}
                 onChange={(e) => saveSalutation(e.target.value)}
-                className={`bg-base-300/60 border border-base-300/50 rounded-lg px-2 py-1 text-sm focus:outline-none cursor-pointer ${salutation ? "text-base-content/80" : "text-base-content/30"}`}
+                className={`bg-base-300/60 border border-base-300/50 rounded-lg px-2 py-1 text-sm focus:outline-none cursor-pointer ${salutation ? "text-base-content/80" : "text-muted"}`}
               >
                 <option value="">— none —</option>
                 {SALUTATIONS.concat(salutation && !SALUTATIONS.includes(salutation) ? [salutation] : []).map((o) => <option key={o} value={o}>{o}</option>)}
@@ -715,10 +716,10 @@ export default function ContactDetailPage({
             </div>
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
-                <p className="text-[11px] text-base-content/40 uppercase tracking-wide">Phone</p>
+                <p className="text-[11px] text-muted uppercase tracking-wide">Phone</p>
                 <button
                   onClick={() => { setPhoneDraft(phone); setEditingPhone(true); setTimeout(() => phoneInputRef.current?.focus(), 50); }}
-                  className="text-base-content/30 hover:text-base-content/60 transition-colors"
+                  className="text-muted hover:text-muted transition-colors"
                   title="Edit phone"
                 >
                   <RiEditLine size={11} />
@@ -735,18 +736,18 @@ export default function ContactDetailPage({
                     className="flex-1 px-2 py-0.5 rounded bg-base-300 border border-primary/40 text-sm focus:outline-none focus:border-primary"
                     placeholder="+49 30 1234567"
                   />
-                  <button onClick={savePhone} className="text-success hover:text-success/80"><RiCheckLine size={14} /></button>
-                  <button onClick={() => setEditingPhone(false)} className="text-base-content/40 hover:text-base-content/70"><RiCloseLine size={14} /></button>
+                  <button onClick={savePhone} className="text-success hover:text-success"><RiCheckLine size={14} /></button>
+                  <button onClick={() => setEditingPhone(false)} className="text-muted hover:text-base-content/70"><RiCloseLine size={14} /></button>
                 </div>
               ) : phone ? (
                 <div className="flex items-center gap-1.5 text-sm text-base-content/80">
-                  <RiPhoneLine size={13} className="text-base-content/40 shrink-0" />
+                  <RiPhoneLine size={13} className="text-muted shrink-0" />
                   <a href={`tel:${phone}`} className="hover:text-primary transition-colors">{phone}</a>
                 </div>
               ) : (
                 <button
                   onClick={() => { setPhoneDraft(""); setEditingPhone(true); setTimeout(() => phoneInputRef.current?.focus(), 50); }}
-                  className="text-sm text-base-content/30 hover:text-base-content/60 transition-colors"
+                  className="text-sm text-muted hover:text-muted transition-colors"
                 >
                   + Add phone
                 </button>
@@ -754,10 +755,10 @@ export default function ContactDetailPage({
             </div>
             {functions.length > 0 && (
               <div className="col-span-2">
-                <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-1">Functions</p>
+                <p className="text-[11px] text-muted uppercase tracking-wide mb-1">Functions</p>
                 <div className="flex flex-wrap gap-1.5">
                   {functions.map((f) => (
-                    <span key={f} className="inline-flex px-2 py-0.5 rounded-md text-xs bg-base-300 text-base-content/60 capitalize">{f}</span>
+                    <span key={f} className="inline-flex px-2 py-0.5 rounded-md text-xs bg-base-300 text-muted capitalize">{f}</span>
                   ))}
                 </div>
               </div>
@@ -765,7 +766,7 @@ export default function ContactDetailPage({
             {target.tenure_months != null && (
               <Field label="Tenure at current role" value={
                 <span className="flex items-center gap-1.5">
-                  <RiTimeLine size={13} className="text-base-content/40 shrink-0" />
+                  <RiTimeLine size={13} className="text-muted shrink-0" />
                   {formatTenure(target.tenure_months)}
                 </span>
               } />
@@ -779,7 +780,7 @@ export default function ContactDetailPage({
         {/* Summary */}
         {target.summary && (
           <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
-            <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-2">About</p>
+            <p className="text-[11px] text-muted uppercase tracking-wide mb-2">About</p>
             <p className="text-sm text-base-content/70 leading-relaxed whitespace-pre-line">{target.summary}</p>
           </div>
         )}
@@ -787,11 +788,11 @@ export default function ContactDetailPage({
         {/* Notes */}
         <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
           <div className="flex items-center gap-1.5 mb-2">
-            <p className="text-[11px] text-base-content/40 uppercase tracking-wide">Notes</p>
+            <p className="text-[11px] text-muted uppercase tracking-wide">Notes</p>
             {!editingNotes && (
               <button
                 onClick={() => { setNotesDraft(notes); setEditingNotes(true); }}
-                className="text-base-content/30 hover:text-base-content/60 transition-colors"
+                className="text-muted hover:text-muted transition-colors"
                 title="Edit notes"
               >
                 <RiEditLine size={11} />
@@ -810,7 +811,7 @@ export default function ContactDetailPage({
                 placeholder="Add any context about this person — talking points, mutual connections, research notes..."
               />
               <div className="flex items-center gap-2 justify-end">
-                <button onClick={() => setEditingNotes(false)} className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs text-base-content/50 hover:text-base-content transition-colors">
+                <button onClick={() => setEditingNotes(false)} className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs text-muted hover:text-base-content transition-colors">
                   <RiCloseLine size={12} /> Cancel
                 </button>
                 <button onClick={saveNotes} className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
@@ -828,7 +829,7 @@ export default function ContactDetailPage({
           ) : (
             <button
               onClick={() => { setNotesDraft(""); setEditingNotes(true); }}
-              className="text-sm text-base-content/30 hover:text-base-content/60 transition-colors"
+              className="text-sm text-muted hover:text-muted transition-colors"
             >
               + Add notes
             </button>
@@ -839,10 +840,10 @@ export default function ContactDetailPage({
         {hasPremium && (
         <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-[11px] text-base-content/40 uppercase tracking-wide">Activity log</p>
+            <p className="text-[11px] text-muted uppercase tracking-wide">Activity log</p>
             <button
               onClick={() => setShowLogModal(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-base-content/50 hover:text-base-content hover:bg-base-300/60 transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted hover:text-base-content hover:bg-base-300/60 transition-colors"
             >
               <RiAddLine size={13} /> Log activity
             </button>
@@ -851,7 +852,7 @@ export default function ContactDetailPage({
           {activityLogs.length === 0 ? (
             <button
               onClick={() => setShowLogModal(true)}
-              className="w-full py-6 rounded-xl border border-dashed border-base-300/50 text-xs text-base-content/25 hover:text-base-content/40 hover:border-base-300/70 transition-colors"
+              className="w-full py-6 rounded-xl border border-dashed border-base-300/50 text-xs text-muted hover:text-muted hover:border-base-300/70 transition-colors"
             >
               Log the first activity
             </button>
@@ -864,10 +865,10 @@ export default function ContactDetailPage({
                   </div>
                   <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedLog(log)}>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded capitalize ${LOG_TYPE_COLORS[log.type]}`}>
+                      <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded capitalize ${LOG_TYPE_COLORS[log.type]}`}>
                         {log.type}
                       </span>
-                      <span className="text-[10px] text-base-content/25">
+                      <span className="text-[11px] text-muted">
                         {new Date(log.logged_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                     </div>
@@ -875,7 +876,7 @@ export default function ContactDetailPage({
                   </div>
                   <button
                     onClick={() => deleteLog(log.id)}
-                    className="shrink-0 opacity-0 group-hover:opacity-100 text-base-content/20 hover:text-error/60 transition-all mt-0.5"
+                    className="shrink-0 opacity-0 group-hover:opacity-100 text-muted hover:text-error transition-all mt-0.5"
                   >
                     <RiDeleteBinLine size={13} />
                   </button>
@@ -889,27 +890,27 @@ export default function ContactDetailPage({
         {/* Career history */}
         {positions.length > 0 && (
           <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
-            <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-3">Career history</p>
+            <p className="text-[11px] text-muted uppercase tracking-wide mb-3">Career history</p>
             <div className="flex flex-col gap-3">
               {positions.map((pos, i) => (
                 <div key={i} className="flex gap-3">
                   <div className="mt-1 w-5 h-5 rounded-md bg-base-300 flex items-center justify-center shrink-0">
-                    <RiBriefcaseLine size={11} className="text-base-content/40" />
+                    <RiBriefcaseLine size={11} className="text-muted" />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="w-full flex-1 min-w-0">
                     <p className="text-sm font-medium leading-tight">{pos.title}</p>
-                    <p className="text-xs text-base-content/50 mt-0.5">{pos.companyName}</p>
+                    <p className="text-xs text-muted mt-0.5">{pos.companyName}</p>
                     {(pos.startDate || pos.endDate) && (
-                      <p className="text-xs text-base-content/30 mt-0.5">
+                      <p className="text-xs text-muted mt-0.5">
                         {pos.startDate ?? ""}{pos.endDate ? ` — ${pos.endDate}` : pos.current ? " — Present" : ""}
                       </p>
                     )}
                     {pos.description && (
-                      <p className="text-xs text-base-content/50 mt-1 leading-relaxed line-clamp-3">{pos.description}</p>
+                      <p className="text-xs text-muted mt-1 leading-relaxed line-clamp-3">{pos.description}</p>
                     )}
                   </div>
                   {pos.current && (
-                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary self-start mt-0.5">Current</span>
+                    <span className="shrink-0 text-[11px] px-1.5 py-0.5 rounded bg-primary/10 text-primary self-start mt-0.5">Current</span>
                   )}
                 </div>
               ))}
@@ -920,41 +921,41 @@ export default function ContactDetailPage({
         {/* Company */}
         {target.companyObj && (
           <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
-            <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-3">Company</p>
+            <p className="text-[11px] text-muted uppercase tracking-wide mb-3">Company</p>
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-base-300 flex items-center justify-center shrink-0">
-                <RiBuilding2Line size={14} className="text-base-content/40" />
+                <RiBuilding2Line size={14} className="text-muted" />
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="w-full flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <Link href={`/companies/${target.companyObj.id}`} className="text-sm font-medium hover:text-primary transition-colors">
                     {target.companyObj.name}
                   </Link>
                   {target.companyObj.linkedin_url && (
-                    <a href={target.companyObj.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-base-content/30 hover:text-base-content/60 transition-colors">
+                    <a href={target.companyObj.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-muted hover:text-muted transition-colors">
                       <RiExternalLinkLine size={12} />
                     </a>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                  {target.companyObj.industry && <span className="text-xs text-base-content/40">{target.companyObj.industry}</span>}
+                  {target.companyObj.industry && <span className="text-xs text-muted">{target.companyObj.industry}</span>}
                   {target.companyObj.location && (
-                    <span className="text-xs text-base-content/40 flex items-center gap-1">
+                    <span className="text-xs text-muted flex items-center gap-1">
                       <RiMapPinLine size={10} /> {target.companyObj.location}
                     </span>
                   )}
                   {target.company_size && (
-                    <span className="text-xs text-base-content/40">{target.company_size} employees</span>
+                    <span className="text-xs text-muted">{target.company_size} employees</span>
                   )}
                   {target.companyObj.domain && (
                     <a href={`https://${target.companyObj.domain}`} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-base-content/40 hover:text-primary flex items-center gap-1 transition-colors">
+                      className="text-xs text-muted hover:text-primary flex items-center gap-1 transition-colors">
                       <RiGlobalLine size={10} /> {target.companyObj.domain}
                     </a>
                   )}
                 </div>
                 {target.company_description && (
-                  <p className="text-xs text-base-content/50 mt-2 leading-relaxed line-clamp-4">{target.company_description}</p>
+                  <p className="text-xs text-muted mt-2 leading-relaxed line-clamp-4">{target.company_description}</p>
                 )}
               </div>
             </div>
@@ -964,11 +965,11 @@ export default function ContactDetailPage({
           </div>{/* end left col */}
 
           {/* Right col — 1/3 */}
-          <div className="w-72 shrink-0">
+          <div className="w-full xl:w-80 shrink-0">
 
         {/* Outreach timeline */}
         <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
-          <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-3">Outreach timeline</p>
+          <p className="text-[11px] text-muted uppercase tracking-wide mb-3">Outreach timeline</p>
           <div className="flex flex-col gap-3">
             <Field label="Added" value={formatDate(target.created_at)} />
             <Field label="Connection requested" value={formatDate(target.connection_requested_at)} />
@@ -982,26 +983,26 @@ export default function ContactDetailPage({
         {/* Lists */}
         <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] text-base-content/40 uppercase tracking-wide">In lists</p>
+            <p className="text-[11px] text-muted uppercase tracking-wide">In lists</p>
             <button
               onClick={() => setShowAddList(true)}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-base-content/50 hover:text-base-content hover:bg-base-300/60 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-muted hover:text-base-content hover:bg-base-300/60 transition-colors"
             >
               <RiAddLine size={13} /> Add
             </button>
           </div>
           {memberLists.length === 0 ? (
-            <p className="text-xs text-base-content/25">Not in any list yet.</p>
+            <p className="text-xs text-muted">Not in any list yet.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {memberLists.map((l) => (
-                <span key={l.id} className="group inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-md text-xs bg-base-300 text-base-content/60 hover:text-base-content hover:bg-base-300/80 transition-colors">
+                <span key={l.id} className="group inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-md text-xs bg-base-300 text-muted hover:text-base-content hover:bg-base-300/80 transition-colors">
                   <Link href={`/lists/${l.id}`}>{l.name}</Link>
                   <button
                     onClick={() => removeFromList(l.id)}
                     disabled={removingListId === l.id}
                     title="Remove from this list"
-                    className="text-base-content/30 hover:text-error transition-colors disabled:opacity-40"
+                    className="text-muted hover:text-error transition-colors disabled:opacity-40"
                   >
                     <RiCloseCircleLine size={12} />
                   </button>
@@ -1016,7 +1017,7 @@ export default function ContactDetailPage({
             <div className="modal-box bg-base-200 border border-base-300/50 max-w-sm">
               <h3 className="font-semibold text-base mb-4">Add to list</h3>
               {addableLists.length === 0 ? (
-                <p className="text-sm text-base-content/40">Already in every list.</p>
+                <p className="text-sm text-muted">Already in every list.</p>
               ) : (
                 <select
                   className="w-full px-3 py-2 rounded-lg text-sm bg-base-300 border border-base-300/80 text-base-content focus:outline-none focus:border-primary/50 cursor-pointer"
@@ -1030,12 +1031,12 @@ export default function ContactDetailPage({
                 </select>
               )}
               <div className="modal-action mt-4">
-                <button type="button" className="btn btn-ghost btn-sm text-base-content/60" onClick={() => { setShowAddList(false); setAddListId(""); }}>
+                <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={() => { setShowAddList(false); setAddListId(""); }}>
                   Cancel
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50"
                   disabled={!addListId || addListLoading}
                   onClick={addToList}
                 >
@@ -1052,16 +1053,16 @@ export default function ContactDetailPage({
         <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <p className="text-[11px] text-base-content/40 uppercase tracking-wide">Todos</p>
+              <p className="text-[11px] text-muted uppercase tracking-wide">Todos</p>
               {todos.filter((t) => t.status === "open").length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-md bg-primary/15 text-primary text-[10px] font-medium">
+                <span className="px-1.5 py-0.5 rounded-md bg-primary/15 text-primary text-[11px] font-medium">
                   {todos.filter((t) => t.status === "open").length}
                 </span>
               )}
             </div>
             <button
               onClick={() => setShowTodoModal(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-base-content/50 hover:text-base-content hover:bg-base-300/60 transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-muted hover:text-base-content hover:bg-base-300/60 transition-colors"
             >
               <RiAddLine size={13} /> Add
             </button>
@@ -1070,7 +1071,7 @@ export default function ContactDetailPage({
           {todos.length === 0 ? (
             <button
               onClick={() => setShowTodoModal(true)}
-              className="w-full py-6 rounded-xl border border-dashed border-base-300/50 text-xs text-base-content/25 hover:text-base-content/40 hover:border-base-300/70 transition-colors"
+              className="w-full py-6 rounded-xl border border-dashed border-base-300/50 text-xs text-muted hover:text-muted hover:border-base-300/70 transition-colors"
             >
               Add the first todo
             </button>
@@ -1082,7 +1083,7 @@ export default function ContactDetailPage({
                   <div key={todo.id} className={`group flex items-start gap-2.5 py-2.5 first:pt-0 last:pb-0 ${todo.status === "done" ? "opacity-40" : ""}`}>
                     <button
                       onClick={() => toggleTodo(todo)}
-                      className={`mt-0.5 shrink-0 transition-colors ${todo.status === "done" ? "text-success" : "text-base-content/20 hover:text-base-content/60"}`}
+                      className={`mt-0.5 shrink-0 transition-colors ${todo.status === "done" ? "text-success" : "text-muted hover:text-muted"}`}
                     >
                       {todo.status === "done"
                         ? <RiCheckboxCircleLine size={15} />
@@ -1090,15 +1091,15 @@ export default function ContactDetailPage({
                       }
                     </button>
                     <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedTodo(todo)}>
-                      <p className={`text-xs leading-snug ${todo.status === "done" ? "line-through text-base-content/30" : "text-base-content/80"}`}>
+                      <p className={`text-xs leading-snug ${todo.status === "done" ? "line-through text-muted" : "text-base-content/80"}`}>
                         {todo.title}
                       </p>
                       {todo.description && (
-                        <p className="text-[11px] text-base-content/35 mt-0.5 line-clamp-1">{todo.description}</p>
+                        <p className="text-[11px] text-muted mt-0.5 line-clamp-1">{todo.description}</p>
                       )}
                       {todo.due_date && (
-                        <span className={`inline-flex items-center gap-1 text-[10px] mt-1 px-1.5 py-0.5 rounded ${
-                          overdue ? "bg-error/10 text-error" : "text-base-content/30"
+                        <span className={`inline-flex items-center gap-1 text-[11px] mt-1 px-1.5 py-0.5 rounded ${
+                          overdue ? "bg-error/10 text-error" : "text-muted"
                         }`}>
                           <RiCalendarLine size={9} />
                           {new Date(todo.due_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}{todo.due_time ? ` · ${todo.due_time}` : ""}
@@ -1107,7 +1108,7 @@ export default function ContactDetailPage({
                     </div>
                     <button
                       onClick={() => deleteTodo(todo.id)}
-                      className="shrink-0 opacity-0 group-hover:opacity-100 text-base-content/20 hover:text-error/60 transition-all"
+                      className="shrink-0 opacity-0 group-hover:opacity-100 text-muted hover:text-error transition-all"
                     >
                       <RiDeleteBinLine size={12} />
                     </button>
@@ -1122,42 +1123,42 @@ export default function ContactDetailPage({
         {/* Campaign history */}
         {campaignHistory.length > 0 && (
           <div className="bg-base-200 border border-base-300/50 rounded-xl p-5">
-            <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-3">Campaign history</p>
+            <p className="text-[11px] text-muted uppercase tracking-wide mb-3">Campaign history</p>
             <div className="flex flex-col gap-3">
               {campaignHistory.map((run) => {
                 const stateStyle: Record<string, string> = {
                   completed: "bg-success/15 text-success",
                   failed: "bg-error/15 text-error",
-                  skipped: "bg-base-300 text-base-content/40",
+                  skipped: "bg-base-300 text-muted",
                   in_progress: "bg-info/15 text-info",
-                  pending: "bg-base-300 text-base-content/40",
+                  pending: "bg-base-300 text-muted",
                 };
                 const logLevelColor: Record<string, string> = {
-                  info: "text-base-content/50",
+                  info: "text-muted",
                   warn: "text-warning",
                   error: "text-error",
                 };
                 return (
                   <div key={run.run_id} className="border border-base-300/40 rounded-lg overflow-hidden">
                     <div className="flex items-center gap-2 px-3 py-2 bg-base-300/30">
-                      <RiFlowChart size={12} className="text-base-content/30 shrink-0" />
+                      <RiFlowChart size={12} className="text-muted shrink-0" />
                       <Link
                         href={`/workflows/${run.workflow_id}`}
                         className="text-xs font-medium hover:text-primary transition-colors flex-1 truncate"
                       >
                         {run.workflow_name}
                       </Link>
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${stateStyle[run.state] ?? "bg-base-300 text-base-content/40"}`}>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${stateStyle[run.state] ?? "bg-base-300 text-muted"}`}>
                         {run.state.replace("_", " ")}
                       </span>
                     </div>
                     <div className="px-3 py-1.5 border-t border-base-300/20">
-                      <span className="text-[10px] text-base-content/30">
+                      <span className="text-[11px] text-muted">
                         {new Date(run.enrolled_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
                     </div>
                     {run.error_message && (
-                      <div className="px-3 py-1.5 bg-error/5 border-t border-error/10 text-[10px] text-error/70">
+                      <div className="px-3 py-1.5 bg-error/5 border-t border-error/10 text-[11px] text-error">
                         {run.error_message}
                       </div>
                     )}
@@ -1165,10 +1166,10 @@ export default function ContactDetailPage({
                       <div className="divide-y divide-base-300/20 border-t border-base-300/20">
                         {run.logs.map((log) => (
                           <div key={log.id} className="flex items-start gap-2 px-3 py-1.5">
-                            <span className="text-[10px] text-base-content/25 shrink-0 pt-0.5 tabular-nums">
+                            <span className="text-[11px] text-muted shrink-0 pt-0.5 tabular-nums">
                               {new Date(log.created_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                             </span>
-                            <span className={`text-[10px] leading-relaxed ${logLevelColor[log.level] ?? "text-base-content/50"}`}>
+                            <span className={`text-[11px] leading-relaxed ${logLevelColor[log.level] ?? "text-muted"}`}>
                               {log.message}
                             </span>
                           </div>

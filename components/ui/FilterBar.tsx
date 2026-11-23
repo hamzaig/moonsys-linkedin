@@ -207,35 +207,38 @@ function FilterChip({
 
   return (
     <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className={`inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-lg text-xs font-medium border transition-colors ${
+      <div
+        className={`inline-flex items-center rounded-lg text-xs font-medium border transition-colors ${
           open
             ? "bg-primary/15 border-primary/40 text-primary"
             : "bg-base-200 border-base-300/60 text-base-content/70 hover:border-base-300 hover:text-base-content"
         }`}
       >
-        <span className="text-base-content/50">{fieldDef.label}</span>
-        <span className="text-base-content/30 mx-0.5">·</span>
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="inline-flex items-center gap-1.5 min-h-8 pl-2.5 pr-1.5 rounded-l-lg">
+        <span className="text-muted">{fieldDef.label}</span>
+        <span className="text-muted mx-0.5">·</span>
         <span className="text-base-content/70">{opLabel(filter.op)}</span>
         {needsValue && filter.value && (
           <>
-            <span className="text-base-content/30 mx-0.5">·</span>
+            <span className="text-muted mx-0.5">·</span>
             <span className="font-semibold text-base-content">{valueLabel}</span>
           </>
         )}
+        </button>
         <button
+          type="button"
+          aria-label={`Remove ${fieldDef.label} filter`}
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          className="ml-1 w-4 h-4 rounded flex items-center justify-center text-base-content/30 hover:text-base-content/70 hover:bg-base-300/60 transition-colors"
+          className="w-8 min-h-8 rounded-r-lg flex items-center justify-center text-muted hover:text-base-content/70 hover:bg-base-300/60 transition-colors"
         >
           <RiCloseLine size={11} />
         </button>
-      </button>
+      </div>
 
       {open && (
         <div className="absolute top-full left-0 mt-1.5 z-50 bg-base-200 border border-base-300/60 rounded-xl shadow-xl shadow-black/30 p-3 flex flex-col gap-2.5 min-w-55">
           {/* Field label */}
-          <div className="text-xs font-semibold text-base-content/40 uppercase tracking-wider px-0.5">
+          <div className="text-xs font-semibold text-muted uppercase tracking-wider px-0.5">
             {fieldDef.label}
           </div>
 
@@ -248,7 +251,7 @@ function FilterChip({
                 className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                   filter.op === op
                     ? "bg-primary/20 text-primary border border-primary/30"
-                    : "bg-base-300/50 text-base-content/50 border border-transparent hover:text-base-content hover:bg-base-300"
+                    : "bg-base-300/50 text-muted border border-transparent hover:text-base-content hover:bg-base-300"
                 }`}
               >
                 {opLabel(op)}
@@ -286,10 +289,11 @@ function FilterChip({
                   autoFocus
                   type={fieldDef.type === "number" ? "number" : "text"}
                   placeholder="Value…"
+                  aria-label={`${fieldDef.label} filter value`}
                   value={filter.value ?? ""}
                   onChange={(e) => onChange({ ...filter, value: e.target.value })}
                   onKeyDown={(e) => e.key === "Enter" && setOpen(false)}
-                  className="w-full bg-base-300/50 border border-base-300/80 rounded-lg px-2.5 py-1.5 text-xs text-base-content placeholder:text-base-content/30 focus:outline-none focus:border-primary/50"
+                  className="w-full bg-base-300/50 border border-base-300/80 rounded-lg px-2.5 py-1.5 text-xs text-base-content placeholder:text-muted focus:outline-none focus:border-primary/50"
                 />
               )}
             </div>
@@ -326,7 +330,7 @@ function AddFilterButton({ onAdd, fields }: { onAdd: (field: string) => void; fi
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium text-base-content/40 border border-dashed border-base-300/60 hover:text-base-content/70 hover:border-base-300 hover:bg-base-200/50 transition-colors"
+        className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-medium text-muted border border-dashed border-base-300/60 hover:text-base-content/70 hover:border-base-300 hover:bg-base-200/50 transition-colors"
       >
         <RiAddLine size={12} />
         Add filter
@@ -339,20 +343,21 @@ function AddFilterButton({ onAdd, fields }: { onAdd: (field: string) => void; fi
               autoFocus
               type="text"
               placeholder="Search fields…"
+              aria-label="Search filter fields"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-base-300/50 border border-base-300/60 rounded-lg px-2.5 py-1.5 text-xs text-base-content placeholder:text-base-content/30 focus:outline-none focus:border-primary/50"
+              className="w-full bg-base-300/50 border border-base-300/60 rounded-lg px-2.5 py-1.5 text-xs text-base-content placeholder:text-muted focus:outline-none focus:border-primary/50"
             />
           </div>
           <div className="max-h-60 overflow-y-auto p-1.5 flex flex-col gap-0.5">
             {filtered.length === 0 ? (
-              <div className="text-xs text-base-content/30 px-2 py-3 text-center">No fields found</div>
+              <div className="text-xs text-muted px-2 py-3 text-center">No fields found</div>
             ) : (
               filtered.map((f) => (
                 <button
                   key={f.key}
                   onClick={() => { onAdd(f.key); setOpen(false); setSearch(""); }}
-                  className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-xs text-left text-base-content/60 hover:text-base-content hover:bg-base-300/60 transition-colors"
+                  className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-xs text-left text-muted hover:text-base-content hover:bg-base-300/60 transition-colors"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-base-content/20 shrink-0" />
                   {f.label}
@@ -400,7 +405,7 @@ export default function FilterBar({ filters, onChange, fieldSubset }: FilterBarP
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {filters.length > 0 && (
-        <span className="inline-flex items-center gap-1 text-xs text-base-content/30 pr-0.5">
+        <span className="inline-flex items-center gap-1 text-xs text-muted pr-0.5">
           <RiFilter3Line size={11} />
         </span>
       )}
@@ -416,7 +421,7 @@ export default function FilterBar({ filters, onChange, fieldSubset }: FilterBarP
       {filters.length > 0 && (
         <button
           onClick={() => onChange([])}
-          className="text-xs text-base-content/30 hover:text-base-content/60 transition-colors px-1 h-7"
+          className="text-xs text-muted hover:text-muted transition-colors px-1 h-7"
         >
           Clear all
         </button>

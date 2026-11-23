@@ -7,5 +7,13 @@ export async function register() {
     } catch (err) {
       console.error("[instrumentation] Failed to start runner:", err);
     }
+    try {
+      const [{ ensureLinkedInInboxWorkerStarted }, { getDb }, { syncAccountInbox }] = await Promise.all([
+        import("@/lib/linkedin/inbox/worker"), import("@/lib/db"), import("@/lib/linkedin/inbox/session-provider"),
+      ]);
+      ensureLinkedInInboxWorkerStarted({ getDb, sync: syncAccountInbox });
+    } catch {
+      console.error("[instrumentation] LinkedIn inbox worker could not start");
+    }
   }
 }

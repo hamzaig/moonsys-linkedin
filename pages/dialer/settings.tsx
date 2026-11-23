@@ -1,3 +1,4 @@
+import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -17,18 +18,22 @@ export default function DialerSettingsPage() {
     <>
       <Head><title>Dialer settings — MoonSys LinkedIn</title></Head>
       <div className="max-w-3xl">
-        <h1 className="text-base font-semibold text-base-content tracking-tight">Dialer settings</h1>
-        <p className="text-xs text-base-content/40 mt-1 mb-6">Pick who cheers you on during calls.</p>
+        <PageHeader>
+        <PageTitle className="text-base font-semibold text-base-content tracking-tight">Dialer settings</PageTitle>
+        <PageDescription className="text-xs text-muted mt-1 mb-6">Pick who cheers you on during calls.</PageDescription>
+        </PageHeader>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {CHARACTERS.map((c) => (
             <button
               key={c.key}
+              type="button"
+              aria-pressed={sel === c.key}
               onClick={() => pick(c.key, c.name)}
               className={`flex flex-col items-center gap-1 pt-4 pb-3 px-2 rounded-2xl border transition-colors ${sel === c.key ? "bg-primary/10 border-primary/40" : "bg-base-200/50 border-base-300/30 hover:bg-base-200"}`}
             >
               <Dialy size={110} character={c.key} mood={sel === c.key ? "cheer" : "idle"} />
               <span className="text-sm font-medium text-base-content">{c.name}</span>
-              <span className="text-[11px] text-base-content/40">{c.tagline}</span>
+              <span className="text-[11px] text-muted">{c.tagline}</span>
             </button>
           ))}
         </div>

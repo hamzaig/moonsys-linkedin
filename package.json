@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "mirror:ee": "node scripts/mirror-ee.js",
-    "typecheck": "tsc --noEmit --incremental false"
+    "typecheck": "tsc --noEmit --incremental false",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

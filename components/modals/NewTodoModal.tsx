@@ -58,9 +58,9 @@ export default function NewTodoModal({ targetId, onClose, onSave, initialTitle =
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-base-300/40">
           <div>
             <h2 className="text-sm font-semibold text-base-content">New todo</h2>
-            {subtitle && <p className="text-[11px] text-base-content/40 mt-0.5">{subtitle}</p>}
+            {subtitle && <p className="text-[11px] text-muted mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors">
             <RiCloseLine size={16} />
           </button>
         </div>
@@ -72,22 +72,22 @@ export default function NewTodoModal({ targetId, onClose, onSave, initialTitle =
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") save(); }}
             placeholder="Task title"
-            className="w-full bg-transparent text-base font-medium text-base-content placeholder-base-content/25 focus:outline-none border-b border-base-300/30 pb-3"
+            className="w-full bg-transparent text-base font-medium text-base-content placeholder:text-muted focus:outline-none border-b border-base-300/30 pb-3"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Add a description..."
             rows={3}
-            className="w-full bg-base-200/60 border border-base-300/40 rounded-xl px-4 py-3 text-sm text-base-content/80 placeholder-base-content/25 leading-relaxed focus:outline-none focus:border-base-300/80 resize-none transition-colors"
+            className="w-full bg-base-200/60 border border-base-300/40 rounded-xl px-4 py-3 text-sm text-base-content/80 placeholder:text-muted leading-relaxed focus:outline-none focus:border-base-300/80 resize-none transition-colors"
           />
           <div>
-            <label className="block text-[11px] text-base-content/40 uppercase tracking-wide mb-1.5">Due</label>
+            <label className="block text-[11px] text-muted uppercase tracking-wide mb-1.5">Due</label>
             <DateTimePicker value={due} onChange={setDue} placeholder="No due date" />
           </div>
         </div>
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-base-300/40">
-          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-base-content/50 hover:text-base-content hover:bg-base-300/40 transition-colors">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-muted hover:text-base-content hover:bg-base-300/40 transition-colors">
             {cancelLabel}
           </button>
           <button
