@@ -10,9 +10,10 @@
 
 ## License at a glance
 
-MoonSys LinkedIn is **source-available** under the [MoonSys Source-Available License](LICENSE).
-You may use it for personal or commercial work, modify it, share it and sell copies.
-**You may not offer it, or a modified version, as a hosted or managed SaaS product to third parties.**
+MoonSys LinkedIn is **source-available** under the [MoonSys Source-Available License 1.1](LICENSE).
+You may use it for personal or commercial work, modify it and share copies free of charge.
+**You may not sell or resell the software or modified versions, charge license fees for copies,
+or offer it as a hosted or managed SaaS product to third parties.**
 Self-hosting for your own organization is allowed. Keep the copyright notice and license with distributed copies.
 
 ## Features
