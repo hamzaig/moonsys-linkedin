@@ -20,9 +20,11 @@ async function verify(db:Database.Database,op:ReplyOperation,provider:ReplyProvi
  const seen=new Set<string>();let cursor:string|null=null;
  for(let pageIndex=0;pageIndex<5;pageIndex++){
   const page=await bounded(()=>provider.list(cursor),deadline,clock);
-  const thread=page.conversations.find(row=>row.urn===op.expected_conversation_urn);
+  const exact=page.conversations.filter(row=>row.urn===op.expected_conversation_urn);
+  if(exact.length>1)throw new ReplyError(409,"identity","Conversation metadata is contradictory.");
+  const thread=exact[0];
   if(thread){
-   if(thread.isGroup||thread.participants.length!==2)throw new ReplyError(409,"identity","The conversation is no longer one-to-one.");
+   if(thread.isGroup||thread.oneToOneVerified!==true||thread.participants.length!==2)throw new ReplyError(409,"identity","The conversation is no longer one-to-one.");
    const owners=thread.participants.filter(person=>profileKey(person.urn)===profileKey(self.urn));
    const peers=thread.participants.filter(person=>profileKey(person.urn)!==profileKey(self.urn));
    if(owners.length!==1||peers.length!==1||profileKey(peers[0].urn)!==profileKey(op.expected_peer_urn))throw new ReplyError(409,"identity","The conversation participants changed.");
@@ -55,7 +57,7 @@ export async function dispatchReply(db:Database.Database,id:string,factory:Reply
   finishReply(db,id,token,ack,clock());
  }catch(error){
   const code=error instanceof ReplyError||error instanceof ProviderError?error.code:"network";
-  try{failReply(db,id,token,code,clock(),error instanceof ProviderError?error.retryAfterMs:undefined)}catch{/* A committed sending marker stays non-replayable when persistence fails. */}
+  try{failReply(db,id,token,code,clock(),error instanceof ProviderError?error.retryAfterMs:undefined,op.account_id??undefined)}catch{/* A committed sending marker stays non-replayable when persistence fails. */}
  }
  const result=getReply(db,id,clock());if(!result)throw new ReplyError(404,"not_found","Reply request not found.");return result;
 }

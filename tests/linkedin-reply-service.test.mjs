@@ -7,7 +7,7 @@ import { dispatchReply } from '../lib/linkedin/inbox/reply-service.ts';
 import { ProviderError } from '../lib/linkedin/inbox/provider.ts';
 const ack={messageUrn:`urn:li:msg_message:(${self.urn},new-message)`,deliveredAt:now+1};
 function pending(t){const f=replyFixture(t);const op=reserveReply(f.db,{requestId:randomUUID(),conversationId:f.id,text:'Explicit reply'},now);return {...f,op};}
-function provider(f,overrides={}){return {identity:async()=>self,list:async()=>({conversations:[{urn:f.urn,participants:[self,peer],isGroup:false,lastActivityAt:now}],nextCursor:null}),send:async(_,before)=>{before();return ack},...overrides};}
+function provider(f,overrides={}){return {identity:async()=>self,list:async()=>({conversations:[{urn:f.urn,participants:[self,peer],isGroup:false,oneToOneVerified:true,lastActivityAt:now}],nextCursor:null}),send:async(_,before)=>{before();return ack},...overrides};}
 
 test('one explicit dispatch verifies owner/thread and sends once even after a saved incoming reply',async t=>{
  const f=pending(t);let sends=0;const p=provider(f,{send:async(input,before)=>{before();sends++;assert.equal(input.conversationUrn,f.urn);assert.equal(input.originToken,f.op.id);return ack}});
@@ -20,7 +20,7 @@ test('disconnected account fails before constructing any session/provider',async
 });
 test('wrong live owner, changed peer, group and ambiguous target cannot reach the write',async t=>{
  for(const kind of ['owner','peer','group','target']){
-  const f=pending(t);let sends=0;const summary={urn:f.urn,participants:[self,peer],isGroup:false,lastActivityAt:now};
+  const f=pending(t);let sends=0;const summary={urn:f.urn,participants:[self,peer],isGroup:false,oneToOneVerified:true,lastActivityAt:now};
   if(kind==='peer')summary.participants=[self,{...peer,urn:'urn:li:fsd_profile:STRANGER'}];if(kind==='group')summary.isGroup=true;
   if(kind==='target')f.db.exec("UPDATE targets SET linkedin_url='https://www.linkedin.com/in/someone-else/'");
   const p=provider(f,{identity:async()=>kind==='owner'?{...self,urn:'urn:li:fsd_profile:OTHER'}:self,list:async()=>({conversations:[summary],nextCursor:null}),send:async()=>{sends++;return ack}});

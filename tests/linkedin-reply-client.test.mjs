@@ -42,3 +42,22 @@ test('drafts and recovery IDs remain isolated and only their exact operation can
 test('unknown acknowledgment clears its draft without marking delivery confirmed',()=>{
  const drafts=new ReplyDraftRegistry(),i=intent();drafts.set(i.conversationId,{text:i.text,requestId:i.requestId});drafts.apply(i.conversationId,operation(i,{status:'unknown',acknowledged_at_ms:3}));assert.deepEqual(drafts.get(i.conversationId),{text:''});
 });
+
+test('definitive pre-reservation rejection unlocks editing; transport uncertainty retains its ID',async()=>{
+ const {ReplyClientError}=await import('../lib/inbox/reply-client.ts');const drafts=new ReplyDraftRegistry(),i=intent();
+ drafts.set(i.conversationId,{text:i.text,requestId:i.requestId});drafts.rejectReservation(i.conversationId,i.requestId,new ReplyClientError('busy','reserve',409,'conversation_busy'));assert.deepEqual(drafts.get(i.conversationId),{text:i.text});
+ drafts.set(i.conversationId,{text:i.text,requestId:i.requestId});drafts.rejectReservation(i.conversationId,i.requestId,new ReplyClientError('network','reserve'));assert.equal(drafts.get(i.conversationId).requestId,i.requestId);
+ drafts.rejectReservation(i.conversationId,'old-id',new ReplyClientError('invalid','reserve',400));assert.equal(drafts.get(i.conversationId).requestId,i.requestId);
+});
+test('authoritative thread deletion/access loss invalidates protected drafts but transient errors do not',async()=>{
+ const {ReplyClientError,invalidateReplyThread}=await import('../lib/inbox/reply-client.ts');
+ const drafts=new ReplyDraftRegistry();drafts.set('A',{text:'Private A'});drafts.set('B',{text:'Private B'});
+ assert.equal(invalidateReplyThread(drafts,'A',new ReplyClientError('temporary','thread',500)),false);assert.equal(drafts.get('A').text,'Private A');
+ assert.equal(invalidateReplyThread(drafts,'A',new ReplyClientError('deleted','thread',404)),true);assert.equal(drafts.get('A').text,'');assert.equal(drafts.get('B').text,'Private B');
+ assert.equal(invalidateReplyThread(drafts,'B',new ReplyClientError('unauthorized','thread',401)),true);assert.equal(drafts.get('B').text,'');
+});
+test('thread loader rejects mismatched identities and reports authoritative HTTP status',async()=>{
+ const {getReplyThread}=await import('../lib/inbox/reply-client.ts');const signal=new AbortController().signal;
+ await assert.rejects(getReplyThread('A',signal,async()=>({ok:true,status:200,json:async()=>({conversation:{id:'B'}})})),e=>e.phase==='thread');
+ await assert.rejects(getReplyThread('A',signal,async()=>({ok:false,status:404,json:async()=>({error:'Deleted'})})),e=>e.phase==='thread'&&e.status===404);
+});

@@ -42,6 +42,7 @@ try{
  await request('/api/inbox/linkedin/reply',{method:'POST',body,auth:'browser',headers:{origin:'https://evil.invalid'},expected:403});
  await request('/api/inbox/linkedin/reply',{method:'POST',body,auth:'browser',expected:403});
  await request('/api/inbox/linkedin/reply',{method:'POST',body,expected:409});
+ for(const action of [['reserve'],['dispatch'],['acknowledge']])await request('/api/inbox/linkedin/reply',{method:'POST',body:{action,requestId:id},expected:400});
  const saved=await request('/api/inbox/linkedin/reply?id='+id);assert.equal(saved.operation.status,'preparing');assert.ok(!JSON.stringify(saved).includes('attempt_token'));assert.ok(!JSON.stringify(saved).includes('body_hash'));
  const repeated=await request('/api/inbox/linkedin/reply',{method:'POST',body:{action:'reserve',requestId:id,conversationId,text:'Fixture reply <script>plain</script>'}});assert.equal(repeated.operation.status,'preparing');
  await request('/api/inbox/linkedin/reply',{method:'POST',body:{action:'reserve',requestId:id,conversationId,text:'Changed'},expected:409});
@@ -51,6 +52,7 @@ try{
  await request('/api/inbox/linkedin/reply',{method:'POST',body:{action:'acknowledge',requestId:id},expected:409});
  const email=await request('/api/inbox?channel=email');assert.equal(email.replies.length,1);assert.equal(email.replies[0].channel,'email');
  db.transaction(()=>{db.exec("DELETE FROM run_profiles WHERE target_id='reply-lead';DELETE FROM logs WHERE target_id='reply-lead';DELETE FROM targets WHERE id='reply-lead'")})();
+ await request('/api/inbox/linkedin/thread?id='+conversationId,{expected:404});
  const removed=await request('/api/inbox/linkedin/reply?id='+id);assert.equal(removed.operation.text,null);assert.equal(removed.operation.details_removed,1);
  assert.equal(db.prepare('SELECT count(*) n FROM accounts WHERE is_authenticated=1').get().n,0);
  const report={checks,liveAccounts:0,noDeliveryAttempt:true,emailCompatibility:true,tombstonePrivacy:true};if(process.env.REPLY_HTTP_REPORT_PATH)fs.writeFileSync(process.env.REPLY_HTTP_REPORT_PATH,JSON.stringify(report,null,2));console.log(JSON.stringify({checks:checks.length,noLiveAccounts:true,noDeliveryAttempt:true,emailCompatibility:true,tombstonePrivacy:true}));

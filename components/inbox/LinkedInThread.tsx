@@ -1,5 +1,5 @@
 import LinkedInReplyComposer from "./LinkedInReplyComposer";
-import { ReplyDraftRegistry } from "@/lib/inbox/reply-client";
+import { ReplyDraftRegistry,getReplyThread,invalidateReplyThread } from "@/lib/inbox/reply-client";
 import type { PublicReply,ReplyCapability } from "@/lib/linkedin/inbox/reply-types";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -32,15 +32,18 @@ export default function LinkedInThread({id,onClose,drafts}:{id:string;onClose:()
   const load=useCallback(async()=>{
     request.current?.abort();const controller=new AbortController();request.current=controller;
     try{
-      const response=await fetch(`/api/inbox/linkedin/thread?id=${encodeURIComponent(id)}`,{signal:controller.signal,cache:"no-store"});const data=await response.json();
-      if(!response.ok)throw new Error(data.error??"Could not load conversation");
+      const data=await getReplyThread<Thread>(id,controller.signal);
       if(controller.signal.aborted)return;
       for(const operation of data.replySends??[])drafts.apply(id,operation);
       setThread(data);setError("");
-    }catch(reason){if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:"Could not load conversation")}
+    }catch(reason){
+      if(controller.signal.aborted)return;
+      if(invalidateReplyThread(drafts,id,reason)){lifecycle.current?.abort();lifecycle.current=new AbortController();setThread(null);}
+      setError(reason instanceof Error?reason.message:"Could not load conversation");
+    }
   },[id,drafts]);
   useEffect(()=>{
-    const controller=new AbortController();lifecycle.current=controller;dialog.current?.showModal();void load();
+    const controller=new AbortController();lifecycle.current=controller;dialog.current?.showModal();queueMicrotask(()=>{if(!controller.signal.aborted)void load()});
     return()=>{controller.abort();request.current?.abort()};
   },[load]);
   const active=thread?.replySends.some(op=>op.status==="preparing"||op.status==="sending");

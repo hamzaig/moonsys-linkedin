@@ -1,6 +1,6 @@
 # Manual replies from Inbox
 
-Open a saved LinkedIn conversation in Inbox. Its sender account stays fixed. Compose a text reply (up to 3,000 characters) and click **Send**. Enter adds a newline. Normal drafts stay in browser memory for the current Inbox page, separately for each conversation.
+Open a saved LinkedIn conversation in Inbox. Its sender account stays fixed. Compose a text reply (up to 3,000 characters) and click **Send**. Enter adds a newline. Normal drafts stay in browser memory for the current Inbox page, separately for each conversation. Recent send outcomes are available in the thread; **Use failed reply** restores failed text without sending it.
 
 One click reserves a durable request before its delivery attempt. The app verifies the current mailbox owner and exact saved conversation participants before its one provider POST. It does not find a recipient by name or resume a campaign after your reply. This feature supports existing one-to-one campaign conversations; the external LinkedIn link remains available for other conversations.
 
@@ -16,7 +16,7 @@ Disconnected accounts show a disabled composer and reconnect guidance. Provider 
 
 Manual replies have their own per-account delivery lease/backoff and do not consume automated campaign quotas or change scheduled steps. Campaign sending remains independent; shared campaign/manual quotas and global coordination are later sequence-reliability work.
 
-Deleting a conversation, account or target purges reply text/provider identities but keeps a minimal operation tombstone. This prevents an old request ID delivering again after deletion. Already-dispatched external messages cannot be recalled.
+Authoritative deletion clears a currently open cached thread; loss of authorization clears protected draft content. Explicit account reconnect/invalidation changes a session revision and fences old prepared attempts. Deleting a conversation, account or target purges reply text/provider identities but keeps a minimal operation tombstone. This prevents an old request ID delivering again after deletion. Already-dispatched external messages cannot be recalled.
 
 ## Engineering checks
 

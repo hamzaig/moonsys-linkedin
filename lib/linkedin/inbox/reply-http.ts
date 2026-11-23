@@ -22,7 +22,7 @@ export type ReplyAction={action:"reserve";requestId:string;conversationId:string
 export function parseReplyAction(value:unknown):ReplyAction {
  if(!value||typeof value!=="object"||Array.isArray(value))throw new ReplyError(400,"invalid","Invalid reply request.");
  const row=value as Record<string,unknown>;const allowed=row.action==="reserve"?["action","requestId","conversationId","text"]:["action","requestId"];
- if(!["reserve","dispatch","acknowledge"].includes(String(row.action))||!validRequestId(row.requestId)||Object.keys(row).some(key=>!allowed.includes(key)))throw new ReplyError(400,"invalid","Invalid reply request.");
+ if(typeof row.action!=="string"||!["reserve","dispatch","acknowledge"].includes(row.action)||!validRequestId(row.requestId)||Object.keys(row).some(key=>!allowed.includes(key)))throw new ReplyError(400,"invalid","Invalid reply request.");
  if(row.action==="reserve"&&(typeof row.conversationId!=="string"||typeof row.text!=="string"))throw new ReplyError(400,"invalid","Conversation and reply text are required.");
  return row as ReplyAction;
 }

@@ -28,3 +28,10 @@ test('session adapter captures one context and disables retries/redirects at its
  const {createSessionReplyProvider}=loadTsx('lib/linkedin/inbox/reply-session.ts',{'@/lib/linkedin/session':{getSessionContext:async()=>{contextCalls++;return context}}});
  const p=await createSessionReplyProvider('a',Date.now()+30000);await p.send(requestInput,()=>{marked=true});assert.equal(writes,1);assert.equal(contextCalls,1);
 });
+
+test('acknowledgment rejects malformed or foreign mailbox tuples and error-bearing success',async()=>{
+ const value=input();
+ for(const json of [{value:{...ack(),entityUrn:'urn:li:msg_message:(nonsense)'}},{value:{...ack(),entityUrn:'urn:li:msg_message:(urn:li:fsd_profile:OTHER,message-1)'}},{value:ack(),errors:[{message:'partial'}]},{value:ack(),error:{message:'failed'}},{value:{...ack(),backendUrn:'urn:li:msg_message:(urn:li:fsd_profile:SELF,different)'}},{value:{...ack(),conversation:{entityUrn:'other'}}},{value:{...ack(),senderUrn:'urn:li:fsd_profile:OTHER'}},{value:{...ack(),sender:{hostIdentityUrn:'urn:li:fsd_profile:OTHER'}}},{value:{...ack(),message:{originToken:randomUUID()}}}]){
+  const p=createReplyProvider(async()=>({status:200,json:{}}),async(_,__,before)=>{before();return {status:201,json}});await assert.rejects(p.send(value,()=>{}));
+ }
+});

@@ -17,7 +17,13 @@ export default async function handler(req:NextApiRequest,res:NextApiResponse) {
    const op=getReply(db,req.query.id);if(!op)throw new ReplyError(404,"not_found","Reply request not found.");return res.json({operation:publicReply(op)});
   }
   const action=parseReplyAction(req.body);
-  const op=action.action==="reserve"?reserveReply(db,action):action.action==="acknowledge"?acknowledgeReply(db,action.requestId):await dispatchReply(db,action.requestId,createSessionReplyProvider);
+  let op;
+  switch(action.action){
+   case "reserve":op=reserveReply(db,action);break;
+   case "acknowledge":op=acknowledgeReply(db,action.requestId);break;
+   case "dispatch":op=await dispatchReply(db,action.requestId,createSessionReplyProvider);break;
+   default:throw new ReplyError(400,"invalid","Invalid reply action.");
+  }
   return res.json({operation:publicReply(op)});
  }catch(error){
   if(error instanceof ReplyError)return res.status(error.status).json({error:error.message,code:error.code});

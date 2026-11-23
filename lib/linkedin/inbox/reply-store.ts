@@ -1,3 +1,4 @@
+import {conversationIdentity} from "./reply-identity.ts";
 import type Database from "better-sqlite3";
 import { createHash,randomUUID } from "node:crypto";
 import { matchCampaignContact,profileKey } from "./store.ts";
@@ -8,18 +9,23 @@ const hash=(text:string)=>createHash("sha256").update(text).digest("hex");
 const LEASE=120000;
 const active="(status IN ('preparing','sending') OR (status='unknown' AND acknowledged_at_ms IS NULL))";
 export function initReplySchema(db:Database.Database):void {
+ const accountColumns=db.prepare("PRAGMA table_info(accounts)").all() as {name:string}[];
+ if(!accountColumns.some(column=>column.name==="linkedin_session_revision"))db.exec("ALTER TABLE accounts ADD COLUMN linkedin_session_revision INTEGER NOT NULL DEFAULT 0");
+ db.exec(`CREATE TRIGGER IF NOT EXISTS linkedin_reply_session_revision AFTER UPDATE OF is_authenticated ON accounts
+  BEGIN UPDATE accounts SET linkedin_session_revision=OLD.linkedin_session_revision+1 WHERE id=NEW.id; END;`);
  db.exec(`CREATE TABLE IF NOT EXISTS linkedin_reply_sends (
   id TEXT PRIMARY KEY,conversation_id TEXT REFERENCES linkedin_conversations(id) ON DELETE SET NULL,
   account_id TEXT REFERENCES accounts(id) ON DELETE SET NULL,binding_hash TEXT NOT NULL,body_hash TEXT NOT NULL,text TEXT,
   status TEXT NOT NULL CHECK(status IN ('preparing','sending','sent','failed','unknown')),
   created_at_ms INTEGER NOT NULL,updated_at_ms INTEGER NOT NULL,expires_at_ms INTEGER NOT NULL,attempt_token TEXT,
-  expected_self_urn TEXT,expected_peer_urn TEXT,expected_conversation_urn TEXT,expected_target_id TEXT,
+  expected_session_revision INTEGER,expected_self_urn TEXT,expected_peer_urn TEXT,expected_conversation_urn TEXT,expected_target_id TEXT,
   provider_urn TEXT,provider_at_ms INTEGER,error_code TEXT,error_message TEXT,acknowledged_at_ms INTEGER,details_removed INTEGER NOT NULL DEFAULT 0);
  CREATE UNIQUE INDEX IF NOT EXISTS idx_linkedin_reply_active ON linkedin_reply_sends(conversation_id) WHERE ${active};
  CREATE INDEX IF NOT EXISTS idx_linkedin_reply_thread ON linkedin_reply_sends(conversation_id,created_at_ms);
  CREATE TABLE IF NOT EXISTS linkedin_reply_accounts(account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
   lease_owner TEXT,lease_until_ms INTEGER NOT NULL DEFAULT 0,retry_at_ms INTEGER);
  `);
+ if(!(db.prepare("PRAGMA table_info(linkedin_reply_sends)").all() as {name:string}[]).some(column=>column.name==="expected_session_revision"))db.exec("ALTER TABLE linkedin_reply_sends ADD COLUMN expected_session_revision INTEGER");
  const purge=`UPDATE linkedin_reply_sends SET text=NULL,expected_self_urn=NULL,expected_peer_urn=NULL,expected_conversation_urn=NULL,expected_target_id=NULL,
   provider_urn=NULL,provider_at_ms=NULL,conversation_id=NULL,account_id=NULL,details_removed=1,
   status=CASE WHEN status='preparing' THEN 'failed' WHEN status='sending' THEN 'unknown' ELSE status END,
@@ -37,7 +43,7 @@ function recover(db:Database.Database,now:number):void {
  db.prepare("UPDATE linkedin_reply_accounts SET lease_owner=NULL,lease_until_ms=0 WHERE lease_until_ms<=?").run(now);
 }
 export function getReplyBinding(db:Database.Database,id:string):ReplyBinding|null {
- return db.prepare(`SELECT c.id,c.account_id,c.target_id,c.provider_urn,c.peer_urn,a.name AS account_name,a.is_authenticated,s.self_urn
+ return db.prepare(`SELECT c.id,c.account_id,c.target_id,c.provider_urn,c.peer_urn,a.name AS account_name,a.is_authenticated,a.linkedin_session_revision AS session_revision,s.self_urn
   FROM linkedin_conversations c JOIN accounts a ON a.id=c.account_id JOIN targets t ON t.id=c.target_id
   LEFT JOIN linkedin_inbox_sync s ON s.account_id=c.account_id WHERE c.id=?`).get(id) as ReplyBinding??null;
 }
@@ -45,8 +51,10 @@ function checkBinding(binding:ReplyBinding|null,op?:ReplyOperation):asserts bind
  if(!binding)throw new ReplyError(404,"deleted","Conversation is no longer available.");
  if(!binding.is_authenticated)throw new ReplyError(409,"auth","Reconnect LinkedIn to send a reply.");
  if(!binding.self_urn||!profileKey(binding.self_urn)||!profileKey(binding.peer_urn))throw new ReplyError(409,"identity","Read and verify this account's conversation before replying.");
- if(!/^urn:li:msg_conversation:\(urn:li:(?:fsd_profile|fs_miniProfile|member):[A-Za-z0-9_-]+,[A-Za-z0-9_-]+\)$/.test(binding.provider_urn))throw new ReplyError(409,"unsupported","Open this conversation on LinkedIn; its identity is not supported for sending.");
- if(op&&(binding.account_id!==op.account_id||binding.provider_urn!==op.expected_conversation_urn||binding.target_id!==op.expected_target_id||profileKey(binding.peer_urn)!==profileKey(op.expected_peer_urn)||profileKey(binding.self_urn)!==profileKey(op.expected_self_urn)))throw new ReplyError(409,"identity","The conversation or account identity changed. No reply was sent.");
+ const conversation=conversationIdentity(binding.provider_urn);
+ if(!conversation)throw new ReplyError(409,"unsupported","Open this conversation on LinkedIn; its identity is not supported for sending.");
+ if(profileKey(conversation.ownerUrn)!==profileKey(binding.self_urn))throw new ReplyError(409,"identity","The conversation mailbox does not match the verified owner.");
+ if(op&&(binding.session_revision!==op.expected_session_revision||binding.account_id!==op.account_id||binding.provider_urn!==op.expected_conversation_urn||binding.target_id!==op.expected_target_id||profileKey(binding.peer_urn)!==profileKey(op.expected_peer_urn)||profileKey(binding.self_urn)!==profileKey(op.expected_self_urn)))throw new ReplyError(409,"identity","The conversation or account identity changed. No reply was sent.");
 }
 function backoff(db:Database.Database,accountId:string,now:number):number|null {
  const manual=db.prepare("SELECT retry_at_ms FROM linkedin_reply_accounts WHERE account_id=?").get(accountId) as {retry_at_ms:number|null}|undefined;
@@ -66,8 +74,8 @@ export function reserveReply(db:Database.Database,input:{requestId:string;conver
   if(prior){if(prior.binding_hash!==hash(input.conversationId)||prior.body_hash!==hash(input.text))throw new ReplyError(409,"conflict","This request ID belongs to a different reply.");return prior;}
   const binding=getReplyBinding(db,input.conversationId);checkBinding(binding);requireNoBackoff(db,binding.account_id,now);
   if(db.prepare(`SELECT id FROM linkedin_reply_sends WHERE conversation_id=? AND ${active}`).get(binding.id))throw new ReplyError(409,"conversation_busy","A reply in this conversation still needs attention. Refresh its send status.");
-  db.prepare(`INSERT INTO linkedin_reply_sends(id,conversation_id,account_id,binding_hash,body_hash,text,status,created_at_ms,updated_at_ms,expires_at_ms,expected_self_urn,expected_peer_urn,expected_conversation_urn,expected_target_id)
-   VALUES(?,?,?,?,?,?,'preparing',?,?,?,?,?,?,?)`).run(input.requestId,binding.id,binding.account_id,hash(binding.id),hash(input.text),input.text,now,now,now+LEASE,binding.self_urn,binding.peer_urn,binding.provider_urn,binding.target_id);
+  db.prepare(`INSERT INTO linkedin_reply_sends(id,conversation_id,account_id,binding_hash,body_hash,text,status,created_at_ms,updated_at_ms,expires_at_ms,expected_self_urn,expected_peer_urn,expected_conversation_urn,expected_target_id,expected_session_revision)
+   VALUES(?,?,?,?,?,?,'preparing',?,?,?,?,?,?,?,?)`).run(input.requestId,binding.id,binding.account_id,hash(binding.id),hash(input.text),input.text,now,now,now+LEASE,binding.self_urn,binding.peer_urn,binding.provider_urn,binding.target_id,binding.session_revision);
   return raw(db,input.requestId)!;
  })();
 }
@@ -102,13 +110,23 @@ export function finishReply(db:Database.Database,id:string,token:string,ack:Repl
    .run(now,op.details_removed?null:ack.messageUrn,op.details_removed?null:ack.deliveredAt,op.details_removed?"deleted":null,op.details_removed?"Conversation details were removed.":null,id);release(db,token);
  })();
 }
-export function failReply(db:Database.Database,id:string,token:string,code:string,now=Date.now(),retryAfterMs?:number):void {
+export function failReply(db:Database.Database,id:string,token:string,code:string,now=Date.now(),retryAfterMs?:number,originalAccountId?:string):void {
  db.transaction(()=>{
-  const op=raw(db,id);if(!op||op.attempt_token!==token||!["preparing","sending","unknown"].includes(op.status))return;
-  const uncertain=op.status!=="preparing";
-  const message=op.details_removed?"Conversation details were removed.":uncertain?"Delivery could not be confirmed. Check LinkedIn before another reply.":code==="auth"?"Reconnect LinkedIn to send a reply.":code==="rate_limit"?"LinkedIn requested a pause. Retry after the pause ends.":code==="identity"?"The account or conversation could not be verified. No reply was sent.":"This reply could not be prepared. No reply was sent; you can retry explicitly.";
-  db.prepare("UPDATE linkedin_reply_sends SET status=?,error_code=?,error_message=?,updated_at_ms=? WHERE id=?").run(uncertain?"unknown":"failed",op.details_removed?"deleted":code,message,now,id);
-  if(code==="rate_limit"&&op.account_id){const delay=Number.isFinite(retryAfterMs)?Math.max(60000,Math.min(86400000,retryAfterMs!)):900000;db.prepare("UPDATE linkedin_reply_accounts SET retry_at_ms=MAX(COALESCE(retry_at_ms,0),?) WHERE account_id=?").run(now+delay,op.account_id);}
+  const op=raw(db,id);if(!op||op.attempt_token!==token)return;
+  const lease=db.prepare("SELECT account_id FROM linkedin_reply_accounts WHERE lease_owner=?").get(token) as {account_id:string}|undefined;
+  const accountId=lease?.account_id??originalAccountId??op.account_id;
+  if(code==="rate_limit"&&accountId&&db.prepare("SELECT 1 FROM accounts WHERE id=?").get(accountId)){
+   const delay=Number.isFinite(retryAfterMs)?Math.max(60000,Math.min(86400000,retryAfterMs!)):900000;
+   db.prepare(`INSERT INTO linkedin_reply_accounts(account_id,retry_at_ms) VALUES(?,?)
+    ON CONFLICT(account_id) DO UPDATE SET retry_at_ms=MAX(COALESCE(retry_at_ms,0),excluded.retry_at_ms)`).run(accountId,now+delay);
+  }
+  if(["preparing","sending","unknown"].includes(op.status)){
+   const uncertain=op.status!=="preparing";
+   const message=op.details_removed?"Conversation details were removed.":uncertain?"Delivery could not be confirmed. Check LinkedIn before another reply.":code==="auth"?"Reconnect LinkedIn to send a reply.":code==="rate_limit"?"LinkedIn requested a pause. Retry after the pause ends.":code==="identity"?"The account or conversation could not be verified. No reply was sent.":"This reply could not be prepared. No reply was sent; you can retry explicitly.";
+   db.prepare("UPDATE linkedin_reply_sends SET status=?,error_code=?,error_message=?,updated_at_ms=? WHERE id=?").run(uncertain?"unknown":"failed",op.details_removed?"deleted":code,message,now,id);
+  }
+  // A deletion may have already made the tombstone terminal; its surviving
+  // account lease/backoff still needs cleanup, fenced by this attempt token.
   release(db,token);
  })();
 }
