@@ -21,7 +21,7 @@ Self-hosting for your own organization is allowed. Keep the copyright notice and
 - LinkedIn and email campaign sequences with delays, templates and per-lead progress.
 - Lead lists, CSV import, company records and contact activity timelines.
 - LinkedIn Sales Navigator imports and Apollo enrichment with your own accounts.
-- A unified inbox for LinkedIn and email replies.
+- An account-scoped LinkedIn/email Inbox with saved campaign threads, sync status and stop-on-reply. See [Inbox behavior and limits](docs/LINKEDIN-INBOX.md).
 - A manual dialer workspace with scripts, outcomes, callbacks and analytics.
 - Per-account schedules, daily limits and email ramp-up settings.
 - A local SQLite database and deployment on your own machine or server.

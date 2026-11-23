@@ -1,3 +1,5 @@
+import LinkedInThread from "@/components/inbox/LinkedInThread";
+import LinkedInInboxControls from "@/components/inbox/LinkedInInboxControls";
 import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import Link from "next/link";
@@ -54,6 +56,7 @@ const VERDICT_BADGES: Record<string, { label: string; cls: string }> = {
 };
 
 function verdictBadge(reply: InboxReply): { label: string; cls: string } {
+  if (reply.linkedin_conversation_id) return { label: reply.last_replied_at ? "Reply received" : "Conversation", cls: "bg-primary/10 text-primary" };
   if (reply.classification_error) return { label: "Failed", cls: "bg-error/15 text-error" };
   if (reply.reply_id && !reply.classified_at) return { label: "Pending", cls: "bg-base-300/60 text-muted" };
   if (reply.reply_kind && VERDICT_BADGES[reply.reply_kind]) return VERDICT_BADGES[reply.reply_kind];
@@ -351,6 +354,8 @@ export default function InboxPage() {
   const [replies, setReplies] = useState<InboxReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [senderAccount, setSenderAccount] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [channel, setChannel] = useState<ChannelFilter>("all");
   const [verdict, setVerdict] = useState<string>("all");
   const [selectedReply, setSelectedReply] = useState<InboxReply | null>(null);
@@ -358,7 +363,7 @@ export default function InboxPage() {
   const [backfilling, setBackfilling] = useState(false);
   // Open-core: AI reply classification + backfill are premium (ee/). Replies are still
   // shown; only the AI action controls are gated behind an upgrade.
-  const [hasPremium, setHasPremium] = useState(true);
+  const [hasPremium, setHasPremium] = useState(false);
   useEffect(() => {
     fetch("/api/premium-status").then((r) => r.ok ? r.json() : null)
       .then((d) => { if (d) setHasPremium(!!d.hasPremium); }).catch(() => {});
@@ -402,26 +407,31 @@ export default function InboxPage() {
     }
   }
 
-  function load() {
-    setLoading(true);
+  function load(background = false) {
+    if (!background) setLoading(true);
     const params = new URLSearchParams();
     if (channel !== "all") params.set("channel", channel);
+    if (senderAccount) params.set("accountId", senderAccount);
     fetch(`/api/inbox?${params}`)
-      .then((r) => r.json())
-      .then((d) => setReplies(d.replies ?? []))
+      .then(async response => { if (!response.ok) throw new Error("Could not load Inbox"); return response.json(); })
+      .then((data) => { setReplies(data.replies ?? []); setLoadError(""); })
+      .catch(() => setLoadError("Inbox could not be loaded. Please retry."))
       .finally(() => setLoading(false));
   }
 
   useEffect(() => {
     load();
+    const timer = setInterval(() => load(true), 30000);
+    return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel]);
+  }, [channel, senderAccount]);
 
   const filtered = replies.filter((r) => {
     if (verdict !== "all" && verdictKey(r) !== verdict) return false;
     if (!search) return true;
     const q = search.toLowerCase();
     return (
+      (r.last_message ?? "").toLowerCase().includes(q) ||
       (r.full_name ?? "").toLowerCase().includes(q) ||
       (r.email ?? "").toLowerCase().includes(q) ||
       (r.company ?? "").toLowerCase().includes(q) ||
@@ -436,7 +446,7 @@ export default function InboxPage() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      {selectedReply && (
+      {selectedReply?.linkedin_conversation_id ? <LinkedInThread id={selectedReply.linkedin_conversation_id} onClose={() => setSelectedReply(null)} /> : selectedReply && (
         <ReplyModal
           reply={selectedReply}
           onClose={() => setSelectedReply(null)}
@@ -456,7 +466,7 @@ export default function InboxPage() {
               </span>
             )}
           </div>
-          <PageDescription>Contacts who replied to your outreach</PageDescription>
+          <PageDescription>Campaign conversations and incoming replies</PageDescription>
         </div>
         <div className="flex items-center gap-2">
           {hasPremium ? (
@@ -484,6 +494,8 @@ export default function InboxPage() {
         </div>
       </PageHeader>
 
+      <LinkedInInboxControls accountId={senderAccount} onAccountChange={setSenderAccount} onSynced={() => load(true)} />
+      {loadError && <div role="alert" className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-error/20 bg-error/5 p-3 text-sm text-error">{loadError}<button type="button" onClick={() => load()} className="underline">Retry</button></div>}
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="relative">
@@ -537,37 +549,37 @@ export default function InboxPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center gap-3 text-muted py-24">
           <span className="loading loading-spinner loading-md" />
-          <span className="text-sm">Loading replies…</span>
+          <span className="text-sm">Loading conversations…</span>
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 text-muted py-24">
           <RiInboxLine size={36} className="opacity-30" />
           <div className="text-center">
             <p className="text-sm font-medium">
-              {search ? "No replies match your search" : "No replies yet"}
+              {search ? "No conversations match your search" : "No campaign conversations yet"}
             </p>
             <p className="text-xs mt-1 text-muted">
-              {!search && "Replies are detected automatically by the runner"}
+              {!search && "LinkedIn sync status is shown above. New campaign replies will appear here after a successful check."}
             </p>
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-base-300/50 overflow-hidden">
+        <div className="rounded-lg border border-base-300/50 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-base-300/50 bg-base-200/60">
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Contact</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Channel</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Verdict</th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">From</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Sender</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-muted">Campaign</th>
-                <th className="text-right px-4 py-2.5 text-xs font-medium text-muted">Replied</th>
+                <th className="text-right px-4 py-2.5 text-xs font-medium text-muted">Last activity</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((r) => (
                 <tr
-                  key={r.id}
+                  key={r.inbox_key ?? r.id}
                   className="border-b border-base-300/30 hover:bg-base-200/40 transition-colors cursor-pointer"
                   onClick={() => setSelectedReply(r)}
                 >
@@ -576,9 +588,9 @@ export default function InboxPage() {
                     <div className="flex items-center gap-2.5">
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-medium text-base-content">
+                          <button type="button" className="text-left font-medium text-base-content" onClick={event => { event.stopPropagation(); setSelectedReply(r); }} aria-label={`Read conversation with ${r.full_name ?? r.email ?? "contact"}`}>
                             {r.full_name ?? r.email ?? r.linkedin_url ?? "Unknown"}
-                          </span>
+                          </button>
                           {r.linkedin_url && (
                             <a
                               href={r.linkedin_url}
@@ -591,6 +603,7 @@ export default function InboxPage() {
                             </a>
                           )}
                         </div>
+                        {r.last_message && <p className="mt-1 max-w-72 truncate text-xs text-muted">{r.last_message}</p>}
                         <div className="text-xs text-muted mt-0.5">
                           {r.company ? (
                             <span>{r.company}</span>
@@ -639,9 +652,9 @@ export default function InboxPage() {
 
                   {/* From (email account) */}
                   <td className="px-4 py-3">
-                    {r.email_account_from ? (
+                    {r.linkedin_account_name || r.email_account_from ? (
                       <span className="text-xs text-muted">
-                        {r.email_account_name ?? r.email_account_from}
+                        {r.linkedin_conversation_id ? r.linkedin_account_name : r.email_account_name ?? r.email_account_from ?? r.linkedin_account_name}
                       </span>
                     ) : (
                       <span className="text-xs text-muted">—</span>

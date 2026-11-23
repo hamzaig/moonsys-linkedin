@@ -209,3 +209,7 @@ input, select, textarea { accent-color: var(--ms-navy); }
 @keyframes dialer-pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45) } 100% { box-shadow: 0 0 0 14px rgba(52, 211, 153, 0) } }
 .dialer-pop { animation: dialer-pop 0.25s ease-out; }
 .dialer-live { animation: dialer-pulse-ring 1.4s ease-out infinite; }
+
+/* Stored LinkedIn conversations use a native modal dialog. */
+.ms-thread-dialog { width: min(760px, calc(100vw - 32px)); height: min(700px, 85dvh); max-height: 90dvh; margin: auto; padding: 0; border: 1px solid var(--ms-border); border-radius: 18px; background: var(--ms-surface); color: var(--ms-navy); box-shadow: var(--ms-shadow-overlay); }
+.ms-thread-dialog::backdrop { background: rgb(10 37 64 / 40%); backdrop-filter: blur(3px); }
