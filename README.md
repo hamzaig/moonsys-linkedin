@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/logo_moonsys.png" alt="MoonSys LinkedIn" width="56" />
+  <img src="public/brand/moonsys-mark.png" alt="MoonSys" width="56" />
 </p>
 
 <h1 align="center">MoonSys LinkedIn</h1>
@@ -26,17 +26,16 @@ Self-hosting for your own organization is allowed. Keep the copyright notice and
 - Per-account schedules, daily limits and email ramp-up settings.
 - A local SQLite database and deployment on your own machine or server.
 
-## Screenshots
+## Design system
 
-![MoonSys LinkedIn dashboard](public/assets/dashboard.png)
+All 17 application screens use the [MoonSys.co](https://www.moonsys.co/) identity: the official logo,
+navy and pink palette, locally hosted Inter/Mulish fonts, and a shared responsive application shell.
+Navigation, brand configuration and reusable UI components live in `lib/ui/`, `components/brand/`,
+`components/layout/` and `components/ui/`.
 
-| Campaigns | Inbox |
-| --- | --- |
-| ![Campaign pipeline](public/assets/campaign_pipeline.png) | ![Unified inbox](public/assets/inbox.png) |
-
-| Call queue | Call scripts |
-| --- | --- |
-| ![Dialer queue](public/assets/dialer_list_page.png) | ![Call scripts](public/assets/dialer_scripts.png) |
+See the [design rules](design-system/moonsys-linkedin/MASTER.md),
+[workspace layouts](design-system/moonsys-linkedin/pages/WORKSPACES.md) and
+[validation record](design-system/moonsys-linkedin/VALIDATION.md).
 
 ## Run with Node.js
 

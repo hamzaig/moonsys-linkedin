@@ -12,6 +12,7 @@ import { enrichProfile } from "@/lib/linkedin/enrich";
 import { matchPerson } from "@/lib/apollo";
 import { premium } from "@/lib/premium";
 import { decryptSecret } from "@/lib/crypto";
+import { enrollInitialTracks, getLocalParts, nextScheduledSlot, zonedHourMs, type ScheduleConfig } from "@/lib/linkedin/schedule";
 
 // Minimum gap between Sales Nav profile enrichment calls per account (ms)
 const SALES_NAV_ENRICH_MIN_GAP_MS = 5 * 60 * 1000;
@@ -39,13 +40,6 @@ const PROFILE_DELAY_MAX = 20;
 // Poll interval (ms)
 const POLL_INTERVAL_MS = 30_000;
 
-interface ScheduleConfig {
-  active_hours_start: number;
-  active_hours_end: number;
-  timezone: string;
-  working_days: string;
-}
-
 interface AccountLimits extends ScheduleConfig {
   daily_connection_limit: number;
   daily_message_limit: number;
@@ -65,38 +59,12 @@ function effectiveEmailLimit(account: EmailAccountLimits): number {
   return Math.min(account.daily_email_limit, ramped);
 }
 
-function getLocalParts(tz: string, date = new Date()): { hour: number; minute: number; isoWeekday: number } {
-  const safeZone = (() => { try { Intl.DateTimeFormat(undefined, { timeZone: tz }); return tz; } catch { return "UTC"; } })();
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: safeZone,
-    hour: "numeric", minute: "numeric", weekday: "short", hour12: false,
-  }).formatToParts(date);
-  const get = (t: string) => parts.find(p => p.type === t)?.value ?? "";
-  const hour = parseInt(get("hour"), 10) % 24;
-  const minute = parseInt(get("minute"), 10);
-  const weekdayMap: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
-  return { hour, minute, isoWeekday: weekdayMap[get("weekday")] ?? 1 };
-}
-
 function isWithinSchedule(account: ScheduleConfig): boolean {
   const { hour, minute, isoWeekday } = getLocalParts(account.timezone || "UTC");
   const allowedDays = (account.working_days || "1,2,3,4,5").split(",").map(Number);
   if (!allowedDays.includes(isoWeekday)) return false;
   const frac = hour + minute / 60;
   return frac >= (account.active_hours_start ?? 9) && frac < (account.active_hours_end ?? 18);
-}
-
-/**
- * UTC epoch ms of `hourFrac` o'clock on the calendar day that `date` falls on in
- * timezone `tz`. Active hours are defined in the ACCOUNT's timezone, so building
- * them with Date#setHours (the server's local zone) shifted the window by the
- * server's UTC offset — e.g. a 9–18 UTC window became 04:00–13:00 UTC on a PKT host,
- * scheduling slots hours in the past that then all fired at once.
- */
-function zonedHourMs(tz: string, hourFrac: number, date = new Date()): number {
-  const { hour, minute } = getLocalParts(tz, date);
-  const minuteStart = Math.floor(date.getTime() / 60_000) * 60_000;
-  return minuteStart + (hourFrac - (hour + minute / 60)) * 3600_000;
 }
 
 function randomSlotInActiveWindow(account: ScheduleConfig, targetDate?: Date): string {
@@ -113,25 +81,6 @@ function rescheduleToTomorrow(account: ScheduleConfig): string {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   return randomSlotInActiveWindow(account, tomorrow);
-}
-
-function nextScheduledSlot(account: ScheduleConfig): string {
-  const tz = account.timezone || "UTC";
-  const allowedDays = (account.working_days || "1,2,3,4,5").split(",").map(Number);
-  const end = account.active_hours_end ?? 18;
-  const { hour: nowHour, minute: nowMin, isoWeekday: nowDay } = getLocalParts(tz);
-  const nowFrac = nowHour + nowMin / 60;
-  if (allowedDays.includes(nowDay) && nowFrac < end - 0.25) {
-    const remaining = (end - nowFrac) * 3600_000;
-    return new Date(Date.now() + Math.random() * remaining).toISOString();
-  }
-  const candidate = new Date();
-  for (let i = 1; i <= 14; i++) {
-    candidate.setDate(candidate.getDate() + 1);
-    const { isoWeekday } = getLocalParts(tz, candidate);
-    if (allowedDays.includes(isoWeekday)) return randomSlotInActiveWindow(account, candidate);
-  }
-  return new Date(Date.now() + 86_400_000).toISOString();
 }
 
 interface WorkflowStep {
@@ -1422,38 +1371,12 @@ function spreadEnrollBatch(
   limits: ScheduleConfig,
   track: string
 ) {
-  const batchSize = pending.length;
-  if (batchSize === 0) return;
-  const tz = limits.timezone || "UTC";
-  const start = limits.active_hours_start ?? 9;
-  const end = limits.active_hours_end ?? 18;
-  const allowedDays = (limits.working_days || "1,2,3,4,5").split(",").map(Number);
-  // Spread over what is LEFT of today's window (in the account's timezone), never
-  // over hours already gone — past slots are due immediately and fire back-to-back.
-  const nowMs = Date.now();
-  const windowStartMs = Math.max(nowMs, zonedHourMs(tz, start));
-  const windowEndMs = zonedHourMs(tz, end);
-  const usableToday = allowedDays.includes(getLocalParts(tz).isoWeekday) && windowEndMs - windowStartMs > 15 * 60_000;
-  const bucketMs = (windowEndMs - windowStartMs) / batchSize;
-
-  for (let i = 0; i < pending.length; i++) {
-    const row = pending[i];
-    const claimed = db.prepare(
-      "UPDATE run_profile_tracks SET state = 'in_progress' WHERE id = ? AND state = 'pending'"
-    ).run(row.id);
-    if (claimed.changes === 0) continue;
-    const slot = (() => {
-      if (!usableToday) return nextScheduledSlot(limits);
-      const bucketStart = windowStartMs + i * bucketMs;
-      const bucketEnd = bucketStart + bucketMs;
-      return new Date(bucketStart + Math.random() * (bucketEnd - bucketStart)).toISOString();
-    })();
-    db.prepare("UPDATE run_profile_tracks SET next_step_at = ? WHERE id = ?").run(slot, row.id);
+  const enrolled = enrollInitialTracks(db, runId, pending, limits, track);
+  for (const row of enrolled) {
     const tgt = db.prepare("SELECT full_name, linkedin_url FROM targets WHERE id = (SELECT target_id FROM run_profiles WHERE id = ?)").get(row.run_profile_id) as { full_name: string | null; linkedin_url: string } | undefined;
-    log(db, runId, null, "info", `[${track}] Scheduled ${tgt?.full_name ?? tgt?.linkedin_url ?? row.run_profile_id} within active window`);
+    log(db, runId, null, "info", `[${track}] Scheduled ${tgt?.full_name ?? tgt?.linkedin_url ?? row.run_profile_id} for ${row.next_step_at} within active window`);
   }
 }
-
 // ─── public API ──────────────────────────────────────────────────────────────
 
 export function startRun(runId: string): void {

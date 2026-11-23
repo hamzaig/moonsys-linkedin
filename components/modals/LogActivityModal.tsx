@@ -15,8 +15,8 @@ export const LOG_TYPE_COLORS: Record<string, string> = {
   call: "bg-blue-500/15 text-blue-400",
   email: "bg-violet-500/15 text-violet-400",
   meeting: "bg-emerald-500/15 text-emerald-400",
-  note: "bg-base-300 text-base-content/50",
-  other: "bg-base-300 text-base-content/50",
+  note: "bg-base-300 text-muted",
+  other: "bg-base-300 text-muted",
 };
 
 const TYPES = ["note", "call", "email", "meeting", "other"] as const;
@@ -73,9 +73,9 @@ export default function LogActivityModal({ targetId, onClose, onSave, initialTyp
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-base-300/40">
           <div>
             <h2 className="text-sm font-semibold text-base-content">Log activity</h2>
-            {subtitle && <p className="text-[11px] text-base-content/40 mt-0.5">{subtitle}</p>}
+            {subtitle && <p className="text-[11px] text-muted mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors">
             <RiCloseLine size={16} />
           </button>
         </div>
@@ -88,7 +88,7 @@ export default function LogActivityModal({ targetId, onClose, onSave, initialTyp
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
                   type === t
                     ? LOG_TYPE_COLORS[t] + " ring-1 ring-inset ring-current/20"
-                    : "bg-base-200 text-base-content/40 hover:text-base-content/70"
+                    : "bg-base-200 text-muted hover:text-base-content/70"
                 }`}
               >
                 {t}
@@ -102,11 +102,11 @@ export default function LogActivityModal({ targetId, onClose, onSave, initialTyp
             onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") save(); }}
             placeholder={PLACEHOLDERS[type]}
             rows={6}
-            className="w-full bg-base-200/60 border border-base-300/40 rounded-xl px-4 py-3 text-sm text-base-content/80 placeholder-base-content/25 leading-relaxed focus:outline-none focus:border-base-300/80 resize-none transition-colors"
+            className="w-full bg-base-200/60 border border-base-300/40 rounded-xl px-4 py-3 text-sm text-base-content/80 placeholder:text-muted leading-relaxed focus:outline-none focus:border-base-300/80 resize-none transition-colors"
           />
         </div>
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-base-300/40">
-          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-base-content/50 hover:text-base-content hover:bg-base-300/40 transition-colors">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-muted hover:text-base-content hover:bg-base-300/40 transition-colors">
             {cancelLabel}
           </button>
           <button

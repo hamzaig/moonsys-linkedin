@@ -22,7 +22,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-base-100 flex items-center justify-center">
-        <span className="loading loading-spinner loading-sm text-base-content/40" />
+        <span className="loading loading-spinner loading-sm text-muted" />
       </div>
     );
   }
@@ -38,7 +38,7 @@ export default function App({ Component, pageProps: { session, ...pageProps } }:
       <AuthGuard>
         <Layout>
           <Component {...pageProps} />
-          <Toaster theme="dark" position="bottom-right" />
+          <Toaster theme="light" position="bottom-right" />
         </Layout>
       </AuthGuard>
     </SessionProvider>

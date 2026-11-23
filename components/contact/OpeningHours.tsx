@@ -57,8 +57,8 @@ export default function OpeningHours({ targetId, initialTimezone }: { targetId: 
   return (
     <div className="bg-base-200 border border-base-300/50 rounded-xl p-5 mb-4">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[11px] text-base-content/40 uppercase tracking-wide">Opening hours</p>
-        <label className="flex items-center gap-1.5 text-[11px] text-base-content/40">
+        <p className="text-[11px] text-muted uppercase tracking-wide">Opening hours</p>
+        <label className="flex items-center gap-1.5 text-[11px] text-muted">
           Timezone
           <input
             list="tz-list"
@@ -75,17 +75,17 @@ export default function OpeningHours({ targetId, initialTimezone }: { targetId: 
       </div>
 
       {groups.length === 0 ? (
-        <p className="text-sm text-base-content/30 mb-3">No hours set — shows in the dialer at any time.</p>
+        <p className="text-sm text-muted mb-3">No hours set — shows in the dialer at any time.</p>
       ) : (
         <div className="flex flex-col gap-1.5 mb-3">
           {groups.map((g) => (
             <div key={`${g.open_time}-${g.close_time}`} className="group flex items-center gap-2 text-sm">
               <span className="text-base-content/80 tabular-nums">{g.open_time}–{g.close_time}</span>
-              <span className="text-base-content/40 text-xs">{g.days.map((d) => d.l).join(" ")}</span>
+              <span className="text-muted text-xs">{g.days.map((d) => d.l).join(" ")}</span>
               <button
                 title="Remove"
                 onClick={() => saveSlots(slots.filter((s) => !(s.open_time === g.open_time && s.close_time === g.close_time)))}
-                className="opacity-0 group-hover:opacity-100 text-base-content/30 hover:text-error/70 transition-all"
+                className="opacity-0 group-hover:opacity-100 text-muted hover:text-error transition-all"
               ><RiCloseLine size={14} /></button>
             </div>
           ))}
@@ -99,13 +99,13 @@ export default function OpeningHours({ targetId, initialTimezone }: { targetId: 
               key={d.v}
               onClick={() => setDays((p) => p.includes(d.v) ? p.filter((x) => x !== d.v) : [...p, d.v])}
               className={`w-8 py-1 rounded-md text-[11px] font-medium border transition-colors ${
-                days.includes(d.v) ? "bg-primary/10 text-primary border-primary/30" : "bg-base-300/50 text-base-content/40 border-transparent hover:text-base-content/70"
+                days.includes(d.v) ? "bg-primary/10 text-primary border-primary/30" : "bg-base-300/50 text-muted border-transparent hover:text-base-content/70"
               }`}
             >{d.l.slice(0, 2)}</button>
           ))}
         </div>
         <input type="time" value={from} onChange={(e) => setFrom(e.target.value)} className="px-2 py-1 rounded-md bg-base-300 text-xs focus:outline-none" />
-        <span className="text-base-content/30 text-xs">–</span>
+        <span className="text-muted text-xs">–</span>
         <input type="time" value={to} onChange={(e) => setTo(e.target.value)} className="px-2 py-1 rounded-md bg-base-300 text-xs focus:outline-none" />
         <button onClick={add} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
           <RiAddLine size={12} /> Add

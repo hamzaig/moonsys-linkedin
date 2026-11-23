@@ -1,3 +1,7 @@
+import ChartDataTable from "@/components/ui/ChartDataTable";
+import MetricCard from "@/components/ui/MetricCard";
+import { chartColors } from "@/lib/ui/brand";
+import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useEffect, useMemo, useState } from "react";
 import LegendBar from "@/components/dialer/LegendBar";
@@ -26,20 +30,14 @@ function summarize(s: Session[]) {
 
 function Delta({ cur, prev }: { cur: number; prev: number }) {
   if (!prev && !cur) return null;
-  if (!prev) return <span className="text-[10px] text-success">new</span>;
+  if (!prev) return <span className="text-[11px] text-success">new</span>;
   const pct = Math.round(((cur - prev) / prev) * 100);
-  if (pct === 0) return <span className="text-[10px] text-base-content/30">same as before</span>;
-  return <span className={`text-[10px] ${pct > 0 ? "text-success" : "text-error/80"}`}>{pct > 0 ? "▲" : "▼"} {Math.abs(pct)}% vs prev</span>;
+  if (pct === 0) return <span className="text-[11px] text-muted">same as before</span>;
+  return <span className={`text-[11px] ${pct > 0 ? "text-success" : "text-error"}`}>{pct > 0 ? "▲" : "▼"} {Math.abs(pct)}% vs prev</span>;
 }
 
 function Card({ label, value, sub, delta }: { label: string; value: string | number; sub?: string; delta?: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-base-300/50 bg-base-200/60 px-4 py-3.5">
-      <p className="text-[11px] text-base-content/40 uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-semibold text-base-content mt-1 tabular-nums">{value}</p>
-      <div className="mt-0.5 min-h-4">{delta ?? (sub && <span className="text-[10px] text-base-content/30">{sub}</span>)}</div>
-    </div>
-  );
+  return <MetricCard label={label} value={value} color={chartColors.visits} description={delta ?? sub} />;
 }
 
 export default function DialerAnalyticsPage() {
@@ -111,17 +109,17 @@ export default function DialerAnalyticsPage() {
     <>
       <Head><title>Dialer analytics — MoonSys LinkedIn</title></Head>
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-start justify-between mb-5">
+        <PageHeader className="flex items-start justify-between mb-5">
           <div>
-            <h1 className="text-lg font-semibold text-base-content tracking-tight">Dialer analytics</h1>
-            <p className="text-xs text-base-content/40 mt-1">How the grind is going</p>
+            <PageTitle className="text-lg font-semibold text-base-content tracking-tight">Dialer analytics</PageTitle>
+            <PageDescription className="text-xs text-muted mt-1">How the grind is going</PageDescription>
           </div>
           <div className="flex bg-base-200 border border-base-300/40 rounded-xl p-1">
             {RANGES.map((r) => (
-              <button key={r.key} onClick={() => setRange(r.key)} className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-colors ${range === r.key ? "bg-base-300 text-base-content shadow-sm" : "text-base-content/40 hover:text-base-content/70"}`}>{r.label}</button>
+              <button key={r.key} aria-pressed={range === r.key} onClick={() => setRange(r.key)} className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-colors ${range === r.key ? "bg-base-300 text-base-content shadow-sm" : "text-muted hover:text-base-content/70"}`}>{r.label}</button>
             ))}
           </div>
-        </div>
+        </PageHeader>
 
         <div className="mb-5">
           <LegendBar xp={xp} callsToday={todayS.length} reachedToday={todayS.filter((s) => s.outcome === "reached").length} streak={streak} />
@@ -141,8 +139,8 @@ export default function DialerAnalyticsPage() {
         <div className="grid md:grid-cols-3 gap-3">
           <div className="md:col-span-2 rounded-2xl border border-base-300/50 bg-base-200/60 p-4">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-[11px] text-base-content/40 uppercase tracking-wide">{range === "day" ? "Calls by hour" : "Calls by day"}</p>
-              <span className="flex items-center gap-3 text-[10px] text-base-content/40">
+              <p className="text-[11px] text-muted uppercase tracking-wide">{range === "day" ? "Calls by hour" : "Calls by day"}</p>
+              <span className="flex items-center gap-3 text-[11px] text-muted">
                 <span className="inline-flex items-center gap-1"><i className="w-2 h-2 rounded-sm bg-primary/60" />calls</span>
                 <span className="inline-flex items-center gap-1"><i className="w-2 h-2 rounded-sm bg-success" />reached</span>
               </span>
@@ -154,19 +152,20 @@ export default function DialerAnalyticsPage() {
                     <div className="w-full bg-success" style={{ height: `${b.calls ? (b.reached / b.calls) * 100 : 0}%` }} />
                     <div className="w-full bg-primary/60 flex-1" />
                   </div>
-                  <span className="text-[9px] text-base-content/30 leading-none">{b.label}</span>
+                  <span className="text-[11px] text-muted leading-none">{b.label}</span>
                 </div>
               ))}
             </div>
-            {sum.calls === 0 && <p className="text-center text-xs text-base-content/30 -mt-24 mb-16">No calls in this period yet — go make some noise. 📞</p>}
+            <ChartDataTable caption="Call activity" columns={[range === "day" ? "Hour" : "Day", "Calls", "Reached"]} rows={bars.map(bar => [bar.label, bar.calls, bar.reached])} />
+            {sum.calls === 0 && <p className="text-center text-xs text-muted mt-4">No calls recorded in this period.</p>}
           </div>
 
           <div className="rounded-2xl border border-base-300/50 bg-base-200/60 p-4">
-            <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-3">Outcomes</p>
+            <p className="text-[11px] text-muted uppercase tracking-wide mb-3">Outcomes</p>
             <div className="flex flex-col gap-2.5">
               {outcomes.map((o) => (
                 <div key={o.key}>
-                  <div className="flex justify-between text-xs mb-1"><span className="text-base-content/70">{o.emoji} {o.label}</span><span className="text-base-content/40 tabular-nums">{o.n}</span></div>
+                  <div className="flex justify-between text-xs mb-1"><span className="text-base-content/70">{o.emoji} {o.label}</span><span className="text-muted tabular-nums">{o.n}</span></div>
                   <div className="h-1.5 rounded-full bg-base-300/50 overflow-hidden"><div className="h-full rounded-full bg-primary/60" style={{ width: `${(o.n / maxOut) * 100}%` }} /></div>
                 </div>
               ))}
@@ -176,15 +175,15 @@ export default function DialerAnalyticsPage() {
 
         {scripts.length > 0 && (
           <div className="mt-3 rounded-2xl border border-base-300/50 bg-base-200/60 p-4">
-            <p className="text-[11px] text-base-content/40 uppercase tracking-wide mb-3">Scripts</p>
+            <p className="text-[11px] text-muted uppercase tracking-wide mb-3">Scripts</p>
             <table className="w-full text-sm">
-              <thead><tr className="text-[11px] text-base-content/30 text-left"><th className="font-normal pb-1.5">Script</th><th className="font-normal pb-1.5 text-right">Calls</th><th className="font-normal pb-1.5 text-right">Reached</th><th className="font-normal pb-1.5 text-right">Rate</th></tr></thead>
+              <thead><tr className="text-[11px] text-muted text-left"><th className="font-normal pb-1.5">Script</th><th className="font-normal pb-1.5 text-right">Calls</th><th className="font-normal pb-1.5 text-right">Reached</th><th className="font-normal pb-1.5 text-right">Rate</th></tr></thead>
               <tbody>
                 {scripts.map((s) => (
                   <tr key={s.name} className="border-t border-base-300/30">
                     <td className="py-2 text-base-content/80">{s.name}</td>
-                    <td className="py-2 text-right tabular-nums text-base-content/60">{s.calls}</td>
-                    <td className="py-2 text-right tabular-nums text-base-content/60">{s.reached}</td>
+                    <td className="py-2 text-right tabular-nums text-muted">{s.calls}</td>
+                    <td className="py-2 text-right tabular-nums text-muted">{s.reached}</td>
                     <td className="py-2 text-right tabular-nums text-success">{Math.round((s.reached / s.calls) * 100)}%</td>
                   </tr>
                 ))}

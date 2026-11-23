@@ -1,3 +1,7 @@
+import ChartDataTable from "@/components/ui/ChartDataTable";
+import MetricCard from "@/components/ui/MetricCard";
+import { chartColors } from "@/lib/ui/brand";
+import PageHeader, { PageTitle } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useState, useEffect, useCallback } from "react";
 import { GetServerSideProps } from "next";
@@ -201,11 +205,11 @@ const STEP_COLORS: Record<string, string> = {
 const VARIABLES = ["{{salutation}}", "{{first_name}}", "{{last_name}}", "{{company}}", "{{title}}"];
 
 const STATE_PILL: Record<string, string> = {
-  pending: "bg-base-300 text-base-content/50",
+  pending: "bg-base-300 text-muted",
   in_progress: "bg-info/15 text-info",
   completed: "bg-success/15 text-success",
   failed: "bg-error/15 text-error",
-  skipped: "bg-base-300/60 text-base-content/30",
+  skipped: "bg-base-300/60 text-muted",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -418,21 +422,21 @@ function ModelPicker({ models, value, open, search, collapsedProviders, onOpen, 
 
   return (
     <div className="relative">
-      <label className="text-xs text-base-content/40 mb-1 block">Model</label>
+      <label className="text-xs text-muted mb-1 block">Model</label>
       <button
         type="button"
         onClick={onOpen}
         className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-base-300/50 border border-base-300/50 text-sm text-left hover:border-base-300 transition-colors"
       >
-        <span className={value ? "text-base-content" : "text-base-content/30"}>
+        <span className={value ? "text-base-content" : "text-muted"}>
           {selectedModel ? (
             <span className="flex items-center gap-2">
-              <span className="text-base-content/40 text-xs">{PROVIDER_DISPLAY[selectedModel.provider] ?? selectedModel.provider}</span>
+              <span className="text-muted text-xs">{PROVIDER_DISPLAY[selectedModel.provider] ?? selectedModel.provider}</span>
               <span>{selectedModel.name}</span>
             </span>
           ) : "Select a model…"}
         </span>
-        <RiSearchLine size={13} className="text-base-content/30 shrink-0" />
+        <RiSearchLine size={13} className="text-muted shrink-0" />
       </button>
 
       {open && (
@@ -448,15 +452,15 @@ function ModelPicker({ models, value, open, search, collapsedProviders, onOpen, 
                 placeholder="Search models…"
                 value={search}
                 onChange={(e) => onSearch(e.target.value)}
-                className="w-full bg-base-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none placeholder:text-base-content/30"
+                className="w-full bg-base-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none placeholder:text-muted"
               />
             </div>
 
             <div className="max-h-72 overflow-y-auto">
               {models.length === 0 ? (
-                <p className="px-3 py-4 text-sm text-base-content/30 text-center">No OpenRouter key configured</p>
+                <p className="px-3 py-4 text-sm text-muted text-center">No OpenRouter key configured</p>
               ) : filtered.length === 0 ? (
-                <p className="px-3 py-4 text-sm text-base-content/30 text-center">No models match</p>
+                <p className="px-3 py-4 text-sm text-muted text-center">No models match</p>
               ) : (
                 providerOrder.map(provider => {
                   const providerModels = byProvider[provider];
@@ -470,14 +474,14 @@ function ModelPicker({ models, value, open, search, collapsedProviders, onOpen, 
                         onClick={() => !isSearching && onToggleProvider(provider)}
                         className={`w-full flex items-center justify-between px-3 py-1.5 sticky top-0 bg-base-300/90 backdrop-blur-sm border-b border-base-300/30 ${isSearching ? "cursor-default" : "hover:bg-base-300 cursor-pointer"}`}
                       >
-                        <span className="text-[10px] uppercase tracking-wider text-base-content/40 font-semibold">{displayName}</span>
+                        <span className="text-[11px] uppercase tracking-wider text-muted font-semibold">{displayName}</span>
                         {!isSearching && (
-                          <span className="text-base-content/30">
+                          <span className="text-muted">
                             {isCollapsed ? <RiArrowRightSLine size={13} /> : <RiArrowDownSLine size={13} />}
                           </span>
                         )}
                         {isSearching && (
-                          <span className="text-[10px] text-base-content/25">{providerModels.length}</span>
+                          <span className="text-[11px] text-muted">{providerModels.length}</span>
                         )}
                       </button>
 
@@ -1016,27 +1020,30 @@ function Wizard({
               {workflowName}
             </button>
           )}
-          <span className="text-base-content/30">·</span>
-          <span className="text-sm text-base-content/50">{PAGE_LABELS[page]}</span>
+          <span className="text-muted">·</span>
+          <span className="text-sm text-muted">{PAGE_LABELS[page]}</span>
         </div>
         <button
-          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors"
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
           onClick={onClose}
+          aria-label="Close campaign editor"
           disabled={launching || saving}
         >
           ✕
         </button>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="ms-wizard-body">
         {/* Left nav */}
-        <div className="w-56 shrink-0 border-r border-base-300/50 p-4 flex flex-col gap-1 overflow-y-auto">
+        <div className="ms-wizard-nav">
           {pages.map((p) => {
             const active = page === p;
             const canNav = canGoTo(p);
             return (
               <button
                 key={p}
+                aria-current={active ? "step" : undefined}
+                aria-disabled={!canNav}
                 onClick={() => canNav && setPage(p)}
                 className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
                   active
@@ -1048,7 +1055,7 @@ function Wizard({
               >
                 <span
                   className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
-                    active ? "bg-primary text-primary-content" : "bg-base-300 text-base-content/50"
+                    active ? "bg-accent text-accent-content" : "bg-base-300 text-muted"
                   }`}
                 >
                   {PAGE_ICONS[p]}
@@ -1058,19 +1065,19 @@ function Wizard({
                     {PAGE_LABELS[p]}
                   </p>
                   {p === "prospects" && selectedList && (
-                    <p className="text-xs text-base-content/40 truncate">{selectedList.name}</p>
+                    <p className="text-xs text-muted truncate">{selectedList.name}</p>
                   )}
                   {p === "linkedin-steps" && wizardSteps.filter(s => s.track === "linkedin").length > 0 && (
-                    <p className="text-xs text-base-content/40">{wizardSteps.filter(s => s.track === "linkedin").length} step{wizardSteps.filter(s => s.track === "linkedin").length !== 1 ? "s" : ""}</p>
+                    <p className="text-xs text-muted">{wizardSteps.filter(s => s.track === "linkedin").length} step{wizardSteps.filter(s => s.track === "linkedin").length !== 1 ? "s" : ""}</p>
                   )}
                   {p === "email-steps" && wizardSteps.filter(s => s.track === "email").length > 0 && (
-                    <p className="text-xs text-base-content/40">{wizardSteps.filter(s => s.track === "email").length} step{wizardSteps.filter(s => s.track === "email").length !== 1 ? "s" : ""}</p>
+                    <p className="text-xs text-muted">{wizardSteps.filter(s => s.track === "email").length} step{wizardSteps.filter(s => s.track === "email").length !== 1 ? "s" : ""}</p>
                   )}
                   {p === "prompt" && campaignPrompt.trim() && (
-                    <p className="text-xs text-base-content/40 truncate">{campaignPrompt.trim().slice(0, 24)}{campaignPrompt.trim().length > 24 ? "…" : ""}</p>
+                    <p className="text-xs text-muted truncate">{campaignPrompt.trim().slice(0, 24)}{campaignPrompt.trim().length > 24 ? "…" : ""}</p>
                   )}
                   {p === "account" && selectedAccount && (
-                    <p className="text-xs text-base-content/40 truncate">{selectedAccount.name}</p>
+                    <p className="text-xs text-muted truncate">{selectedAccount.name}</p>
                   )}
                 </div>
               </button>
@@ -1079,8 +1086,8 @@ function Wizard({
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto pt-10 px-10 pb-6">
+        <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto pt-6 px-5 md:pt-10 md:px-10 pb-6">
             <div className={`w-full mx-auto ${page === "prospects" ? "max-w-5xl" : "max-w-2xl"}`}>
 
               {/* ── Page: Prospects ── */}
@@ -1093,37 +1100,37 @@ function Wizard({
                 return (
                   <div className="flex flex-col" style={{ minHeight: "calc(100vh - 220px)" }}>
                     <h2 className="text-xl font-semibold mb-1">{isAddContacts ? "Add contacts to campaign" : "Choose your prospects"}</h2>
-                    <p className="text-base-content/50 text-sm mb-4">
+                    <p className="text-muted text-sm mb-4">
                       {isAddContacts
                         ? "Pick contacts from any list to enroll into the running campaign. Already-enrolled contacts are skipped."
                         : "Pick a list, then choose all contacts or a manual subset."}
                     </p>
 
-                    <div className="flex gap-6 flex-1 min-h-0">
+                    <div className="flex flex-col xl:flex-row gap-6 flex-1 min-h-0">
                       {/* ── Left: Lists picker ── */}
-                      <div className="w-72 shrink-0 flex flex-col min-h-0">
+                      <div className="w-full xl:w-72 max-h-72 xl:max-h-none shrink-0 flex flex-col min-h-0">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs text-base-content/40 uppercase tracking-wide">Lists</p>
-                          <span className="text-xs text-base-content/30">{lists.length}</span>
+                          <p className="text-xs text-muted uppercase tracking-wide">Lists</p>
+                          <span className="text-xs text-muted">{lists.length}</span>
                         </div>
                         <div className="relative mb-2">
-                          <RiSearchLine size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-base-content/30" />
+                          <RiSearchLine size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
                           <input
                             type="text"
                             value={listSearch}
                             onChange={(e) => setListSearch(e.target.value)}
                             placeholder="Search lists…"
-                            className="w-full pl-7 pr-2 py-1.5 text-xs rounded-lg bg-base-200 border border-base-300/50 focus:border-primary/40 focus:outline-none placeholder:text-base-content/30"
+                            className="w-full pl-7 pr-2 py-1.5 text-xs rounded-lg bg-base-200 border border-base-300/50 focus:border-primary/40 focus:outline-none placeholder:text-muted"
                           />
                         </div>
                         <div className="flex-1 overflow-y-auto rounded-lg border border-base-300/30 bg-base-200/30">
                           {lists.length === 0 ? (
-                            <p className="text-xs text-base-content/40 p-4">
+                            <p className="text-xs text-muted p-4">
                               No lists yet.{" "}
                               <Link href="/lists" className="text-primary underline">Create one</Link>
                             </p>
                           ) : filteredLists.length === 0 ? (
-                            <p className="text-xs text-base-content/30 p-4">No lists match.</p>
+                            <p className="text-xs text-muted p-4">No lists match.</p>
                           ) : (
                             filteredLists.map((l) => {
                               const active = listId === String(l.id);
@@ -1138,7 +1145,7 @@ function Wizard({
                                   }`}
                                 >
                                   <span className="truncate">{l.name}</span>
-                                  <span className={`text-xs shrink-0 ${active ? "text-primary/70" : "text-base-content/30"}`}>
+                                  <span className={`text-xs shrink-0 ${active ? "text-primary" : "text-muted"}`}>
                                     {l.target_count ?? 0}
                                   </span>
                                 </button>
@@ -1152,7 +1159,7 @@ function Wizard({
                       <div className="flex-1 min-w-0 flex flex-col min-h-0">
                         {!listId ? (
                           <div className="flex-1 flex items-center justify-center">
-                            <p className="text-sm text-base-content/40">Select a list to choose contacts.</p>
+                            <p className="text-sm text-muted">Select a list to choose contacts.</p>
                           </div>
                         ) : (
                           <>
@@ -1160,14 +1167,14 @@ function Wizard({
                             <div className="flex gap-2 mb-3">
                               <button
                                 onClick={() => { setProspectMode("all"); setSelectedTargetIds(new Set(listTargets.map((t) => t.id))); }}
-                                className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${prospectMode === "all" ? "bg-primary/10 border-primary/40 text-primary" : "bg-base-200 border-base-300/50 hover:border-base-300 text-base-content/60"}`}
+                                className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${prospectMode === "all" ? "bg-primary/10 border-primary/40 text-primary" : "bg-base-200 border-base-300/50 hover:border-base-300 text-muted"}`}
                               >
                                 All contacts in list
                                 <span className="ml-1 text-xs opacity-60">({listTargets.length})</span>
                               </button>
                               <button
                                 onClick={() => setProspectMode("manual")}
-                                className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${prospectMode === "manual" ? "bg-primary/10 border-primary/40 text-primary" : "bg-base-200 border-base-300/50 hover:border-base-300 text-base-content/60"}`}
+                                className={`flex-1 px-4 py-2.5 rounded-xl border text-sm font-medium transition-colors ${prospectMode === "manual" ? "bg-primary/10 border-primary/40 text-primary" : "bg-base-200 border-base-300/50 hover:border-base-300 text-muted"}`}
                               >
                                 Manual selection
                                 {prospectMode === "manual" && (
@@ -1177,9 +1184,9 @@ function Wizard({
                             </div>
 
                             {/* Status / banner */}
-                            {conflictsLoading && <p className="text-xs text-base-content/40 mb-2">Checking for conflicts...</p>}
+                            {conflictsLoading && <p className="text-xs text-muted mb-2">Checking for conflicts...</p>}
                             {isAddContacts && (
-                              <div className="px-3 py-2 rounded-lg text-xs mb-3 bg-base-200/50 border border-base-300/40 text-base-content/50">
+                              <div className="px-3 py-2 rounded-lg text-xs mb-3 bg-base-200/50 border border-base-300/40 text-muted">
                                 Already-enrolled contacts are skipped automatically.
                               </div>
                             )}
@@ -1201,7 +1208,7 @@ function Wizard({
                                   <p className="text-3xl font-semibold text-base-content/80">
                                     {selectedTargetIds.size}
                                   </p>
-                                  <p className="text-xs text-base-content/40 mt-1">
+                                  <p className="text-xs text-muted mt-1">
                                     contact{selectedTargetIds.size !== 1 ? "s" : ""} will be enrolled
                                   </p>
                                 </div>
@@ -1215,7 +1222,7 @@ function Wizard({
                                     checked={selectedTargetIds.size === listTargets.length && listTargets.length > 0}
                                     onChange={toggleAllTargets}
                                   />
-                                  <span className="text-xs text-base-content/50">
+                                  <span className="text-xs text-muted">
                                     {selectedTargetIds.size === listTargets.length
                                       ? `All ${listTargets.length} selected`
                                       : `${selectedTargetIds.size} of ${listTargets.length} selected`}
@@ -1236,7 +1243,7 @@ function Wizard({
                                       <div className="min-w-0 flex-1">
                                         <p className="text-sm font-medium truncate">{t.full_name ?? "—"}</p>
                                         {(t.title || t.company) && (
-                                          <p className="text-xs text-base-content/40 truncate">{[t.title, t.company].filter(Boolean).join(" · ")}</p>
+                                          <p className="text-xs text-muted truncate">{[t.title, t.company].filter(Boolean).join(" · ")}</p>
                                         )}
                                       </div>
                                     </label>
@@ -1256,7 +1263,7 @@ function Wizard({
               {page === "prompt" && (
                 <div>
                   <h2 className="text-xl font-semibold mb-1">Campaign context</h2>
-                  <p className="text-base-content/50 text-sm mb-6">
+                  <p className="text-muted text-sm mb-6">
                     What&apos;s unique about this campaign? The AI reads this for every message it writes — use it to set the angle, persona, USP, or tone. Optional but recommended when using AI-generated steps.
                   </p>
                   <textarea
@@ -1264,9 +1271,9 @@ function Wizard({
                     onChange={(e) => setCampaignPrompt(e.target.value)}
                     rows={10}
                     placeholder={"This campaign targets CTOs at Series B startups in fintech. Lead with the compliance angle — our product helps them pass SOC2 without hiring a dedicated security team. Keep the tone direct and peer-to-peer, not vendor-y."}
-                    className="w-full bg-base-300/40 border border-base-300/50 rounded-xl px-4 py-3 text-sm text-base-content placeholder:text-base-content/20 focus:outline-none focus:border-primary/40 resize-y leading-relaxed"
+                    className="w-full bg-base-300/40 border border-base-300/50 rounded-xl px-4 py-3 text-sm text-base-content placeholder:text-muted focus:outline-none focus:border-primary/40 resize-y leading-relaxed"
                   />
-                  <p className="text-xs text-base-content/30 mt-2">{campaignPrompt.length} chars</p>
+                  <p className="text-xs text-muted mt-2">{campaignPrompt.length} chars</p>
                 </div>
               )}
 
@@ -1282,10 +1289,10 @@ function Wizard({
                         <div className="flex items-center gap-2 py-1 pl-3">
                           <div className="flex flex-col items-center gap-0.5">
                             <div className="w-px h-2 bg-base-300/60" />
-                            <RiTimeLine size={11} className="text-base-content/30" />
+                            <RiTimeLine size={11} className="text-muted" />
                             <div className="w-px h-2 bg-base-300/60" />
                           </div>
-                          <span className="text-xs text-base-content/30">
+                          <span className="text-xs text-muted">
                             {ws.delayDaysBefore > 0 ? `Wait ${ws.delayDaysBefore}d` : "Immediately"}
                           </span>
                         </div>
@@ -1302,28 +1309,28 @@ function Wizard({
                             {ws.type === "email" ? getEmailStepLabel(wizardSteps, idx) : ws.type === "message" ? getMessageStepLabel(wizardSteps, idx) : STEP_LABELS[ws.type]}
                           </p>
                           {ws.type === "connect" && ws.connectNote && (
-                            <p className="text-[10px] text-base-content/40 truncate">Note: {ws.connectNote}</p>
+                            <p className="text-[11px] text-muted truncate">Note: {ws.connectNote}</p>
                           )}
                           {(ws.type === "message" || ws.type === "sales_inmail") && ws.templateIds.length > 0 && (
-                            <p className="text-[10px] text-base-content/40">{ws.templateIds.length} template{ws.templateIds.length > 1 ? "s" : ""}</p>
+                            <p className="text-[11px] text-muted">{ws.templateIds.length} template{ws.templateIds.length > 1 ? "s" : ""}</p>
                           )}
                           {ws.type === "sales_inmail" && hasPremium && ws.aiEnabled && (
-                            <p className="text-[10px] text-base-content/40 italic">AI writes subject + body</p>
+                            <p className="text-[11px] text-muted italic">AI writes subject + body</p>
                           )}
                           {ws.type === "sales_inmail" && !(hasPremium && ws.aiEnabled) && (
-                            <p className={`text-[10px] truncate ${ws.emailSubject ? "text-base-content/40" : "text-error/50 italic"}`}>{ws.emailSubject || "No subject — required"}</p>
+                            <p className={`text-[11px] truncate ${ws.emailSubject ? "text-muted" : "text-error italic"}`}>{ws.emailSubject || "No subject — required"}</p>
                           )}
                           {ws.type === "email" && ws.emailSubject && (
-                            <p className="text-[10px] text-base-content/40 truncate">{ws.emailSubject}</p>
+                            <p className="text-[11px] text-muted truncate">{ws.emailSubject}</p>
                           )}
                           {ws.type === "email" && !ws.emailSubject && (
-                            <p className="text-[10px] text-base-content/25 italic">No subject</p>
+                            <p className="text-[11px] text-muted italic">No subject</p>
                           )}
                           {ws.aiEnabled && (
-                            <p className="text-[10px] text-primary/50 flex items-center gap-0.5 mt-0.5"><RiRobot2Line size={9} /> AI</p>
+                            <p className="text-[11px] text-primary flex items-center gap-0.5 mt-0.5"><RiRobot2Line size={9} /> AI</p>
                           )}
                         </div>
-                        <RiEditLine size={12} className="text-base-content/20 group-hover:text-base-content/40 transition-colors shrink-0 mr-0.5" />
+                        <RiEditLine size={12} className="text-muted group-hover:text-muted transition-colors shrink-0 mr-0.5" />
                         <button
                           className="inline-flex items-center p-1 rounded-md bg-error/10 text-error border border-error/20 hover:bg-error/20 transition-colors shrink-0"
                           onClick={(e) => { e.stopPropagation(); removeWizardStep(idx); }}
@@ -1348,18 +1355,18 @@ function Wizard({
                       )}
                       <h2 className="text-xl font-semibold">{track === "linkedin" ? "LinkedIn steps" : "Email steps"}</h2>
                     </div>
-                    <p className="text-base-content/50 text-sm mb-6">
+                    <p className="text-muted text-sm mb-6">
                       {track === "linkedin"
                         ? "Profile visit, connection request, and follow-up message steps. Run in sequence."
                         : "Cold email and follow-ups. Run in sequence, independently of the LinkedIn track."}
                       {otherCount > 0 && (
-                        <span className="text-base-content/35"> · Both tracks execute in parallel.</span>
+                        <span className="text-muted"> · Both tracks execute in parallel.</span>
                       )}
                     </p>
 
                     <div className="space-y-0 mb-5">
                       {trackSteps.length === 0 ? (
-                        <div className="text-center py-10 border border-dashed border-base-300/60 rounded-xl text-base-content/30 text-sm">
+                        <div className="text-center py-10 border border-dashed border-base-300/60 rounded-xl text-muted text-sm">
                           {track === "linkedin" ? "No LinkedIn steps yet. Add your first step below." : "No email steps yet. Add your first step below."}
                         </div>
                       ) : (
@@ -1368,7 +1375,7 @@ function Wizard({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs text-base-content/30 mr-1">Add step:</span>
+                      <span className="text-xs text-muted mr-1">Add step:</span>
                       {track === "linkedin"
                         ? (["visit", "connect", "message", "sales_inmail"] as const)
                             // Sales Nav InMail is a premium feature — hide from the picker in the public build.
@@ -1377,14 +1384,14 @@ function Wizard({
                             const disabled = type === "connect" && hasConnect;
                             return (
                               <button key={type} onClick={() => !disabled && addWizardStep(type)} title={disabled ? "Connection step can only be added once" : undefined}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors text-xs ${disabled ? "border-base-300/20 bg-base-200/40 text-base-content/20 cursor-not-allowed" : "border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary/70 hover:text-primary"}`}>
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors text-xs ${disabled ? "border-base-300/20 bg-base-200/40 text-muted cursor-not-allowed" : "border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary hover:text-primary"}`}>
                                 <RiAddLine size={11} /> {STEP_LABELS[type]}
                               </button>
                             );
                           })
                         : (
                             <button onClick={() => addWizardStep("email")}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors text-xs border-warning/20 bg-warning/5 hover:bg-warning/10 text-warning/70 hover:text-warning">
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors text-xs border-warning/20 bg-warning/5 hover:bg-warning/10 text-warning hover:text-warning">
                               <RiAddLine size={11} /> {trackSteps.length === 0 ? "Cold Email" : `Follow-up #${trackSteps.length + 1}`}
                             </button>
                           )}
@@ -1397,7 +1404,7 @@ function Wizard({
               {page === "account" && (
                 <div>
                   <h2 className="text-xl font-semibold mb-1">Choose your accounts</h2>
-                  <p className="text-base-content/50 text-sm mb-6">
+                  <p className="text-muted text-sm mb-6">
                     Select the account{hasLinkedInStep && hasEmailStep ? "s" : ""} that will execute this campaign.
                   </p>
 
@@ -1405,7 +1412,7 @@ function Wizard({
                       <div className="mb-3">
                         <h3 className="text-base font-semibold">LinkedIn account</h3>
                         {!hasLinkedInStep && (
-                          <p className="text-xs text-base-content/40 mt-0.5">Required for automation even on email-only workflows.</p>
+                          <p className="text-xs text-muted mt-0.5">Required for automation even on email-only workflows.</p>
                         )}
                       </div>
                       <div className="flex flex-col gap-2">
@@ -1428,12 +1435,12 @@ function Wizard({
                                   : "bg-base-200 border-base-300/50 hover:border-base-300"
                               }`}
                             >
-                              <span className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${accountId === String(a.id) ? "bg-primary text-primary-content" : "bg-base-300 text-base-content/60"}`}>
+                              <span className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${accountId === String(a.id) ? "bg-accent text-accent-content" : "bg-base-300 text-muted"}`}>
                                 {a.name.charAt(0).toUpperCase()}
                               </span>
                               <div className="flex-1 min-w-0">
                                 <p className={`font-medium text-sm ${accountId === String(a.id) ? "text-primary" : ""}`}>{a.name}</p>
-                                <p className="text-xs text-base-content/40">{connLeft} connections left today · {msgLeft} messages left today · {inmailLeft} InMails left today</p>
+                                <p className="text-xs text-muted">{connLeft} connections left today · {msgLeft} messages left today · {inmailLeft} InMails left today</p>
                               </div>
                               {accountId === String(a.id) && <span className="ml-auto text-primary text-xs font-semibold shrink-0">Selected</span>}
                             </button>
@@ -1446,7 +1453,7 @@ function Wizard({
                     <div>
                       <div className="mb-3">
                         <h3 className="text-base font-semibold">Email accounts</h3>
-                        <p className="text-xs text-base-content/40 mt-0.5">Select one or more. Contacts are distributed by company — all contacts at the same company get one sender.</p>
+                        <p className="text-xs text-muted mt-0.5">Select one or more. Contacts are distributed by company — all contacts at the same company get one sender.</p>
                       </div>
                       <div className="flex flex-col gap-2">
                         {emailAccounts.filter((e) => e.is_verified).length === 0 ? (
@@ -1477,14 +1484,14 @@ function Wizard({
                                   : "bg-base-200 border-base-300/50 hover:border-base-300"
                               }`}
                             >
-                              <span className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${selected || locked ? "bg-warning/20 text-warning" : "bg-base-300 text-base-content/60"}`}>
+                              <span className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${selected || locked ? "bg-warning/20 text-warning" : "bg-base-300 text-muted"}`}>
                                 {e.name.charAt(0).toUpperCase()}
                               </span>
                               <div className="flex-1 min-w-0">
                                 <p className={`font-medium text-sm ${selected || locked ? "text-warning" : ""}`}>{e.name}</p>
-                                <p className="text-xs text-base-content/40">{e.from_email}</p>
+                                <p className="text-xs text-muted">{e.from_email}</p>
                               </div>
-                              <div className="flex items-center gap-2 shrink-0">
+                              <div className="flex flex-wrap items-center gap-2 shrink-0">
                                 {locked ? (
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-warning/20 text-warning border border-warning/30">
                                     <span className="w-1.5 h-1.5 rounded-full bg-warning" /> In use · locked
@@ -1494,7 +1501,7 @@ function Wizard({
                                     <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" /> In use
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300/50 text-base-content/30">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300/50 text-muted">
                                     Free
                                   </span>
                                 )}
@@ -1525,7 +1532,7 @@ function Wizard({
                   <div className="space-y-5">
                     <div>
                       <h2 className="text-xl font-semibold mb-0.5">Ready to launch</h2>
-                      <p className="text-base-content/50 text-sm">Review your campaign before starting.</p>
+                      <p className="text-muted text-sm">Review your campaign before starting.</p>
                     </div>
 
                     {/* Campaign overview card */}
@@ -1537,17 +1544,17 @@ function Wizard({
                         </div>
                         <div>
                           <p className="font-semibold text-sm">{workflowName}</p>
-                          <p className="text-xs text-base-content/40">{wizardSteps.filter(s => (s.type as string) !== "delay").length} steps · {contactCount} contact{contactCount !== 1 ? "s" : ""}</p>
+                          <p className="text-xs text-muted">{wizardSteps.filter(s => (s.type as string) !== "delay").length} steps · {contactCount} contact{contactCount !== 1 ? "s" : ""}</p>
                         </div>
                       </div>
 
                       {/* Details grid */}
                       <div className="divide-y divide-base-300/40">
                         <div className="grid grid-cols-2 px-5 py-3 text-sm">
-                          <span className="text-base-content/50">List</span>
+                          <span className="text-muted">List</span>
                           <div className="text-right">
                             <span className="font-medium">{selectedList?.name}</span>
-                            <p className="text-xs text-base-content/35 mt-0.5">
+                            <p className="text-xs text-muted mt-0.5">
                               {selectedTargetIds.size === listTargets.length
                                 ? `${contactCount} contacts`
                                 : `${contactCount} of ${listTargets.length} selected`}
@@ -1556,19 +1563,19 @@ function Wizard({
                         </div>
                         {selectedAccount && (
                           <div className="grid grid-cols-2 px-5 py-3 text-sm">
-                            <span className="text-base-content/50">LinkedIn</span>
+                            <span className="text-muted">LinkedIn</span>
                             <span className="font-medium text-right">{selectedAccount.name}</span>
                           </div>
                         )}
                         {hasEmailStep && (
                           <div className="grid grid-cols-2 px-5 py-3 text-sm">
-                            <span className="text-base-content/50">Email from</span>
+                            <span className="text-muted">Email from</span>
                             {selectedEmailAccounts.length > 0 ? (
                               <div className="text-right space-y-1">
                                 {selectedEmailAccounts.map(e => (
                                   <div key={e.id}>
                                     <span className="font-medium">{e.name}</span>
-                                    <p className="text-xs text-base-content/35">{e.from_email}</p>
+                                    <p className="text-xs text-muted">{e.from_email}</p>
                                   </div>
                                 ))}
                               </div>
@@ -1594,11 +1601,11 @@ function Wizard({
                               {steps.map(({ ws, i }) => {
                                 const label = ws.type === "email" ? getEmailStepLabel(wizardSteps, i) : ws.type === "message" ? getMessageStepLabel(wizardSteps, i) : STEP_LABELS[ws.type];
                                 const cost = stepPreviewCosts[i];
-                                const colorClass = STEP_COLORS[ws.type] ?? "bg-base-300/30 text-base-content/50 border-base-300/30";
+                                const colorClass = STEP_COLORS[ws.type] ?? "bg-base-300/30 text-muted border-base-300/30";
                                 return (
                                   <div key={i}>
                                     {ws.delayDaysBefore > 0 && (
-                                      <div className="flex items-center gap-1.5 text-xs text-base-content/25 px-5 py-1.5 bg-base-300/20">
+                                      <div className="flex items-center gap-1.5 text-xs text-muted px-5 py-1.5 bg-base-300/20">
                                         <RiTimeLine size={10} /> Wait {ws.delayDaysBefore}d
                                       </div>
                                     )}
@@ -1609,8 +1616,8 @@ function Wizard({
                                       <div className="flex-1" />
                                       {ws.aiEnabled && (
                                         <span className="inline-flex items-center gap-1.5 text-xs">
-                                          <RiRobot2Line size={11} className="text-primary/50" />
-                                          {cost ? <span className="text-base-content/40">${cost.cost_usd.toFixed(5)}</span> : <span className="text-base-content/25 italic">preview to estimate</span>}
+                                          <RiRobot2Line size={11} className="text-primary" />
+                                          {cost ? <span className="text-muted">${cost.cost_usd.toFixed(5)}</span> : <span className="text-muted italic">preview to estimate</span>}
                                         </span>
                                       )}
                                     </div>
@@ -1625,28 +1632,28 @@ function Wizard({
                       return (
                         <div className="bg-base-200 border border-base-300/50 rounded-xl overflow-hidden">
                           <div className="px-5 py-3 border-b border-base-300/40 flex items-center justify-between">
-                            <p className="text-xs font-medium text-base-content/40 uppercase tracking-widest">Sequence</p>
+                            <p className="text-xs font-medium text-muted uppercase tracking-widest">Sequence</p>
                             {isDualSummary && (
-                              <span className="inline-flex items-center gap-1 text-xs text-primary/60 bg-primary/8 px-2 py-0.5 rounded-full border border-primary/15">
+                              <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/8 px-2 py-0.5 rounded-full border border-primary/15">
                                 <RiArrowRightLine size={10} /> Parallel tracks
                               </span>
                             )}
                           </div>
                           {isDualSummary ? (
                             <div className="grid grid-cols-2 divide-x divide-base-300/30">
-                              <SummaryTrack steps={summaryLiSteps} trackLabel="LinkedIn" trackColor="text-primary/60" />
-                              <SummaryTrack steps={summaryEmSteps} trackLabel="Email" trackColor="text-warning/60" />
+                              <SummaryTrack steps={summaryLiSteps} trackLabel="LinkedIn" trackColor="text-primary" />
+                              <SummaryTrack steps={summaryEmSteps} trackLabel="Email" trackColor="text-warning" />
                             </div>
                           ) : (
                             <div className="divide-y divide-base-300/30">
                               {wizardSteps.map((ws, i) => {
                                 const label = ws.type === "email" ? getEmailStepLabel(wizardSteps, i) : ws.type === "message" ? getMessageStepLabel(wizardSteps, i) : STEP_LABELS[ws.type];
                                 const cost = stepPreviewCosts[i];
-                                const colorClass = STEP_COLORS[ws.type] ?? "bg-base-300/30 text-base-content/50 border-base-300/30";
+                                const colorClass = STEP_COLORS[ws.type] ?? "bg-base-300/30 text-muted border-base-300/30";
                                 return (
                                   <div key={i}>
                                     {ws.delayDaysBefore > 0 && (
-                                      <div className="flex items-center gap-1.5 text-xs text-base-content/25 px-5 py-2 bg-base-300/20">
+                                      <div className="flex items-center gap-1.5 text-xs text-muted px-5 py-2 bg-base-300/20">
                                         <RiTimeLine size={10} /> Wait {ws.delayDaysBefore}d
                                       </div>
                                     )}
@@ -1657,8 +1664,8 @@ function Wizard({
                                       <div className="flex-1" />
                                       {ws.aiEnabled && (
                                         <span className="inline-flex items-center gap-1.5 text-xs">
-                                          <RiRobot2Line size={11} className="text-primary/50" />
-                                          {cost ? <span className="text-base-content/40">${cost.cost_usd.toFixed(5)} · {(cost.input_tokens + cost.output_tokens).toLocaleString()} tok</span> : <span className="text-base-content/25 italic">preview to estimate</span>}
+                                          <RiRobot2Line size={11} className="text-primary" />
+                                          {cost ? <span className="text-muted">${cost.cost_usd.toFixed(5)} · {(cost.input_tokens + cost.output_tokens).toLocaleString()} tok</span> : <span className="text-muted italic">preview to estimate</span>}
                                         </span>
                                       )}
                                     </div>
@@ -1675,11 +1682,11 @@ function Wizard({
                     {aiSteps.length > 0 && (
                       <div className={`rounded-xl border overflow-hidden ${hasCostData ? "border-primary/20 bg-primary/5" : "border-base-300/50 bg-base-200"}`}>
                         <div className="px-5 py-3 border-b border-base-300/30 flex items-center gap-2">
-                          <RiRobot2Line size={13} className={hasCostData ? "text-primary" : "text-base-content/30"} />
-                          <p className="text-xs font-medium text-base-content/40 uppercase tracking-widest">AI Cost Estimate</p>
+                          <RiRobot2Line size={13} className={hasCostData ? "text-primary" : "text-muted"} />
+                          <p className="text-xs font-medium text-muted uppercase tracking-widest">AI Cost Estimate</p>
                         </div>
                         {!hasCostData ? (
-                          <div className="px-5 py-4 text-xs text-base-content/40">
+                          <div className="px-5 py-4 text-xs text-muted">
                             Run an AI preview on your steps to get a cost estimate for this campaign.
                           </div>
                         ) : (
@@ -1689,15 +1696,15 @@ function Wizard({
                               const label = ws.type === "email" ? getEmailStepLabel(wizardSteps, i) : getMessageStepLabel(wizardSteps, i);
                               if (!cost) return (
                                 <div key={i} className="grid grid-cols-[1fr_auto] px-5 py-2.5 text-xs items-center gap-4">
-                                  <span className="text-base-content/40">{label}</span>
-                                  <span className="text-base-content/25 italic">no preview</span>
+                                  <span className="text-muted">{label}</span>
+                                  <span className="text-muted italic">no preview</span>
                                 </div>
                               );
                               const stepTotal = cost.cost_usd * contactCount;
                               return (
                                 <div key={i} className="grid grid-cols-[1fr_auto_auto] px-5 py-2.5 text-xs items-center gap-4">
-                                  <span className="text-base-content/60 font-medium">{label}</span>
-                                  <span className="text-base-content/35">${cost.cost_usd.toFixed(5)} × {contactCount}</span>
+                                  <span className="text-muted font-medium">{label}</span>
+                                  <span className="text-muted">${cost.cost_usd.toFixed(5)} × {contactCount}</span>
                                   <span className="font-semibold text-base-content tabular-nums">${stepTotal.toFixed(4)}</span>
                                 </div>
                               );
@@ -1706,7 +1713,7 @@ function Wizard({
                               <div className="grid grid-cols-[1fr_auto] px-5 py-3 text-sm items-center bg-primary/5">
                                 <div>
                                   <span className="font-semibold text-base-content">Total estimated cost</span>
-                                  <p className="text-xs text-base-content/35 mt-0.5">{totalTokens.toLocaleString()} tokens across {contactCount} contacts</p>
+                                  <p className="text-xs text-muted mt-0.5">{totalTokens.toLocaleString()} tokens across {contactCount} contacts</p>
                                 </div>
                                 <span className="text-lg font-bold text-primary tabular-nums">${totalAiCost.toFixed(4)}</span>
                               </div>
@@ -1723,7 +1730,7 @@ function Wizard({
                         {conflicts.blocked} prospect{conflicts.blocked !== 1 ? "s" : ""} active elsewhere will be excluded.
                       </p>
                     )}
-                    <p className="text-xs text-base-content/35">The campaign starts immediately after you click Launch.</p>
+                    <p className="text-xs text-muted">The campaign starts immediately after you click Launch.</p>
                   </div>
                 );
               })()}
@@ -1734,7 +1741,7 @@ function Wizard({
           <div className="border-t border-base-300/50 px-10 py-4 flex justify-between items-center shrink-0">
             <div className="flex items-center gap-2">
               <button
-                className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-40"
+                className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-40"
                 onClick={pageIdx === 0 ? onClose : () => setPage(pages[pageIdx - 1])}
                 disabled={launching || saving}
               >
@@ -1742,7 +1749,7 @@ function Wizard({
               </button>
               {!isStepsOnly && !isEditMode && (page === "linkedin-steps" || page === "email-steps") && wizardSteps.length > 0 && (
                 <button
-                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/40 hover:text-base-content/60 hover:bg-base-300/50 transition-colors disabled:opacity-40"
+                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-muted hover:bg-base-300/50 transition-colors disabled:opacity-40"
                   onClick={saveAndClose}
                   disabled={saving}
                 >
@@ -1753,7 +1760,7 @@ function Wizard({
 
             {isStepsOnly ? (
               <button
-                className="inline-flex items-center px-6 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-40"
+                className="inline-flex items-center px-6 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-40"
                 onClick={saveAndClose}
                 disabled={saving || wizardSteps.length === 0}
               >
@@ -1761,7 +1768,7 @@ function Wizard({
               </button>
             ) : isAddContacts ? (
               <button
-                className="inline-flex items-center gap-1.5 px-6 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 px-6 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-40"
                 onClick={enrollContacts}
                 disabled={launching || !prospectsReady || selectedTargetIds.size === 0}
               >
@@ -1771,7 +1778,7 @@ function Wizard({
               </button>
             ) : isEditMode && page === "account" ? (
               <button
-                className="inline-flex items-center px-6 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-40"
+                className="inline-flex items-center px-6 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-40"
                 onClick={saveAndClose}
                 disabled={saving || wizardSteps.length === 0}
               >
@@ -1779,7 +1786,7 @@ function Wizard({
               </button>
             ) : page !== "summary" ? (
               <button
-                className="inline-flex items-center px-6 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-40"
+                className="inline-flex items-center px-6 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-40"
                 disabled={
                   (page === "prospects" && (!prospectsReady || conflictsLoading)) ||
                   (page === "email-steps" && wizardSteps.length === 0) ||
@@ -1791,7 +1798,7 @@ function Wizard({
               </button>
             ) : (
               <button
-                className="inline-flex items-center gap-1.5 px-8 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 px-8 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-40"
                 onClick={launch}
                 disabled={launching}
               >
@@ -1823,12 +1830,12 @@ function Wizard({
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm">{stepLabel}</p>
-                  <p className="text-xs text-base-content/40 capitalize">{ws.track} track</p>
+                  <p className="text-xs text-muted capitalize">{ws.track} track</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setConfigIdx(null)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors text-base"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors text-base"
                 >✕</button>
               </div>
 
@@ -1837,8 +1844,8 @@ function Wizard({
 
                 {/* Delay field */}
                 <div className="flex items-center gap-3 pb-4 border-b border-base-300/30">
-                  <RiTimeLine size={14} className="text-base-content/30 shrink-0" />
-                  <span className="text-sm text-base-content/50">Wait before this step</span>
+                  <RiTimeLine size={14} className="text-muted shrink-0" />
+                  <span className="text-sm text-muted">Wait before this step</span>
                   <div className="flex items-center gap-2 ml-auto">
                     <input
                       type="number"
@@ -1847,12 +1854,12 @@ function Wizard({
                       value={ws.delayDaysBefore}
                       onChange={(e) => updateStep(idx, { delayDaysBefore: Number(e.target.value) })}
                     />
-                    <span className="text-xs text-base-content/40">days</span>
+                    <span className="text-xs text-muted">days</span>
                   </div>
                 </div>
 
                 {ws.type === "visit" && (
-                  <p className="text-sm text-base-content/50">
+                  <p className="text-sm text-muted">
                     Visits the profile. They&apos;ll see you in &quot;Who viewed my profile&quot;. No further configuration needed.
                   </p>
                 )}
@@ -1875,7 +1882,7 @@ function Wizard({
                       <div>
                         <div className="flex flex-wrap gap-1.5 mb-2">
                           {VARIABLES.map(v => (
-                            <button key={v} type="button" onClick={() => updateStep(idx, { connectNote: ws.connectNote + v })} className="px-2 py-0.5 rounded bg-base-300/60 text-xs text-base-content/50 hover:text-base-content hover:bg-base-300 transition-colors font-mono">{v}</button>
+                            <button key={v} type="button" onClick={() => updateStep(idx, { connectNote: ws.connectNote + v })} className="px-2 py-0.5 rounded bg-base-300/60 text-xs text-muted hover:text-base-content hover:bg-base-300 transition-colors font-mono">{v}</button>
                           ))}
                         </div>
                         <textarea
@@ -1886,7 +1893,7 @@ function Wizard({
                           maxLength={300}
                           autoFocus
                         />
-                        <p className="text-xs text-base-content/30 mt-1">{ws.connectNote.length}/300 chars</p>
+                        <p className="text-xs text-muted mt-1">{ws.connectNote.length}/300 chars</p>
                       </div>
                     )}
                   </div>
@@ -1896,19 +1903,19 @@ function Wizard({
                   <div className="space-y-4">
                     {ws.type === "sales_inmail" && !(hasPremium && ws.aiEnabled) && (
                       <div>
-                        <label className="text-xs text-base-content/40 mb-1.5 block">Subject <span className="text-error/70">(required for InMail)</span></label>
-                        <input type="text" placeholder="e.g. Quick question about {{company}}" value={ws.emailSubject} onChange={(e) => updateStep(idx, { emailSubject: e.target.value })} className="w-full bg-base-300/50 border border-base-300/50 rounded-xl px-3 py-2.5 text-sm text-base-content placeholder:text-base-content/20 focus:outline-none focus:border-primary/40" />
+                        <label className="text-xs text-muted mb-1.5 block">Subject <span className="text-error">(required for InMail)</span></label>
+                        <input type="text" placeholder="e.g. Quick question about {{company}}" value={ws.emailSubject} onChange={(e) => updateStep(idx, { emailSubject: e.target.value })} className="w-full bg-base-300/50 border border-base-300/50 rounded-xl px-3 py-2.5 text-sm text-base-content placeholder:text-muted focus:outline-none focus:border-primary/40" />
                       </div>
                     )}
                     {ws.type === "sales_inmail" && hasPremium && ws.aiEnabled && (
-                      <p className="text-xs text-base-content/30 -mt-1">The AI writer generates both the subject and body for each InMail.</p>
+                      <p className="text-xs text-muted -mt-1">The AI writer generates both the subject and body for each InMail.</p>
                     )}
                     {hasPremium ? (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-base-300/40 border border-base-300/50">
-                      <RiRobot2Line size={15} className="text-base-content/40 shrink-0" />
+                      <RiRobot2Line size={15} className="text-muted shrink-0" />
                       <div className="flex-1">
                         <p className="text-sm text-base-content/70">AI writes this {ws.type === "sales_inmail" ? "InMail" : "message"}</p>
-                        <p className="text-xs text-base-content/30 mt-0.5">Uses lead context to personalise each {ws.type === "sales_inmail" ? "InMail" : "message"}</p>
+                        <p className="text-xs text-muted mt-0.5">Uses lead context to personalise each {ws.type === "sales_inmail" ? "InMail" : "message"}</p>
                       </div>
                       <button
                         type="button"
@@ -1929,13 +1936,13 @@ function Wizard({
                           onToggleProvider={(p) => setCollapsedProviders(prev => { const n = new Set(prev); n.has(p) ? n.delete(p) : n.add(p); return n; })}
                         />
                         <div>
-                          <label className="text-xs text-base-content/40 mb-1.5 block">Step instruction</label>
-                          <textarea rows={3} placeholder="e.g. Reference their recent role change." value={ws.aiPrompt} onChange={(e) => updateStep(idx, { aiPrompt: e.target.value })} className="w-full bg-base-300/50 border border-base-300/50 rounded-xl px-3 py-2.5 text-sm text-base-content placeholder:text-base-content/20 focus:outline-none focus:border-primary/40 resize-none" />
+                          <label className="text-xs text-muted mb-1.5 block">Step instruction</label>
+                          <textarea rows={3} placeholder="e.g. Reference their recent role change." value={ws.aiPrompt} onChange={(e) => updateStep(idx, { aiPrompt: e.target.value })} className="w-full bg-base-300/50 border border-base-300/50 rounded-xl px-3 py-2.5 text-sm text-base-content placeholder:text-muted focus:outline-none focus:border-primary/40 resize-none" />
                         </div>
                         <div className="flex items-center gap-3">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" className="checkbox checkbox-xs" checked={ws.aiMaxWordsEnabled} onChange={(e) => updateStep(idx, { aiMaxWordsEnabled: e.target.checked })} />
-                            <span className="text-xs text-base-content/50">Max words</span>
+                            <span className="text-xs text-muted">Max words</span>
                           </label>
                           {ws.aiMaxWordsEnabled && <input type="number" min={10} max={500} value={ws.aiMaxWords} onChange={(e) => updateStep(idx, { aiMaxWords: Number(e.target.value) })} className="w-20 bg-base-300/50 border border-base-300/50 rounded-lg px-2 py-1.5 text-sm text-base-content focus:outline-none focus:border-primary/40" />}
                           <select value={ws.aiLanguage} onChange={(e) => updateStep(idx, { aiLanguage: e.target.value })} className="flex-1 bg-base-300/50 border border-base-300/50 rounded-lg px-3 py-1.5 text-sm text-base-content focus:outline-none focus:border-primary/40">
@@ -1950,7 +1957,7 @@ function Wizard({
                       <div className="space-y-3">
                         {templates.length > 0 && (
                           <div>
-                            <p className="text-xs text-base-content/40 mb-2">Templates <span className="text-base-content/25">(random per send)</span></p>
+                            <p className="text-xs text-muted mb-2">Templates <span className="text-muted">(random per send)</span></p>
                             {ws.templateIds.length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mb-2">
                                 {ws.templateIds.map((tid) => {
@@ -1975,11 +1982,11 @@ function Wizard({
                         <div>
                           <div className="flex flex-wrap gap-1.5 mb-2">
                             {VARIABLES.map(v => (
-                              <button key={v} type="button" onClick={() => updateStep(idx, { messageBody: ws.messageBody + v })} className="px-2 py-0.5 rounded bg-base-300/60 text-xs text-base-content/50 hover:text-base-content hover:bg-base-300 transition-colors font-mono">{v}</button>
+                              <button key={v} type="button" onClick={() => updateStep(idx, { messageBody: ws.messageBody + v })} className="px-2 py-0.5 rounded bg-base-300/60 text-xs text-muted hover:text-base-content hover:bg-base-300 transition-colors font-mono">{v}</button>
                             ))}
                           </div>
                           <textarea className={`textarea textarea-bordered w-full bg-base-300/50 text-sm h-32 resize-none font-mono ${ws.templateIds.length > 0 ? "opacity-40 pointer-events-none" : ""}`} placeholder="Hi {{first_name}}, I noticed..." value={ws.messageBody} onChange={(e) => updateStep(idx, { messageBody: e.target.value })} disabled={ws.templateIds.length > 0} />
-                          <p className="text-xs text-base-content/30 mt-1">{ws.messageBody.length} chars</p>
+                          <p className="text-xs text-muted mt-1">{ws.messageBody.length} chars</p>
                         </div>
                       </div>
                     )}
@@ -1990,10 +1997,10 @@ function Wizard({
                   <div className="space-y-4">
                     {hasPremium ? (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-base-300/40 border border-base-300/50">
-                      <RiRobot2Line size={15} className="text-base-content/40 shrink-0" />
+                      <RiRobot2Line size={15} className="text-muted shrink-0" />
                       <div className="flex-1">
                         <p className="text-sm text-base-content/70">AI writes this email</p>
-                        <p className="text-xs text-base-content/30 mt-0.5">Subject + body generated per lead</p>
+                        <p className="text-xs text-muted mt-0.5">Subject + body generated per lead</p>
                       </div>
                       <button type="button" onClick={() => updateStep(idx, { aiEnabled: !ws.aiEnabled })} className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${ws.aiEnabled ? "bg-primary" : "bg-base-300"}`}>
                         <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${ws.aiEnabled ? "translate-x-5" : "translate-x-0"}`} />
@@ -2010,13 +2017,13 @@ function Wizard({
                           onToggleProvider={(p) => setCollapsedProviders(prev => { const n = new Set(prev); n.has(p) ? n.delete(p) : n.add(p); return n; })}
                         />
                         <div>
-                          <label className="text-xs text-base-content/40 mb-1.5 block">Step instruction</label>
-                          <textarea rows={3} placeholder="e.g. Focus on their company's growth." value={ws.aiPrompt} onChange={(e) => updateStep(idx, { aiPrompt: e.target.value })} className="w-full bg-base-300/50 border border-base-300/50 rounded-xl px-3 py-2.5 text-sm text-base-content placeholder:text-base-content/20 focus:outline-none focus:border-primary/40 resize-none" />
+                          <label className="text-xs text-muted mb-1.5 block">Step instruction</label>
+                          <textarea rows={3} placeholder="e.g. Focus on their company's growth." value={ws.aiPrompt} onChange={(e) => updateStep(idx, { aiPrompt: e.target.value })} className="w-full bg-base-300/50 border border-base-300/50 rounded-xl px-3 py-2.5 text-sm text-base-content placeholder:text-muted focus:outline-none focus:border-primary/40 resize-none" />
                         </div>
                         <div className="flex items-center gap-3">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" className="checkbox checkbox-xs" checked={ws.aiMaxWordsEnabled} onChange={(e) => updateStep(idx, { aiMaxWordsEnabled: e.target.checked })} />
-                            <span className="text-xs text-base-content/50">Max words</span>
+                            <span className="text-xs text-muted">Max words</span>
                           </label>
                           {ws.aiMaxWordsEnabled && <input type="number" min={10} max={1000} value={ws.aiMaxWords} onChange={(e) => updateStep(idx, { aiMaxWords: Number(e.target.value) })} className="w-20 bg-base-300/50 border border-base-300/50 rounded-lg px-2 py-1.5 text-sm text-base-content focus:outline-none focus:border-primary/40" />}
                           <select value={ws.aiLanguage} onChange={(e) => updateStep(idx, { aiLanguage: e.target.value })} className="flex-1 bg-base-300/50 border border-base-300/50 rounded-lg px-3 py-1.5 text-sm text-base-content focus:outline-none focus:border-primary/40">
@@ -2030,23 +2037,23 @@ function Wizard({
                     ) : (
                       <div className="space-y-4">
                         <div>
-                          <label className="text-sm text-base-content/50 block mb-1.5">Subject</label>
+                          <label className="text-sm text-muted block mb-1.5">Subject</label>
                           <div className="flex flex-wrap gap-1.5 mb-2">
                             {VARIABLES.map(v => (
-                              <button key={v} type="button" onClick={() => updateStep(idx, { emailSubject: ws.emailSubject + v })} className="px-2 py-0.5 rounded bg-base-300/60 text-xs text-base-content/50 hover:text-base-content hover:bg-base-300 transition-colors font-mono">{v}</button>
+                              <button key={v} type="button" onClick={() => updateStep(idx, { emailSubject: ws.emailSubject + v })} className="px-2 py-0.5 rounded bg-base-300/60 text-xs text-muted hover:text-base-content hover:bg-base-300 transition-colors font-mono">{v}</button>
                             ))}
                           </div>
                           <input className="input input-bordered w-full bg-base-300/50 font-mono text-sm" placeholder="Hi {{first_name}}, quick question" value={ws.emailSubject} onChange={(e) => updateStep(idx, { emailSubject: e.target.value })} />
                         </div>
                         <div>
-                          <label className="text-sm text-base-content/50 block mb-1.5">Body</label>
+                          <label className="text-sm text-muted block mb-1.5">Body</label>
                           <div className="flex flex-wrap gap-1.5 mb-2">
                             {VARIABLES.map(v => (
-                              <button key={v} type="button" onClick={() => updateStep(idx, { emailBody: ws.emailBody + v })} className="px-2 py-0.5 rounded bg-base-300/60 text-xs text-base-content/50 hover:text-base-content hover:bg-base-300 transition-colors font-mono">{v}</button>
+                              <button key={v} type="button" onClick={() => updateStep(idx, { emailBody: ws.emailBody + v })} className="px-2 py-0.5 rounded bg-base-300/60 text-xs text-muted hover:text-base-content hover:bg-base-300 transition-colors font-mono">{v}</button>
                             ))}
                           </div>
                           <textarea className="textarea textarea-bordered w-full bg-base-300/50 text-sm resize-none font-mono" rows={7} placeholder={"Hi {{first_name}},\n\nI came across your profile..."} value={ws.emailBody} onChange={(e) => updateStep(idx, { emailBody: e.target.value })} />
-                          <p className="text-xs text-base-content/30 mt-1">{ws.emailBody.length} chars</p>
+                          <p className="text-xs text-muted mt-1">{ws.emailBody.length} chars</p>
                         </div>
                       </div>
                     )}
@@ -2054,17 +2061,17 @@ function Wizard({
                     {/* Signature — always visible for email steps regardless of AI mode */}
                     <div className="border-t border-base-300/30 pt-4">
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-sm text-base-content/50">Signature</label>
+                        <label className="text-sm text-muted">Signature</label>
                         <button
                           type="button"
                           onClick={() => updateStep(idx, { emailSignature: ws.emailSignature === null ? "" : null })}
-                          className="text-xs text-base-content/40 hover:text-base-content/70 transition-colors"
+                          className="text-xs text-muted hover:text-base-content/70 transition-colors"
                         >
                           {ws.emailSignature === null ? "Override account default" : "Use account default"}
                         </button>
                       </div>
                       {ws.emailSignature === null ? (
-                        <p className="text-xs text-base-content/30 italic px-1">Using email account signature (if set)</p>
+                        <p className="text-xs text-muted italic px-1">Using email account signature (if set)</p>
                       ) : (
                         <textarea
                           className="textarea textarea-bordered w-full bg-base-300/50 text-sm resize-none font-mono h-20"
@@ -2102,7 +2109,7 @@ function Wizard({
                 <button
                   type="button"
                   onClick={() => setConfigIdx(null)}
-                  className="inline-flex items-center px-5 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors"
+                  className="inline-flex items-center px-5 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors"
                 >
                   Done
                 </button>
@@ -2234,17 +2241,17 @@ function Wizard({
                 <button
                   type="button"
                   onClick={() => setPreviewIdx(null)}
-                  className="text-base-content/40 hover:text-base-content transition-colors text-lg leading-none"
+                  className="text-muted hover:text-base-content transition-colors text-lg leading-none"
                 >×</button>
               </div>
 
-              <p className="text-xs text-base-content/40">
+              <p className="text-xs text-muted">
                 Select a list and a lead to generate a preview using the current model and step instruction.
               </p>
 
               {/* List selector */}
               <div>
-                <label className="text-xs text-base-content/50 block mb-1">List</label>
+                <label className="text-xs text-muted block mb-1">List</label>
                 <select
                   className="select select-sm w-full"
                   value={previewListId}
@@ -2260,7 +2267,7 @@ function Wizard({
               {/* Lead selector */}
               {previewListTargets.length > 0 && (
                 <div>
-                  <label className="text-xs text-base-content/50 block mb-1">Lead</label>
+                  <label className="text-xs text-muted block mb-1">Lead</label>
                   <select
                     className="select select-sm w-full"
                     value={previewTargetId}
@@ -2281,7 +2288,7 @@ function Wizard({
                 type="button"
                 onClick={runPreview}
                 disabled={previewLoading || !previewTargetId || !ws.aiModel}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white disabled:opacity-40 hover:bg-primary/90 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-accent text-accent-content disabled:opacity-40 hover:bg-accent/90 transition-colors"
               >
                 {previewLoading
                   ? <><RiLoader4Line size={14} className="animate-spin" /> Generating…</>
@@ -2297,18 +2304,18 @@ function Wizard({
                 <div className="space-y-3">
                   {previewResult.subject && (
                     <div>
-                      <p className="text-xs text-base-content/40 mb-1">Subject</p>
+                      <p className="text-xs text-muted mb-1">Subject</p>
                       <div className="bg-base-300/50 rounded-lg px-3 py-2 text-sm font-medium">{previewResult.subject}</div>
                     </div>
                   )}
                   <div>
-                    <p className="text-xs text-base-content/40 mb-1">
+                    <p className="text-xs text-muted mb-1">
                       Body
-                      <span className="ml-2 text-base-content/25">{previewResult.body.trim().split(/\s+/).filter(Boolean).length} words</span>
+                      <span className="ml-2 text-muted">{previewResult.body.trim().split(/\s+/).filter(Boolean).length} words</span>
                     </p>
                     <div className="bg-base-300/50 rounded-lg px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">{previewResult.body}</div>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-base-content/30 pt-1">
+                  <div className="flex items-center gap-4 text-xs text-muted pt-1">
                     {(previewResult.input_tokens || previewResult.output_tokens) ? (
                       <span>{(previewResult.input_tokens ?? 0) + (previewResult.output_tokens ?? 0)} tokens ({previewResult.input_tokens ?? 0} in / {previewResult.output_tokens ?? 0} out)</span>
                     ) : null}
@@ -2328,12 +2335,12 @@ function Wizard({
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-base-200 border border-base-300/50 rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <h3 className="font-semibold text-base mb-1">Send test email</h3>
-            <p className="text-xs text-base-content/50 mb-5">
+            <p className="text-xs text-muted mb-5">
               Variables are filled with sample data (Alex Johnson, Acme Corp). Your email account&apos;s signature will be appended.
             </p>
             <div className="flex flex-col gap-3">
               <div>
-                <label className="text-xs text-base-content/50 block mb-1">Send from</label>
+                <label className="text-xs text-muted block mb-1">Send from</label>
                 {emailAccounts.filter((e) => e.is_verified).length === 0 ? (
                   <p className="text-xs text-warning">No verified email accounts. <Link href="/settings?tab=email" className="underline">Add one first.</Link></p>
                 ) : (
@@ -2350,7 +2357,7 @@ function Wizard({
                 )}
               </div>
               <div>
-                <label className="text-xs text-base-content/50 block mb-1">Send to</label>
+                <label className="text-xs text-muted block mb-1">Send to</label>
                 <input
                   type="email"
                   className="input input-bordered input-sm w-full bg-base-300/50"
@@ -2365,7 +2372,7 @@ function Wizard({
               <button
                 type="button"
                 onClick={() => { setTestEmailIdx(null); setTestEmailTo(""); }}
-                className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
               >
                 Cancel
               </button>
@@ -2401,10 +2408,10 @@ interface AnalyticsData {
 }
 
 const ANALYTICS_SERIES = [
-  { key: "connections" as const, color: "#32d583", label: "Connects" },
-  { key: "messages" as const,    color: "#f4b740", label: "Messages" },
-  { key: "inmails" as const,     color: "#e879f9", label: "InMails" },
-  { key: "emails" as const,      color: "#fb923c", label: "Emails" },
+  { key: "connections" as const, color: chartColors.connections, label: "Connects" },
+  { key: "messages" as const,    color: chartColors.messages, label: "Messages" },
+  { key: "inmails" as const,     color: chartColors.inmails, label: "InMails" },
+  { key: "emails" as const,      color: chartColors.emails, label: "Emails" },
 ];
 
 const DAY_OPTS = [7, 14, 30, 90];
@@ -2428,7 +2435,7 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
 
   if (loading || !data) {
     return (
-      <div className="flex items-center gap-2 text-base-content/40 text-sm py-16 justify-center">
+      <div className="flex items-center gap-2 text-muted text-sm py-16 justify-center">
         <span className="loading loading-spinner loading-xs" /> Loading analytics…
       </div>
     );
@@ -2448,12 +2455,12 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
     const rate = funnel.total > 0 ? Math.round((value / funnel.total) * 100) : 0;
     return (
       <div className="flex items-center gap-3 py-2">
-        <span className="text-xs text-base-content/50 w-28 shrink-0">{label}</span>
+        <span className="text-xs text-muted w-28 shrink-0">{label}</span>
         <div className="flex-1 h-1.5 bg-base-300/30 rounded-full overflow-hidden">
           <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
         </div>
         <span className="text-sm font-semibold tabular-nums w-12 text-right" style={{ color }}>{value.toLocaleString()}</span>
-        <span className="text-xs text-base-content/30 w-8 text-right">{rate}%</span>
+        <span className="text-xs text-muted w-8 text-right">{rate}%</span>
       </div>
     );
   }
@@ -2461,14 +2468,15 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
   return (
     <div className="space-y-5 pb-8">
       {/* Day picker */}
-      <div className="flex items-center justify-between pl-11">
-        <p className="text-sm text-base-content/40">Campaign performance over time</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:pl-11">
+        <p className="text-sm text-muted">Campaign performance over time</p>
         <div className="flex items-center gap-0.5 bg-base-300/50 rounded-lg p-0.5">
           {DAY_OPTS.map(d => (
             <button
               key={d}
+              aria-pressed={days === d}
               onClick={() => setDays(d)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${days === d ? "bg-base-100 text-base-content shadow-sm" : "text-base-content/35 hover:text-base-content/60"}`}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${days === d ? "bg-base-100 text-base-content shadow-sm" : "text-muted hover:text-muted"}`}
             >
               {d}d
             </button>
@@ -2477,28 +2485,25 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
       </div>
 
       {/* Rate cards row */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[
-          { label: "Acceptance rate", value: funnel.connections_sent > 0 ? Math.round((funnel.connected / funnel.connections_sent) * 100) : 0, color: "#32d583" },
-          { label: "LI reply rate",   value: (funnel.messages_sent + funnel.inmails_sent) > 0 ? Math.round((funnel.li_replies / (funnel.messages_sent + funnel.inmails_sent)) * 100) : 0, color: "#c084fc" },
-          { label: "Email reply rate",value: funnel.emails_sent > 0     ? Math.round((funnel.email_replies / funnel.emails_sent) * 100)   : 0, color: "#fb923c" },
-          { label: "Completion rate", value: funnel.total > 0           ? Math.round((funnel.completed / funnel.total) * 100)             : 0, color: "#5aa2ff" },
+          { label: "Acceptance rate", value: funnel.connections_sent > 0 ? Math.round((funnel.connected / funnel.connections_sent) * 100) : 0, color: chartColors.connections },
+          { label: "LI reply rate",   value: (funnel.messages_sent + funnel.inmails_sent) > 0 ? Math.round((funnel.li_replies / (funnel.messages_sent + funnel.inmails_sent)) * 100) : 0, color: chartColors.replies },
+          { label: "Email reply rate",value: funnel.emails_sent > 0     ? Math.round((funnel.email_replies / funnel.emails_sent) * 100)   : 0, color: chartColors.emails },
+          { label: "Completion rate", value: funnel.total > 0           ? Math.round((funnel.completed / funnel.total) * 100)             : 0, color: chartColors.visits },
         ].map(card => (
-          <div key={card.label} className="bg-base-200 border border-base-300/50 rounded-xl p-3">
-            <div className="text-xl font-bold tabular-nums" style={{ color: card.color }}>{card.value}%</div>
-            <div className="text-[10px] text-base-content/40 mt-1 leading-tight">{card.label}</div>
-          </div>
+          <MetricCard key={card.label} label={card.label} value={`${card.value}%`} color={card.color} />
         ))}
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 280px" }}>
+      <div className="ms-campaign-analytics">
         {/* Left: activity chart + AI cost */}
         <div className="space-y-4">
           {/* Activity chart */}
           <div className="bg-base-200 border border-base-300/50 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <span className="text-sm font-medium text-base-content">Daily activity</span>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 {ANALYTICS_SERIES.map(s => (
                   <span key={s.key} className="flex items-center gap-1.5 text-xs" style={{ color: s.color }}>
                     <span className="w-2 h-2 rounded-sm inline-block" style={{ background: s.color }} />
@@ -2517,7 +2522,7 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
                   return (
                     <div key={d.day} className="flex flex-col items-center flex-1 group relative h-full justify-end">
                       <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-base-300 border border-base-300 rounded-lg px-2.5 py-2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-10 shadow-xl">
-                        <div className="text-base-content/40 mb-1 font-medium">{d.day}</div>
+                        <div className="text-muted mb-1 font-medium">{d.day}</div>
                         {ANALYTICS_SERIES.map(s => (
                           <div key={s.key} className="flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.color }} />
@@ -2539,32 +2544,34 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
                         ))}
                       </div>
                       {showLabel && (
-                        <span className="text-[9px] text-base-content/20 mt-1 leading-none shrink-0">{d.day.slice(5)}</span>
+                        <span className="text-[11px] text-muted mt-1 leading-none shrink-0">{d.day.slice(5)}</span>
                       )}
                     </div>
                   );
                 })}
               </div>
             </div>
+            <ChartDataTable caption="Daily campaign activity" columns={["Date", ...ANALYTICS_SERIES.map(series => series.label)]}
+              rows={activity.map(day => [day.day, ...ANALYTICS_SERIES.map(series => day[series.key])])} />
           </div>
 
           {/* AI cost card */}
           <div className="bg-base-200 border border-base-300/50 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div className="flex items-center gap-2">
-                <RiRobot2Line size={13} className="text-base-content/30" />
+                <RiRobot2Line size={13} className="text-muted" />
                 <span className="text-sm font-medium text-base-content">AI cost</span>
               </div>
               {hasAiData && (
                 <div className="flex items-center gap-4 text-xs">
-                  <span className="text-base-content/30 tabular-nums">{totalAiTokens.toLocaleString()} tokens</span>
-                  <span className="font-semibold tabular-nums" style={{ color: "#a78bfa" }}>${totalAiCost.toFixed(4)}</span>
+                  <span className="text-muted tabular-nums">{totalAiTokens.toLocaleString()} tokens</span>
+                  <span className="font-semibold tabular-nums" style={{ color: chartColors.replies }}>${totalAiCost.toFixed(4)}</span>
                 </div>
               )}
             </div>
 
             {!hasAiData ? (
-              <p className="text-xs text-base-content/20 py-2">No AI usage for this campaign.</p>
+              <p className="text-xs text-muted py-2">No AI usage for this campaign.</p>
             ) : (
               <>
                 {/* Daily bar chart */}
@@ -2575,13 +2582,13 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
                     return (
                       <div key={d.day} className="flex flex-col items-center flex-1 group relative justify-end" style={{ height: "100%" }}>
                         <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-base-300 border border-base-300 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none z-10 shadow-xl">
-                          <div className="text-base-content/40 mb-1">{d.day}</div>
-                          <div style={{ color: "#a78bfa" }}>${(d.cost_usd ?? 0).toFixed(5)}</div>
-                          <div className="text-base-content/40">{((d.input_tokens ?? 0) + (d.output_tokens ?? 0)).toLocaleString()} tok</div>
+                          <div className="text-muted mb-1">{d.day}</div>
+                          <div style={{ color: chartColors.replies }}>${(d.cost_usd ?? 0).toFixed(5)}</div>
+                          <div className="text-muted">{((d.input_tokens ?? 0) + (d.output_tokens ?? 0)).toLocaleString()} tok</div>
                         </div>
-                        <div className="w-full rounded-t-sm" style={{ height, background: "#a78bfa", opacity: (d.cost_usd ?? 0) === 0 ? 0.08 : 0.65 }} />
+                        <div className="w-full rounded-t-sm" style={{ height, background: chartColors.replies, opacity: (d.cost_usd ?? 0) === 0 ? 0.08 : 0.65 }} />
                         {showLabel && (
-                          <span className="text-[9px] text-base-content/20 mt-1 leading-none">{d.day.slice(5)}</span>
+                          <span className="text-[11px] text-muted mt-1 leading-none">{d.day.slice(5)}</span>
                         )}
                       </div>
                     );
@@ -2591,7 +2598,7 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
                 {/* Per-step breakdown */}
                 {aiByStep.length > 0 && (
                   <div className="border-t border-base-300/30 pt-4">
-                    <p className="text-xs text-base-content/30 uppercase tracking-widest mb-3">By step</p>
+                    <p className="text-xs text-muted uppercase tracking-widest mb-3">By step</p>
                     <div className="space-y-2">
                       {aiByStep.map(step => {
                         const stepPct = totalAiCost > 0 ? (step.cost_usd / totalAiCost) * 100 : 0;
@@ -2604,17 +2611,17 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-xs font-medium text-base-content/70 truncate">{stepLabel}</span>
                                 {shortModel && (
-                                  <span className="text-[10px] text-base-content/25 truncate hidden group-hover:inline">{shortModel}</span>
+                                  <span className="text-[11px] text-muted truncate hidden group-hover:inline">{shortModel}</span>
                                 )}
                               </div>
                               <div className="flex items-center gap-3 shrink-0 ml-3">
-                                <span className="text-[10px] text-base-content/30 tabular-nums">{step.call_count} calls</span>
-                                <span className="text-[10px] text-base-content/30 tabular-nums">{(step.input_tokens + step.output_tokens).toLocaleString()} tok</span>
-                                <span className="text-xs font-semibold tabular-nums" style={{ color: "#a78bfa" }}>${step.cost_usd.toFixed(4)}</span>
+                                <span className="text-[11px] text-muted tabular-nums">{step.call_count} calls</span>
+                                <span className="text-[11px] text-muted tabular-nums">{(step.input_tokens + step.output_tokens).toLocaleString()} tok</span>
+                                <span className="text-xs font-semibold tabular-nums" style={{ color: chartColors.replies }}>${step.cost_usd.toFixed(4)}</span>
                               </div>
                             </div>
                             <div className="h-1 bg-base-300/30 rounded-full overflow-hidden">
-                              <div className="h-full rounded-full" style={{ width: `${stepPct}%`, background: "#a78bfa", opacity: 0.6 }} />
+                              <div className="h-full rounded-full" style={{ width: `${stepPct}%`, background: chartColors.replies, opacity: 0.6 }} />
                             </div>
                           </div>
                         );
@@ -2631,19 +2638,19 @@ function AnalyticsPanel({ workflowId, days: initialDays }: { workflowId: string;
         <div className="space-y-3">
           <div className="bg-base-200 border border-base-300/50 rounded-xl p-4">
             <div className="mb-4">
-              <span className="text-xs font-medium text-base-content/30 uppercase tracking-widest">Funnel</span>
+              <span className="text-xs font-medium text-muted uppercase tracking-widest">Funnel</span>
             </div>
             <div className="space-y-0.5">
-              <FunnelBar label="Prospects" value={funnel.total} color="#808080" />
-              <FunnelBar label="Connections sent" value={funnel.connections_sent} color="#32d583" />
-              <FunnelBar label="Connected" value={funnel.connected} color="#32d583" />
-              <FunnelBar label="LI Messages" value={funnel.messages_sent} color="#f4b740" />
-              <FunnelBar label="InMails sent" value={funnel.inmails_sent} color="#e879f9" />
-              <FunnelBar label="LI Replies" value={funnel.li_replies} color="#c084fc" />
-              <FunnelBar label="Emails sent" value={funnel.emails_sent} color="#fb923c" />
-              <FunnelBar label="Email replies" value={funnel.email_replies} color="#32d583" />
+              <FunnelBar label="Prospects" value={funnel.total} color={chartColors.neutral} />
+              <FunnelBar label="Connections sent" value={funnel.connections_sent} color={chartColors.connections} />
+              <FunnelBar label="Connected" value={funnel.connected} color={chartColors.connections} />
+              <FunnelBar label="LI Messages" value={funnel.messages_sent} color={chartColors.messages} />
+              <FunnelBar label="InMails sent" value={funnel.inmails_sent} color={chartColors.inmails} />
+              <FunnelBar label="LI Replies" value={funnel.li_replies} color={chartColors.replies} />
+              <FunnelBar label="Emails sent" value={funnel.emails_sent} color={chartColors.emails} />
+              <FunnelBar label="Email replies" value={funnel.email_replies} color={chartColors.connections} />
               <div className="pt-2 border-t border-base-300/30 mt-2">
-                <FunnelBar label="Completed" value={funnel.completed} color="#5aa2ff" />
+                <FunnelBar label="Completed" value={funnel.completed} color={chartColors.visits} />
               </div>
             </div>
           </div>
@@ -2903,13 +2910,13 @@ export default function WorkflowDetailPage({
     </Head>
     <div>
       {/* Header */}
-      <div className="flex items-center gap-3 mb-3">
-        <Link href="/workflows" className="w-8 h-8 rounded-lg flex items-center justify-center text-base-content/50 hover:bg-base-200 hover:text-base-content transition-colors shrink-0">
+      <PageHeader className="flex items-center gap-3 mb-3">
+        <Link href="/workflows" className="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:bg-base-200 hover:text-base-content transition-colors shrink-0">
           <RiArrowLeftLine size={16} />
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-semibold">{workflowName}</h1>
+            <PageTitle className="text-xl font-semibold">{workflowName}</PageTitle>
             {isRunning && (
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-primary/15 text-primary">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse inline-block" />
@@ -2922,55 +2929,55 @@ export default function WorkflowDetailPage({
               </span>
             )}
             {!isActive && displayStats.total_prospects > 0 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-base-content/40">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-muted">
                 Idle
               </span>
             )}
             {/* Inline stats — shown only when there's data */}
             {displayStats.total_prospects > 0 && (
               <div className="flex items-center gap-3 ml-1">
-                <span className="text-base-content/30 text-xs">·</span>
-                <span className="text-xs text-base-content/50">
+                <span className="text-muted text-xs">·</span>
+                <span className="text-xs text-muted">
                   <span className="font-semibold text-base-content/80">{displayStats.total_prospects}</span> prospects
                 </span>
                 {displayStats.completed_prospects > 0 && (
-                  <span className="text-xs text-base-content/50">
+                  <span className="text-xs text-muted">
                     <span className="font-semibold text-success">{displayStats.completed_prospects}</span> done
                   </span>
                 )}
                 {displayStats.connections_sent > 0 && (
-                  <span className="text-xs text-base-content/50">
+                  <span className="text-xs text-muted">
                     <span className="font-semibold text-primary">{displayStats.connections_sent}</span> reqs sent
                   </span>
                 )}
                 {displayStats.connections_accepted > 0 && (
-                  <span className="text-xs text-base-content/50">
+                  <span className="text-xs text-muted">
                     <span className="font-semibold text-success">{displayStats.connections_accepted}</span> connected
                   </span>
                 )}
                 {displayStats.messages_sent > 0 && (
-                  <span className="text-xs text-base-content/50">
+                  <span className="text-xs text-muted">
                     <span className="font-semibold text-info">{displayStats.messages_sent}</span> messaged
                   </span>
                 )}
                 {displayStats.inmails_sent > 0 && (
-                  <span className="text-xs text-base-content/50">
+                  <span className="text-xs text-muted">
                     <span className="font-semibold text-info">{displayStats.inmails_sent}</span> inmailed
                   </span>
                 )}
                 {displayStats.connections_sent > 0 && displayStats.acceptance_rate > 0 && (
-                  <span className="text-xs text-base-content/40">{displayStats.acceptance_rate}% accepted</span>
+                  <span className="text-xs text-muted">{displayStats.acceptance_rate}% accepted</span>
                 )}
               </div>
             )}
           </div>
           {activeRun && (
-            <p className="text-xs text-base-content/40 mt-0.5 pl-0">
+            <p className="text-xs text-muted mt-0.5 pl-0">
               {activeRun.list_name} · {activeRun.account_name}
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           {isRunning && (
             <>
               <button
@@ -3025,25 +3032,26 @@ export default function WorkflowDetailPage({
           )}
           {!isActive && (
             <button
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors"
               onClick={() => { setWizardMode("launch"); setShowWizard(true); }}
             >
               <RiAddLine size={14} /> Add Prospects
             </button>
           )}
         </div>
-      </div>
+      </PageHeader>
 
       {/* Tab switcher */}
       <div className="flex items-center gap-1 border-b border-base-300/30 mb-0 -mb-px pl-11">
         {(["prospects", "analytics"] as const).map(tab => (
           <button
             key={tab}
+            aria-pressed={activeTab === tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize ${
               activeTab === tab
                 ? "border-primary text-primary"
-                : "border-transparent text-base-content/40 hover:text-base-content/70"
+                : "border-transparent text-muted hover:text-base-content/70"
             }`}
           >
             {tab}
@@ -3052,17 +3060,17 @@ export default function WorkflowDetailPage({
       </div>
 
       {/* Main layout */}
-      {activeTab === "prospects" && <div className="flex gap-8" style={{ height: "calc(100vh - 148px)" }}>
+      {activeTab === "prospects" && <div className="ms-campaign-workspace">
         {/* Sidebar */}
-        <div className="w-52 shrink-0 overflow-y-auto">
+        <div className="ms-campaign-pipeline">
           {/* All prospects */}
           <button
             onClick={() => setSelectedStep(null)}
-            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors mb-4 flex items-center justify-between ${selectedStep === null ? "bg-primary/10 border border-primary/30 text-primary" : "hover:bg-base-200 text-base-content/60 border border-transparent"}`}
+            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors mb-4 flex items-center justify-between ${selectedStep === null ? "bg-primary/10 border border-primary/30 text-primary" : "hover:bg-base-200 text-muted border border-transparent"}`}
           >
             <span className="font-medium">All prospects</span>
             {displayStats.total_prospects > 0 && (
-              <span className={`text-xs px-1.5 py-0.5 rounded-md ${selectedStep === null ? "bg-primary/20 text-primary" : "bg-base-300 text-base-content/40"}`}>
+              <span className={`text-xs px-1.5 py-0.5 rounded-md ${selectedStep === null ? "bg-primary/20 text-primary" : "bg-base-300 text-muted"}`}>
                 {displayStats.total_prospects}
               </span>
             )}
@@ -3070,7 +3078,7 @@ export default function WorkflowDetailPage({
 
           {actionSteps.length > 0 && (
             <div>
-              <p className="text-xs text-base-content/30 uppercase tracking-widest px-1 mb-3">Pipeline</p>
+              <p className="text-xs text-muted uppercase tracking-widest px-1 mb-3">Pipeline</p>
 
               {/* Render each track independently, delays shown inline before their step */}
               {(["linkedin", "email"] as Track[]).map((track) => {
@@ -3104,7 +3112,7 @@ export default function WorkflowDetailPage({
                               const isSel = typeof selectedStep === "object" && selectedStep !== null && selectedStep.track === track && selectedStep.step_order === delayStep!.step_order;
                               setSelectedStep(isSel ? null : delayKey);
                             }}
-                            className={`w-full flex items-center gap-2 py-1 px-3 rounded-lg transition-colors ${typeof selectedStep === "object" && selectedStep !== null && selectedStep.track === track && selectedStep.step_order === delayStep?.step_order ? "bg-base-300/60 text-base-content/70" : "text-base-content/40 hover:text-base-content/70 hover:bg-base-200/60"}`}
+                            className={`w-full flex items-center gap-2 py-1 px-3 rounded-lg transition-colors ${typeof selectedStep === "object" && selectedStep !== null && selectedStep.track === track && selectedStep.step_order === delayStep?.step_order ? "bg-base-300/60 text-base-content/70" : "text-muted hover:text-base-content/70 hover:bg-base-200/60"}`}
                           >
                             <RiTimeLine size={11} className="shrink-0" />
                             <span className="text-xs">Wait {delayDays}d</span>
@@ -3132,7 +3140,7 @@ export default function WorkflowDetailPage({
                 return (
                   <div key={track} className="mb-4">
                     {trackSteps.some(s => s.track) && (
-                      <p className="text-xs text-base-content/20 uppercase tracking-widest px-1 mb-2">{track}</p>
+                      <p className="text-xs text-muted uppercase tracking-widest px-1 mb-2">{track}</p>
                     )}
                     <div className="flex flex-col">{rendered}</div>
                   </div>
@@ -3144,7 +3152,7 @@ export default function WorkflowDetailPage({
                 <div className="mt-4 pt-4 border-t border-base-300/30 flex flex-col gap-1.5">
                   <button
                     onClick={() => setSelectedStep(selectedStep === "completed" ? null : "completed")}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2.5 border ${selectedStep === "completed" ? "text-success bg-success/10 border-success/20" : "text-base-content/50 hover:text-success bg-base-200 border-base-300/40 hover:border-success/20"}`}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2.5 border ${selectedStep === "completed" ? "text-success bg-success/10 border-success/20" : "text-muted hover:text-success bg-base-200 border-base-300/40 hover:border-success/20"}`}
                   >
                     <span className="w-2 h-2 rounded-full bg-success shrink-0" />
                     <span className="font-medium">{displayStats.completed_prospects} completed</span>
@@ -3152,7 +3160,7 @@ export default function WorkflowDetailPage({
                   {displayStats.failed_prospects > 0 && (
                     <button
                       onClick={() => setSelectedStep(selectedStep === "failed" ? null : "failed")}
-                      className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2.5 border ${selectedStep === "failed" ? "text-error bg-error/10 border-error/20" : "text-base-content/50 hover:text-error bg-base-200 border-base-300/40 hover:border-error/20"}`}
+                      className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2.5 border ${selectedStep === "failed" ? "text-error bg-error/10 border-error/20" : "text-muted hover:text-error bg-base-200 border-base-300/40 hover:border-error/20"}`}
                     >
                       <span className="w-2 h-2 rounded-full bg-error shrink-0" />
                       <span className="font-medium">{displayStats.failed_prospects} failed / skipped</span>
@@ -3167,7 +3175,7 @@ export default function WorkflowDetailPage({
         {/* Prospects table */}
         <div className="flex-1 min-w-0 overflow-y-auto">
           {displayStats.total_prospects === 0 ? (
-            <div className="text-center py-20 text-base-content/40 text-sm border border-base-300/50 rounded-lg">
+            <div className="text-center py-20 text-muted text-sm border border-base-300/50 rounded-lg">
               {steps.length === 0
                 ? <span>No steps configured yet. <button className="text-primary underline" onClick={() => setShowWizard(true)}>Set up this campaign.</button></span>
                 : <span>No prospects yet. <button className="text-primary underline" onClick={() => setShowWizard(true)}>Add prospects to start.</button></span>}
@@ -3179,13 +3187,14 @@ export default function WorkflowDetailPage({
                 {selected.size === 0 ? (
                   <div className="flex items-center gap-2.5 flex-wrap py-0.5">
                     <div className="relative shrink-0">
-                      <RiSearchLine size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-base-content/30 pointer-events-none" />
+                      <RiSearchLine size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
                       <input
                         type="text"
                         placeholder="Search prospects…"
+                        aria-label="Search campaign prospects"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-48 pl-7 pr-3 py-1.5 text-xs bg-base-200 border border-base-300/50 rounded-lg outline-none focus:border-primary/50 placeholder:text-base-content/30"
+                        className="w-48 pl-7 pr-3 py-1.5 text-xs bg-base-200 border border-base-300/50 rounded-lg outline-none focus:border-primary/50 placeholder:text-muted"
                       />
                     </div>
                     <div className="w-px h-4 bg-base-300/60 shrink-0" />
@@ -3202,7 +3211,7 @@ export default function WorkflowDetailPage({
                   const removeSel = sel.filter((p) => p.state !== "completed");
                   return (
                     <div className="absolute inset-0 flex items-center gap-2 px-3 bg-base-200 border border-base-300/50 rounded-lg z-10">
-                      <span className="text-xs text-base-content/50 flex-1">{selected.size} selected</span>
+                      <span className="text-xs text-muted flex-1">{selected.size} selected</span>
                       {failedSel.length > 0 && (
                         <button
                           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-info/10 text-info border border-info/20 hover:bg-info/20 transition-colors"
@@ -3228,7 +3237,7 @@ export default function WorkflowDetailPage({
                         </button>
                       )}
                       <button
-                        className="text-xs text-base-content/30 hover:text-base-content/60 transition-colors px-1"
+                        className="text-xs text-muted hover:text-muted transition-colors px-1"
                         onClick={() => setSelected(new Set())}
                       >
                         Cancel
@@ -3241,7 +3250,7 @@ export default function WorkflowDetailPage({
               <div className="overflow-x-auto rounded-lg border border-base-300/50">
                 <table className="table w-full text-sm">
                   <thead>
-                    <tr className="border-base-300/50 text-base-content/50 text-xs uppercase tracking-wide">
+                    <tr className="border-base-300/50 text-muted text-xs uppercase tracking-wide">
                       <th className="w-8">
                         <input
                           type="checkbox"
@@ -3267,7 +3276,7 @@ export default function WorkflowDetailPage({
                   <tbody>
                     {prospects.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="text-center text-base-content/30 py-8 text-xs">
+                        <td colSpan={7} className="text-center text-muted py-8 text-xs">
                           No prospects match this filter.
                         </td>
                       </tr>
@@ -3288,17 +3297,17 @@ export default function WorkflowDetailPage({
                         </td>
                         <td>
                           <p className="font-medium text-sm">{p.full_name ?? "—"}</p>
-                          {p.title && <p className="text-xs text-base-content/40 truncate max-w-40">{p.title}</p>}
+                          {p.title && <p className="text-xs text-muted truncate max-w-40">{p.title}</p>}
                         </td>
-                        <td className="text-xs text-base-content/60">{p.company ?? "—"}</td>
-                        <td className="text-xs text-base-content/60">
+                        <td className="text-xs text-muted">{p.company ?? "—"}</td>
+                        <td className="text-xs text-muted">
                           {(() => {
                             const activeTrack = typeof selectedStep === "object" && selectedStep !== null ? selectedStep.track : null;
                             const st = activeTrack === "email" ? p.em_step_type : activeTrack === "linkedin" ? p.li_step_type : p.step_type;
                             return st === "connect" && p.connection_requested_at
                               ? "Awaiting acceptance"
                               : st === "email"
-                              ? <span className="text-warning/80">Cold Email</span>
+                              ? <span className="text-warning">Cold Email</span>
                               : st ? (STEP_LABELS[st] ?? st) : "—";
                           })()}
                         </td>
@@ -3308,7 +3317,7 @@ export default function WorkflowDetailPage({
                               const isEmailBounce = p.state === "skipped" && !!p.error_message && (p.error_message.includes("bounced") || p.error_message.includes("domain invalid"));
                               const pillClass = isEmailBounce
                                 ? "bg-warning/15 text-warning"
-                                : (STATE_PILL[p.state] ?? "bg-base-300 text-base-content/50");
+                                : (STATE_PILL[p.state] ?? "bg-base-300 text-muted");
                               const label = isEmailBounce ? "email invalid" : p.state.replace("_", " ");
                               return (
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${pillClass}`}>
@@ -3318,7 +3327,7 @@ export default function WorkflowDetailPage({
                             })()}
                             {(p.state === "failed" || (p.state === "skipped" && p.error_message && (p.error_message.includes("bounced") || p.error_message.includes("domain invalid")))) && p.error_message && (
                               <button
-                                className="text-warning/60 hover:text-warning transition-colors"
+                                className="text-warning hover:text-warning transition-colors"
                                 onClick={(e) => { e.stopPropagation(); setErrorModal(p.error_message!); }}
                               >
                                 <RiErrorWarningLine size={13} />
@@ -3326,7 +3335,7 @@ export default function WorkflowDetailPage({
                             )}
                           </div>
                         </td>
-                        <td className="text-xs text-base-content/50">
+                        <td className="text-xs text-muted">
                           {formatNextAction(p.next_step_at, p.state)}
                         </td>
                         <td onClick={(e) => e.stopPropagation()}>
@@ -3335,7 +3344,7 @@ export default function WorkflowDetailPage({
                               <button
                                 title="Retry"
                                 onClick={() => retryProspect(p.run_id, p.target_id)}
-                                className="inline-flex items-center p-1 rounded text-base-content/20 hover:text-info hover:bg-info/10 transition-colors"
+                                className="inline-flex items-center p-1 rounded text-muted hover:text-info hover:bg-info/10 transition-colors"
                               >
                                 <RiRefreshLine size={13} />
                               </button>
@@ -3347,7 +3356,7 @@ export default function WorkflowDetailPage({
                                   ? unenrollProspect(p.run_id, p.target_id)
                                   : removeProspect(p.run_id, p.target_id)
                                 }
-                                className="inline-flex items-center p-1 rounded text-base-content/20 hover:text-error hover:bg-error/10 transition-colors"
+                                className="inline-flex items-center p-1 rounded text-muted hover:text-error hover:bg-error/10 transition-colors"
                               >
                                 <RiDeleteBinLine size={13} />
                               </button>
@@ -3360,11 +3369,11 @@ export default function WorkflowDetailPage({
                 </table>
               </div>
               {prospectsTotal > PROSPECTS_PAGE_SIZE && (
-                <div className="flex items-center justify-between mt-3 text-sm text-base-content/50">
+                <div className="flex items-center justify-between mt-3 text-sm text-muted">
                   <span className="text-xs">{prospectsPage * PROSPECTS_PAGE_SIZE + 1}–{Math.min((prospectsPage + 1) * PROSPECTS_PAGE_SIZE, prospectsTotal)} of {prospectsTotal}</span>
                   <div className="flex items-center gap-1">
                     <button
-                      className="inline-flex items-center justify-center w-6 h-6 rounded text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center w-6 h-6 rounded text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       onClick={() => setProspectsPage((p) => p - 1)}
                       disabled={prospectsPage === 0}
                     >
@@ -3372,7 +3381,7 @@ export default function WorkflowDetailPage({
                     </button>
                     <span className="px-2 text-xs">{prospectsPage + 1} / {Math.ceil(prospectsTotal / PROSPECTS_PAGE_SIZE)}</span>
                     <button
-                      className="inline-flex items-center justify-center w-6 h-6 rounded text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center w-6 h-6 rounded text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       onClick={() => setProspectsPage((p) => p + 1)}
                       disabled={prospectsPage >= Math.ceil(prospectsTotal / PROSPECTS_PAGE_SIZE) - 1}
                     >
@@ -3433,11 +3442,11 @@ export default function WorkflowDetailPage({
         <div className="modal modal-open">
           <div className="modal-box bg-base-200 border border-base-300/50 max-w-sm">
             <h3 className="font-semibold text-base mb-2">Stop campaign?</h3>
-            <p className="text-sm text-base-content/60 mb-4">
+            <p className="text-sm text-muted mb-4">
               This will mark the campaign as completed. Active prospects stay in their current state.
             </p>
             <div className="modal-action">
-              <button className="px-4 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300 transition-colors" onClick={() => setShowStop(false)}>Cancel</button>
+              <button className="px-4 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300 transition-colors" onClick={() => setShowStop(false)}>Cancel</button>
               <button className="px-4 py-1.5 rounded-lg text-sm font-medium bg-error/15 text-error border border-error/25 hover:bg-error/25 transition-colors" onClick={stopRun}>Stop Campaign</button>
             </div>
           </div>

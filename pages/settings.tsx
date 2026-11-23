@@ -1,3 +1,4 @@
+import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
@@ -182,22 +183,23 @@ export default function SettingsPage({
 
       <div className="max-w-3xl">
         {/* Page header */}
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold">Settings</h1>
-          <p className="text-base-content/50 text-sm mt-0.5">Accounts, integrations, and preferences</p>
-        </div>
+        <PageHeader className="mb-6">
+          <PageTitle className="text-xl font-semibold">Settings</PageTitle>
+          <PageDescription className="text-muted text-sm mt-0.5">Accounts, integrations, and preferences</PageDescription>
+        </PageHeader>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mb-6 border-b border-base-300/50 pb-0">
+        <div className="flex items-center gap-1 mb-6 overflow-x-auto border-b border-base-300/50 pb-0">
           {visibleTabs.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               data-tour={`settings-tab-${key}`}
+              aria-pressed={tab === key}
               onClick={() => switchTab(key)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors relative -mb-px border-b-2 ${
+              className={`flex shrink-0 items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors relative -mb-px border-b-2 ${
                 tab === key
                   ? "text-base-content border-primary"
-                  : "text-base-content/40 border-transparent hover:text-base-content/70"
+                  : "text-muted border-transparent hover:text-base-content/70"
               }`}
             >
               <Icon size={14} />
@@ -371,9 +373,9 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-base-content/50">LinkedIn accounts used for browser automation</p>
+        <p className="text-sm text-muted">LinkedIn accounts used for browser automation</p>
         <button
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors"
           onClick={openCreate}
         >
           <RiAddLine size={14} /> Add Account
@@ -381,19 +383,19 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
       </div>
 
       {accounts.length === 0 ? (
-        <div className="text-center py-12 text-base-content/30 text-sm border border-dashed border-base-300/60 rounded-xl">
+        <div className="text-center py-12 text-muted text-sm border border-dashed border-base-300/60 rounded-xl">
           No LinkedIn accounts yet.
         </div>
       ) : (
         <div className="flex flex-col gap-2">
           {accounts.map((a) => (
             <div key={a.id} className="flex items-center gap-4 px-4 py-3 bg-base-200 border border-base-300/50 rounded-xl hover:border-base-300 transition-colors">
-              <div className="w-9 h-9 rounded-lg bg-base-300 flex items-center justify-center text-sm font-bold text-base-content/60 shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-base-300 flex items-center justify-center text-sm font-bold text-muted shrink-0">
                 {a.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{a.name}</p>
-                <p className="text-xs text-base-content/40">
+                <p className="text-xs text-muted">
                   {a.email} · {a.daily_connection_limit} conn/day · {a.daily_message_limit} msg/day · {a.daily_inmail_limit} inmail/day
                   {" · "}{fmtHour(a.active_hours_start ?? 9)}–{fmtHour(a.active_hours_end ?? 18)} ({a.timezone ?? "UTC"})
                 </p>
@@ -404,7 +406,7 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
                     <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" /> In use
                   </span>
                 ) : null}
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${a.is_authenticated ? "bg-success/15 text-success" : "bg-base-300 text-base-content/40"}`}>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${a.is_authenticated ? "bg-success/15 text-success" : "bg-base-300 text-muted"}`}>
                   {a.is_authenticated ? <><RiCheckLine size={10} /> Auth</> : "Unauth"}
                 </span>
                 <button
@@ -414,7 +416,7 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
                   <RiShieldKeyholeLine size={12} /> Authenticate
                 </button>
                 <button
-                  className="inline-flex items-center p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                  className="inline-flex items-center p-1.5 rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                   onClick={() => openEdit(a)}
                   title="Edit"
                 >
@@ -440,39 +442,39 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
             <h3 className="font-semibold text-base mb-4">{editingAccount ? "Edit LinkedIn Account" : "Add LinkedIn Account"}</h3>
             <form onSubmit={save} className="flex flex-col gap-3">
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Display name</label>
+                <label className="label text-xs text-muted pb-1">Display name</label>
                 <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="e.g. Mohammad LinkedIn" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
               </div>
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Email</label>
+                <label className="label text-xs text-muted pb-1">Email</label>
                 <input type="email" className="input input-bordered input-sm w-full bg-base-300/50" placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Connections/day</label>
+                  <label className="label text-xs text-muted pb-1">Connections/day</label>
                   <input type="number" className="input input-bordered input-sm w-full bg-base-300/50" value={form.daily_connection_limit} onChange={(e) => setForm({ ...form, daily_connection_limit: Number(e.target.value) })} min={1} max={100} />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Messages/day</label>
+                  <label className="label text-xs text-muted pb-1">Messages/day</label>
                   <input type="number" className="input input-bordered input-sm w-full bg-base-300/50" value={form.daily_message_limit} onChange={(e) => setForm({ ...form, daily_message_limit: Number(e.target.value) })} min={1} max={200} />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">InMail/day</label>
+                  <label className="label text-xs text-muted pb-1">InMail/day</label>
                   <input type="number" className="input input-bordered input-sm w-full bg-base-300/50" value={form.daily_inmail_limit} onChange={(e) => setForm({ ...form, daily_inmail_limit: Number(e.target.value) })} min={1} max={100} />
                 </div>
               </div>
 
               <div className="border-t border-base-300/40 pt-3 flex flex-col gap-3">
-                <p className="text-xs font-medium text-base-content/50 uppercase tracking-wide">Working Hours</p>
+                <p className="text-xs font-medium text-muted uppercase tracking-wide">Working Hours</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">Start</label>
+                    <label className="label text-xs text-muted pb-1">Start</label>
                     <select className="select select-sm w-full" value={form.active_hours_start} onChange={(e) => setForm({ ...form, active_hours_start: Number(e.target.value) })}>
                       {HOURS.map(h => <option key={h} value={h}>{fmtHour(h)}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">End</label>
+                    <label className="label text-xs text-muted pb-1">End</label>
                     <select className="select select-sm w-full" value={form.active_hours_end} onChange={(e) => setForm({ ...form, active_hours_end: Number(e.target.value) })}>
                       {HOURS.map(h => <option key={h} value={h}>{fmtHour(h)}</option>)}
                     </select>
@@ -480,16 +482,16 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
                 </div>
                 {form.active_hours_start >= form.active_hours_end
                   ? <p className="text-xs text-error">Start must be before end</p>
-                  : <p className="text-xs text-base-content/40">{fmtHour(form.active_hours_start)} – {fmtHour(form.active_hours_end)} ({form.active_hours_end - form.active_hours_start}h window)</p>
+                  : <p className="text-xs text-muted">{fmtHour(form.active_hours_start)} – {fmtHour(form.active_hours_end)} ({form.active_hours_end - form.active_hours_start}h window)</p>
                 }
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Timezone</label>
+                  <label className="label text-xs text-muted pb-1">Timezone</label>
                   <select className="select select-sm w-full" value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })}>
                     {TIMEZONES.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Working days</label>
+                  <label className="label text-xs text-muted pb-1">Working days</label>
                   <div className="flex gap-1.5">
                     {WEEKDAYS.map(day => {
                       const active = form.working_days.split(",").map(Number).includes(day.iso);
@@ -506,7 +508,7 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
                           className={`flex-1 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                             active
                               ? "bg-primary/20 text-primary border-primary/40"
-                              : "bg-base-300/40 text-base-content/40 border-base-300/50 hover:border-base-300"
+                              : "bg-base-300/40 text-muted border-base-300/50 hover:border-base-300"
                           }`}
                         >
                           {day.short}
@@ -518,8 +520,8 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
               </div>
 
               <div className="modal-action mt-2">
-                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => { setShowModal(false); setEditingAccount(null); }}>Cancel</button>
-                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={loading}>
+                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => { setShowModal(false); setEditingAccount(null); }}>Cancel</button>
+                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={loading}>
                   {loading ? <span className="loading loading-spinner loading-xs" /> : editingAccount ? "Save Changes" : "Add Account"}
                 </button>
               </div>
@@ -540,14 +542,14 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
               <button
                 type="button"
                 onClick={() => { setAuthMode("login"); setLoginStage("creds"); }}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${authMode === "login" ? "bg-primary text-primary-content" : "text-base-content/60 hover:text-base-content"}`}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${authMode === "login" ? "bg-accent text-accent-content" : "text-muted hover:text-base-content"}`}
               >
                 Server login
               </button>
               <button
                 type="button"
                 onClick={() => setAuthMode("cookies")}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${authMode === "cookies" ? "bg-primary text-primary-content" : "text-base-content/60 hover:text-base-content"}`}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${authMode === "cookies" ? "bg-accent text-accent-content" : "text-muted hover:text-base-content"}`}
               >
                 Paste cookies
               </button>
@@ -555,17 +557,17 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
 
             {authMode === "login" ? (
               <form onSubmit={submitLogin} className="flex flex-col gap-3">
-                <p className="text-xs text-base-content/50 -mt-1">
+                <p className="text-xs text-muted -mt-1">
                   Logs in on the server under the runner&apos;s exact browser fingerprint and captures all cookies. LinkedIn may ask for a code or a device approval.
                 </p>
                 {loginStage === "creds" ? (
                   <>
                     <div>
-                      <label className="label text-xs text-base-content/50 pb-1">Email <span className="text-error">*</span></label>
+                      <label className="label text-xs text-muted pb-1">Email <span className="text-error">*</span></label>
                       <input type="email" autoComplete="off" className="input input-bordered input-sm w-full bg-base-300/50" placeholder="you@example.com" value={loginForm.email} onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })} required />
                     </div>
                     <div>
-                      <label className="label text-xs text-base-content/50 pb-1">Password <span className="text-error">*</span></label>
+                      <label className="label text-xs text-muted pb-1">Password <span className="text-error">*</span></label>
                       <input type="password" autoComplete="off" className="input input-bordered input-sm w-full bg-base-300/50" placeholder="••••••••" value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} required />
                     </div>
                   </>
@@ -577,20 +579,20 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
                 ) : (
                   <div>
                     <div className="bg-info/10 text-info text-xs rounded-lg p-3 mb-2">{challengeMsg}</div>
-                    <label className="label text-xs text-base-content/50 pb-1">Verification code <span className="text-error">*</span></label>
+                    <label className="label text-xs text-muted pb-1">Verification code <span className="text-error">*</span></label>
                     <input inputMode="numeric" autoComplete="one-time-code" className="input input-bordered input-sm w-full bg-base-300/50 font-mono tracking-widest" placeholder="123456" value={loginForm.code} onChange={(e) => setLoginForm({ ...loginForm, code: e.target.value })} required />
                   </div>
                 )}
                 <div className="modal-action mt-1">
-                  <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={closeAuthModal}>Cancel</button>
-                  <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={authLoading}>
+                  <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={closeAuthModal}>Cancel</button>
+                  <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={authLoading}>
                     {authLoading ? <span className="loading loading-spinner loading-xs" /> : loginStage === "creds" ? "Log in" : loginStage === "approve" ? "I approved — Continue" : "Verify code"}
                   </button>
                 </div>
               </form>
             ) : (
               <>
-                <div className="bg-base-300/50 rounded-lg p-3 text-xs text-base-content/60 mb-4 space-y-1.5">
+                <div className="bg-base-300/50 rounded-lg p-3 text-xs text-muted mb-4 space-y-1.5">
                   <p className="font-medium text-base-content/80">How to get your cookies:</p>
                   <p>1. Open <strong>linkedin.com</strong> in Chrome and make sure you are logged in</p>
                   <p>2. Open DevTools → <strong>Application</strong> → <strong>Cookies</strong> → <strong>https://www.linkedin.com</strong></p>
@@ -599,16 +601,16 @@ function LinkedInTab({ initialAccounts }: { initialAccounts: LiAccount[] }) {
                 </div>
                 <form onSubmit={submitAuth} className="flex flex-col gap-3">
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">li_at cookie value <span className="text-error">*</span></label>
+                    <label className="label text-xs text-muted pb-1">li_at cookie value <span className="text-error">*</span></label>
                     <input className="input input-bordered input-sm w-full bg-base-300/50 font-mono text-xs" placeholder="AQEDATxxxxxx..." value={authForm.li_at} onChange={(e) => setAuthForm({ ...authForm, li_at: e.target.value })} required />
                   </div>
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">document.cookie output (optional)</label>
+                    <label className="label text-xs text-muted pb-1">document.cookie output (optional)</label>
                     <textarea className="textarea textarea-bordered w-full bg-base-300/50 font-mono text-xs h-24 resize-none" placeholder={'bcookie="v=2&..."; JSESSIONID="ajax:..."; ...'} value={authForm.document_cookie} onChange={(e) => setAuthForm({ ...authForm, document_cookie: e.target.value })} />
                   </div>
                   <div className="modal-action mt-1">
-                    <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={closeAuthModal}>Cancel</button>
-                    <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={authLoading}>
+                    <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={closeAuthModal}>Cancel</button>
+                    <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={authLoading}>
                       {authLoading ? <span className="loading loading-spinner loading-xs" /> : "Save Cookies"}
                     </button>
                   </div>
@@ -661,15 +663,15 @@ function RampDiagram({ startDate, target }: { startDate: string; target: number 
           );
         })}
       </div>
-      <div className="flex items-center justify-between text-[10px] text-base-content/40">
+      <div className="flex items-center justify-between text-[11px] text-muted">
         <span>Day 1 — 2/day</span>
         <span>Day {daysToFull} — {target}/day</span>
       </div>
       <div className="mt-2 pt-2 border-t border-base-300/50 flex items-center justify-between text-xs">
-        <span className="text-base-content/50">
+        <span className="text-muted">
           Today: <span className="text-base-content font-medium">{currentLimit}/day</span>
         </span>
-        <span className="text-base-content/40">
+        <span className="text-muted">
           Full volume: {fullDate.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
         </span>
       </div>
@@ -927,16 +929,16 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
   return (
     <div>
       {/* Gmail/Outlook hint */}
-      <div className="bg-info/5 border border-info/20 rounded-xl p-4 mb-5 text-xs text-base-content/60 leading-relaxed">
+      <div className="bg-info/5 border border-info/20 rounded-xl p-4 mb-5 text-xs text-muted leading-relaxed">
         <span className="font-medium text-base-content/80">Gmail / Outlook:</span>{" "}
         Enable 2FA, then generate an <strong>App Password</strong> (16-char code) to use here.{" "}
-        <span className="text-base-content/40">Gmail: myaccount.google.com/apppasswords · Outlook: account.microsoft.com/security → App passwords</span>
+        <span className="text-muted">Gmail: myaccount.google.com/apppasswords · Outlook: account.microsoft.com/security → App passwords</span>
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-base-content/50">SMTP accounts for email outreach</p>
+        <p className="text-sm text-muted">SMTP accounts for email outreach</p>
         <button
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors"
           onClick={openCreate}
         >
           <RiAddLine size={14} /> Add Account
@@ -944,7 +946,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
       </div>
 
       {accounts.length === 0 ? (
-        <div className="text-center py-12 text-base-content/30 text-sm border border-dashed border-base-300/60 rounded-xl">
+        <div className="text-center py-12 text-muted text-sm border border-dashed border-base-300/60 rounded-xl">
           No email accounts yet. Add one to start sending emails.
         </div>
       ) : (
@@ -954,12 +956,12 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
             return (
               <div key={a.id} className="bg-base-200 border border-base-300/50 rounded-xl overflow-hidden hover:border-base-300 transition-colors">
                 <div className="flex items-center gap-4 px-4 py-3">
-                  <div className="w-9 h-9 rounded-lg bg-base-300 flex items-center justify-center text-sm font-bold text-base-content/60 shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-base-300 flex items-center justify-center text-sm font-bold text-muted shrink-0">
                     {a.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{a.name}</p>
-                    <p className="text-xs text-base-content/40 truncate">{a.from_email} · {a.smtp_host}:{a.smtp_port} · {a.daily_email_limit}/day</p>
+                    <p className="text-xs text-muted truncate">{a.from_email} · {a.smtp_host}:{a.smtp_port} · {a.daily_email_limit}/day</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {a.is_verified ? (
@@ -967,7 +969,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                         <RiCheckLine size={10} /> Verified
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-base-content/40">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-muted">
                         <RiCloseLine size={10} /> Unverified
                       </span>
                     )}
@@ -976,7 +978,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                         <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" /> In use
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300/50 text-base-content/30">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300/50 text-muted">
                         Free
                       </span>
                     )}
@@ -989,21 +991,21 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                       Test
                     </button>
                     <button
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                       onClick={() => openAddSender(a)}
                       title="Add a sender using these same SMTP/IMAP credentials"
                     >
                       <RiAddLine size={13} /> Sender
                     </button>
                     <button
-                      className="inline-flex items-center p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                      className="inline-flex items-center p-1.5 rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                       onClick={() => openDuplicate(a)}
                       title="Duplicate as an independent account (own credentials)"
                     >
                       <RiFileCopyLine size={14} />
                     </button>
                     <button
-                      className="inline-flex items-center p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                      className="inline-flex items-center p-1.5 rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                       onClick={() => openEdit(a)}
                     >
                       <RiEditLine size={14} />
@@ -1020,7 +1022,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                 {senders.length > 0 && (
                   <div className="border-t border-base-300/40 px-4 py-2">
                     <button
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-base-content/50 hover:text-base-content transition-colors"
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-base-content transition-colors"
                       onClick={() => setViewingParent(a)}
                     >
                       <RiGroupLine size={13} />
@@ -1034,14 +1036,14 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
           })}
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-2 mt-1 border-t border-base-300/40">
-              <span className="text-xs text-base-content/40">
+              <span className="text-xs text-muted">
                 {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, parents.length)} of {parents.length}
               </span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-2.5 py-1 rounded-md text-xs text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1 rounded-md text-xs text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   ←
                 </button>
@@ -1049,7 +1051,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                   <button
                     key={n}
                     onClick={() => setPage(n)}
-                    className={`w-6 h-6 rounded-md text-xs font-medium transition-colors ${n === page ? "bg-primary text-primary-content" : "text-base-content/40 hover:text-base-content hover:bg-base-300/50"}`}
+                    className={`w-6 h-6 rounded-md text-xs font-medium transition-colors ${n === page ? "bg-accent text-accent-content" : "text-muted hover:text-base-content hover:bg-base-300/50"}`}
                   >
                     {n}
                   </button>
@@ -1057,7 +1059,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-2.5 py-1 rounded-md text-xs text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-2.5 py-1 rounded-md text-xs text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   →
                 </button>
@@ -1077,11 +1079,11 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
               {/* Preset — only for create */}
               {!editingAccount && (
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Provider preset</label>
+                  <label className="label text-xs text-muted pb-1">Provider preset</label>
                   <div className="flex gap-2">
                     {[["gmail", "Gmail"], ["outlook", "Outlook / Hotmail"], ["custom", "Custom SMTP"]].map(([key, label]) => (
                       <button key={key} type="button" onClick={() => applyPreset(key)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${form.preset === key ? "bg-primary/15 text-primary border-primary/30" : "bg-base-300/50 text-base-content/50 border-base-300/50 hover:border-primary/20"}`}>
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${form.preset === key ? "bg-primary/15 text-primary border-primary/30" : "bg-base-300/50 text-muted border-base-300/50 hover:border-primary/20"}`}>
                         {label}
                       </button>
                     ))}
@@ -1091,32 +1093,32 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Display name</label>
+                  <label className="label text-xs text-muted pb-1">Display name</label>
                   <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="My Gmail" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">From name (optional)</label>
+                  <label className="label text-xs text-muted pb-1">From name (optional)</label>
                   <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="Your Name" value={form.from_name} onChange={(e) => setForm({ ...form, from_name: e.target.value })} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">From email address</label>
+                  <label className="label text-xs text-muted pb-1">From email address</label>
                   <input type="email" className="input input-bordered input-sm w-full bg-base-300/50" placeholder="you@gmail.com" value={form.from_email} onChange={(e) => setForm({ ...form, from_email: e.target.value })} required />
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Reply-To (optional)</label>
+                  <label className="label text-xs text-muted pb-1">Reply-To (optional)</label>
                   <input type="email" className="input input-bordered input-sm w-full bg-base-300/50" placeholder="you@example.com" value={form.reply_to} onChange={(e) => setForm({ ...form, reply_to: e.target.value })} />
                 </div>
               </div>
 
               {editingAccount?.parent_account_id ? (
                 <div className="border-t border-base-300/40 pt-3">
-                  <p className="text-xs font-medium text-base-content/50 mb-2 uppercase tracking-wide">SMTP &amp; IMAP</p>
-                  <div className="px-3 py-2.5 rounded-lg bg-base-300/40 border border-base-300/50 text-xs text-base-content/40">
+                  <p className="text-xs font-medium text-muted mb-2 uppercase tracking-wide">SMTP &amp; IMAP</p>
+                  <div className="px-3 py-2.5 rounded-lg bg-base-300/40 border border-base-300/50 text-xs text-muted">
                     Inherited from{" "}
-                    <span className="text-base-content/60 font-mono">
+                    <span className="text-muted font-mono">
                       {accounts.find((p) => p.id === editingAccount.parent_account_id)?.name ?? "parent account"}
                     </span>
                     . Change credentials there to update every sender under it.
@@ -1125,42 +1127,42 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
               ) : (
                 <>
                   <div className="border-t border-base-300/40 pt-3">
-                    <p className="text-xs font-medium text-base-content/50 mb-2 uppercase tracking-wide">SMTP (sending)</p>
+                    <p className="text-xs font-medium text-muted mb-2 uppercase tracking-wide">SMTP (sending)</p>
                     <div className="grid grid-cols-3 gap-2">
                       <div className="col-span-2">
-                        <label className="label text-xs text-base-content/50 pb-1">Host</label>
+                        <label className="label text-xs text-muted pb-1">Host</label>
                         <input className="input input-bordered input-sm w-full bg-base-300/50 font-mono text-xs" placeholder="smtp.gmail.com" value={form.smtp_host} onChange={(e) => setForm({ ...form, smtp_host: e.target.value })} required />
                       </div>
                       <div>
-                        <label className="label text-xs text-base-content/50 pb-1">Port</label>
+                        <label className="label text-xs text-muted pb-1">Port</label>
                         <input type="number" className="input input-bordered input-sm w-full bg-base-300/50" value={form.smtp_port} onChange={(e) => setForm({ ...form, smtp_port: Number(e.target.value) })} />
                       </div>
                     </div>
                     <div className="flex items-center gap-2 mt-2 mb-3">
                       <input type="checkbox" className="checkbox checkbox-xs" checked={form.smtp_secure === 1} onChange={(e) => setForm({ ...form, smtp_secure: e.target.checked ? 1 : 0 })} id="smtp_secure" />
-                      <label htmlFor="smtp_secure" className="text-xs text-base-content/60">Use SSL (port 465). Leave unchecked for STARTTLS (port 587).</label>
+                      <label htmlFor="smtp_secure" className="text-xs text-muted">Use SSL (port 465). Leave unchecked for STARTTLS (port 587).</label>
                     </div>
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-medium text-base-content/50 uppercase tracking-wide">Credentials</p>
+                      <p className="text-xs font-medium text-muted uppercase tracking-wide">Credentials</p>
                       <button
                         type="button"
                         onClick={() => setSmtpUnlocked((v) => !v)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                       >
                         {smtpUnlocked ? <RiLockUnlockLine size={12} /> : <RiLockLine size={12} />}
                         {smtpUnlocked ? "Lock" : "Unlock to edit"}
                       </button>
                     </div>
                     {!smtpUnlocked ? (
-                      <div className="px-3 py-2.5 rounded-lg bg-base-300/40 border border-base-300/50 text-xs text-base-content/40">
+                      <div className="px-3 py-2.5 rounded-lg bg-base-300/40 border border-base-300/50 text-xs text-muted">
                         {form.username
-                          ? <span><span className="text-base-content/60 font-mono">{form.username}</span> · password kept</span>
+                          ? <span><span className="text-muted font-mono">{form.username}</span> · password kept</span>
                           : "Unlock to set username and password"}
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="label text-xs text-base-content/50 pb-1">Username / Email</label>
+                          <label className="label text-xs text-muted pb-1">Username / Email</label>
                           <input
                             autoComplete="new-password"
                             className="input input-bordered input-sm w-full bg-base-300/50"
@@ -1171,7 +1173,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                           />
                         </div>
                         <div>
-                          <label className="label text-xs text-base-content/50 pb-1">
+                          <label className="label text-xs text-muted pb-1">
                             {editingAccount ? "New password (blank = keep)" : "App password"}
                           </label>
                           <input
@@ -1189,38 +1191,38 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                   </div>
 
                   <div className="border-t border-base-300/40 pt-3">
-                    <p className="text-xs font-medium text-base-content/50 mb-2 uppercase tracking-wide">IMAP (inbox reading — optional)</p>
+                    <p className="text-xs font-medium text-muted mb-2 uppercase tracking-wide">IMAP (inbox reading — optional)</p>
                     <div className="grid grid-cols-3 gap-2">
                       <div className="col-span-2">
-                        <label className="label text-xs text-base-content/50 pb-1">Host</label>
+                        <label className="label text-xs text-muted pb-1">Host</label>
                         <input className="input input-bordered input-sm w-full bg-base-300/50 font-mono text-xs" placeholder="imap.gmail.com" value={form.imap_host} onChange={(e) => setForm({ ...form, imap_host: e.target.value })} />
                       </div>
                       <div>
-                        <label className="label text-xs text-base-content/50 pb-1">Port</label>
+                        <label className="label text-xs text-muted pb-1">Port</label>
                         <input type="number" className="input input-bordered input-sm w-full bg-base-300/50" value={form.imap_port} onChange={(e) => setForm({ ...form, imap_port: Number(e.target.value) })} />
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-2 mt-3">
-                      <p className="text-xs font-medium text-base-content/50 uppercase tracking-wide">Credentials</p>
+                      <p className="text-xs font-medium text-muted uppercase tracking-wide">Credentials</p>
                       <button
                         type="button"
                         onClick={() => setImapUnlocked((v) => !v)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                       >
                         {imapUnlocked ? <RiLockUnlockLine size={12} /> : <RiLockLine size={12} />}
                         {imapUnlocked ? "Lock" : "Unlock to edit"}
                       </button>
                     </div>
                     {!imapUnlocked ? (
-                      <div className="px-3 py-2.5 rounded-lg bg-base-300/40 border border-base-300/50 text-xs text-base-content/40">
+                      <div className="px-3 py-2.5 rounded-lg bg-base-300/40 border border-base-300/50 text-xs text-muted">
                         {form.imap_username
-                          ? <span><span className="text-base-content/60 font-mono">{form.imap_username}</span> · password kept</span>
+                          ? <span><span className="text-muted font-mono">{form.imap_username}</span> · password kept</span>
                           : <span>Uses SMTP credentials · password kept</span>}
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="label text-xs text-base-content/50 pb-1">IMAP username <span className="text-base-content/30">(blank = same as SMTP)</span></label>
+                          <label className="label text-xs text-muted pb-1">IMAP username <span className="text-muted">(blank = same as SMTP)</span></label>
                           <input
                             autoComplete="new-password"
                             className="input input-bordered input-sm w-full bg-base-300/50 font-mono text-xs"
@@ -1230,7 +1232,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                           />
                         </div>
                         <div>
-                          <label className="label text-xs text-base-content/50 pb-1">IMAP password <span className="text-base-content/30">(blank = keep)</span></label>
+                          <label className="label text-xs text-muted pb-1">IMAP password <span className="text-muted">(blank = keep)</span></label>
                           <input
                             type="password"
                             autoComplete="new-password"
@@ -1247,20 +1249,20 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
               )}
 
               <div className="border-t border-base-300/40 pt-3 flex flex-col gap-3">
-                <p className="text-xs font-medium text-base-content/50 uppercase tracking-wide">Limits &amp; Schedule</p>
+                <p className="text-xs font-medium text-muted uppercase tracking-wide">Limits &amp; Schedule</p>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Emails / day</label>
+                  <label className="label text-xs text-muted pb-1">Emails / day</label>
                   <input type="number" className="input input-bordered input-sm w-full bg-base-300/50" value={form.daily_email_limit} onChange={(e) => setForm({ ...form, daily_email_limit: Number(e.target.value) })} min={1} max={500} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">Start</label>
+                    <label className="label text-xs text-muted pb-1">Start</label>
                     <select className="select select-sm w-full" value={form.active_hours_start} onChange={(e) => setForm({ ...form, active_hours_start: Number(e.target.value) })}>
                       {HOURS.map(h => <option key={h} value={h}>{fmtHour(h)}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">End</label>
+                    <label className="label text-xs text-muted pb-1">End</label>
                     <select className="select select-sm w-full" value={form.active_hours_end} onChange={(e) => setForm({ ...form, active_hours_end: Number(e.target.value) })}>
                       {HOURS.map(h => <option key={h} value={h}>{fmtHour(h)}</option>)}
                     </select>
@@ -1268,16 +1270,16 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                 </div>
                 {form.active_hours_start >= form.active_hours_end
                   ? <p className="text-xs text-error">Start must be before end</p>
-                  : <p className="text-xs text-base-content/40">{fmtHour(form.active_hours_start)} – {fmtHour(form.active_hours_end)} ({form.active_hours_end - form.active_hours_start}h window)</p>
+                  : <p className="text-xs text-muted">{fmtHour(form.active_hours_start)} – {fmtHour(form.active_hours_end)} ({form.active_hours_end - form.active_hours_start}h window)</p>
                 }
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Timezone</label>
+                  <label className="label text-xs text-muted pb-1">Timezone</label>
                   <select className="select select-sm w-full" value={form.timezone} onChange={(e) => setForm({ ...form, timezone: e.target.value })}>
                     {TIMEZONES.map(tz => <option key={tz.value} value={tz.value}>{tz.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="label text-xs text-base-content/50 pb-1">Working days</label>
+                  <label className="label text-xs text-muted pb-1">Working days</label>
                   <div className="flex gap-1.5">
                     {WEEKDAYS.map(day => {
                       const active = form.working_days.split(",").map(Number).includes(day.iso);
@@ -1294,7 +1296,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                           className={`flex-1 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                             active
                               ? "bg-primary/20 text-primary border-primary/40"
-                              : "bg-base-300/40 text-base-content/40 border-base-300/50 hover:border-base-300"
+                              : "bg-base-300/40 text-muted border-base-300/50 hover:border-base-300"
                           }`}
                         >
                           {day.short}
@@ -1308,8 +1310,8 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
               <div className="border-t border-base-300/40 pt-3 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-medium text-base-content/50 uppercase tracking-wide">Sending ramp-up</p>
-                    <p className="text-xs text-base-content/35 mt-0.5">Start low, increase +2/day until target volume</p>
+                    <p className="text-xs font-medium text-muted uppercase tracking-wide">Sending ramp-up</p>
+                    <p className="text-xs text-muted mt-0.5">Start low, increase +2/day until target volume</p>
                   </div>
                   <button
                     type="button"
@@ -1323,7 +1325,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                 {form.ramp_up_enabled && (
                   <>
                     <div>
-                      <label className="label text-xs text-base-content/50 pb-1">Ramp start date</label>
+                      <label className="label text-xs text-muted pb-1">Ramp start date</label>
                       <input
                         type="date"
                         className="input input-bordered input-sm w-full bg-base-300/50"
@@ -1337,8 +1339,8 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
               </div>
 
               <div className="border-t border-base-300/40 pt-3">
-                <p className="text-xs font-medium text-base-content/50 mb-1 uppercase tracking-wide">Signature</p>
-                <p className="text-xs text-base-content/35 mb-2">
+                <p className="text-xs font-medium text-muted mb-1 uppercase tracking-wide">Signature</p>
+                <p className="text-xs text-muted mb-2">
                   Appended to outgoing emails. If empty, nothing is added — no separator line, nothing.
                 </p>
                 <textarea
@@ -1350,10 +1352,10 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
               </div>
 
               <div className="modal-action mt-1">
-                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => { setShowModal(false); setEditingAccount(null); setSmtpUnlocked(false); setImapUnlocked(false); }}>
+                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => { setShowModal(false); setEditingAccount(null); setSmtpUnlocked(false); setImapUnlocked(false); }}>
                   Cancel
                 </button>
-                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={loading}>
+                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={loading}>
                   {loading ? <span className="loading loading-spinner loading-xs" /> : editingAccount ? "Save changes" : <><RiMailLine size={14} /> Add Account</>}
                 </button>
               </div>
@@ -1368,12 +1370,12 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
         <div className="modal modal-open">
           <div className="modal-box bg-base-200 border border-base-300/50 max-w-sm">
             <h3 className="font-semibold text-base mb-1">Add sender</h3>
-            <p className="text-xs text-base-content/40 mb-4">
-              Uses <span className="text-base-content/60 font-mono">{senderParent.name}</span>'s SMTP/IMAP credentials — only the sender identity below is new.
+            <p className="text-xs text-muted mb-4">
+              Uses <span className="text-muted font-mono">{senderParent.name}</span>'s SMTP/IMAP credentials — only the sender identity below is new.
             </p>
             <form onSubmit={saveSender} className="flex flex-col gap-3">
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Sender email</label>
+                <label className="label text-xs text-muted pb-1">Sender email</label>
                 <input
                   type="email"
                   autoFocus
@@ -1385,7 +1387,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                 />
               </div>
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Reply-To <span className="text-base-content/30">(optional)</span></label>
+                <label className="label text-xs text-muted pb-1">Reply-To <span className="text-muted">(optional)</span></label>
                 <input
                   type="email"
                   className="input input-bordered input-sm w-full bg-base-300/50"
@@ -1395,7 +1397,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                 />
               </div>
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Display name</label>
+                <label className="label text-xs text-muted pb-1">Display name</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-300/50"
                   value={senderForm.name}
@@ -1404,10 +1406,10 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                 />
               </div>
               <div className="modal-action mt-1">
-                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowSenderModal(false)}>
+                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowSenderModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={senderLoading}>
+                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={senderLoading}>
                   {senderLoading ? <span className="loading loading-spinner loading-xs" /> : <><RiAddLine size={14} /> Add sender</>}
                 </button>
               </div>
@@ -1430,21 +1432,21 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                 <RiAddLine size={13} /> Add sender
               </button>
             </div>
-            <p className="text-xs text-base-content/40 mb-4">All share {viewingParent.name}'s SMTP/IMAP credentials.</p>
+            <p className="text-xs text-muted mb-4">All share {viewingParent.name}'s SMTP/IMAP credentials.</p>
 
             <div className="flex flex-col gap-1.5">
               {childrenOf(viewingParent.id).map((s) => (
                 <div key={s.id} className="flex items-center gap-3 px-3 py-2 bg-base-300/30 border border-base-300/50 rounded-lg">
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium">{s.name}</p>
-                    <p className="text-[11px] text-base-content/40 truncate">
+                    <p className="text-[11px] text-muted truncate">
                       {s.from_email}
                       {s.reply_to && <span> · reply-to {s.reply_to}</span>}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {s.active_run_count > 0 && (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-warning/15 text-warning">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-warning/15 text-warning">
                         <span className="w-1 h-1 rounded-full bg-warning animate-pulse" /> In use
                       </span>
                     )}
@@ -1457,7 +1459,7 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                       Test
                     </button>
                     <button
-                      className="inline-flex items-center p-1 rounded-md text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                      className="inline-flex items-center p-1 rounded-md text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                       onClick={() => openEdit(s)}
                     >
                       <RiEditLine size={12} />
@@ -1472,12 +1474,12 @@ function EmailTab({ initialAccounts }: { initialAccounts: EmailAccount[] }) {
                 </div>
               ))}
               {childrenOf(viewingParent.id).length === 0 && (
-                <p className="text-center py-6 text-xs text-base-content/30">No senders left — closing.</p>
+                <p className="text-center py-6 text-xs text-muted">No senders left — closing.</p>
               )}
             </div>
 
             <div className="modal-action mt-4">
-              <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setViewingParent(null)}>
+              <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setViewingParent(null)}>
                 Close
               </button>
             </div>
@@ -1532,26 +1534,26 @@ function TemplatesTab({ initialTemplates }: { initialTemplates: Template[] }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-base-content/50">
+        <p className="text-sm text-muted">
           Use <code className="text-primary text-xs">{"{{first_name}}"}</code>, <code className="text-primary text-xs">{"{{company}}"}</code> as variables
         </p>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors" onClick={openCreate}>
+        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors" onClick={openCreate}>
           <RiAddLine size={14} /> New Template
         </button>
       </div>
 
       {templates.length === 0 ? (
-        <div className="text-center py-12 text-base-content/30 text-sm border border-dashed border-base-300/60 rounded-xl">No templates yet.</div>
+        <div className="text-center py-12 text-muted text-sm border border-dashed border-base-300/60 rounded-xl">No templates yet.</div>
       ) : (
         <div className="flex flex-col gap-2">
           {templates.map((t) => (
             <div key={t.id} className="flex items-start gap-4 px-4 py-3 bg-base-200 border border-base-300/50 rounded-xl hover:border-base-300 transition-colors">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{t.name}</p>
-                <p className="text-xs text-base-content/40 mt-0.5 line-clamp-2 whitespace-pre-wrap">{t.body}</p>
+                <p className="text-xs text-muted mt-0.5 line-clamp-2 whitespace-pre-wrap">{t.body}</p>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <button className="inline-flex items-center p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => openEdit(t)}>
+                <button className="inline-flex items-center p-1.5 rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => openEdit(t)}>
                   <RiEditLine size={14} />
                 </button>
                 <button className="inline-flex items-center p-1.5 rounded-lg bg-error/10 text-error border border-error/20 hover:bg-error/20 transition-colors" onClick={() => del(t.id)}>
@@ -1569,13 +1571,13 @@ function TemplatesTab({ initialTemplates }: { initialTemplates: Template[] }) {
             <h3 className="font-semibold text-base mb-4">{editing ? "Edit Template" : "New Template"}</h3>
             <form onSubmit={save} className="flex flex-col gap-3">
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Template name</label>
+                <label className="label text-xs text-muted pb-1">Template name</label>
                 <input className="input input-bordered input-sm w-full bg-base-300/50" placeholder="e.g. Connection note" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
               </div>
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Body</label>
+                <label className="label text-xs text-muted pb-1">Body</label>
                 <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                  <span className="text-xs text-base-content/40">Insert:</span>
+                  <span className="text-xs text-muted">Insert:</span>
                   {TEMPLATE_VARS.map((v) => (
                     <button key={v} type="button"
                       onClick={() => {
@@ -1592,8 +1594,8 @@ function TemplatesTab({ initialTemplates }: { initialTemplates: Template[] }) {
                 <textarea id="tmpl-body" className="textarea textarea-bordered w-full bg-base-300/50 text-sm font-mono" rows={6} placeholder="Hi {{first_name}}, I noticed you're at {{company}}..." value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} required />
               </div>
               <div className="modal-action mt-1">
-                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={loading}>
+                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={loading}>
                   {loading ? <span className="loading loading-spinner loading-xs" /> : "Save"}
                 </button>
               </div>
@@ -1715,20 +1717,20 @@ function IntegrationsTab({ hasPremium }: { hasPremium: boolean }) {
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-medium">{intg.name}</p>
                   {configured && (
-                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-success/15 text-success">
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-medium bg-success/15 text-success">
                       <RiCheckLine size={9} /> Connected
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-base-content/40">{intg.description}</p>
+                <p className="text-xs text-muted">{intg.description}</p>
               </div>
               {/* Actions */}
               <div className="flex items-center gap-2 shrink-0">
                 {configured && !isEditing && (
                   <>
-                    <span className="text-xs text-base-content/25 font-mono">{state?.masked}</span>
-                    <button onClick={() => { setEditingKey(intg.key); setApiKeyInput(""); }} className="text-xs text-base-content/40 hover:text-base-content/70 transition-colors px-2 py-1">Change</button>
-                    <button onClick={() => remove(intg.key)} className="text-xs text-error/50 hover:text-error transition-colors p-1"><RiCloseLine size={14} /></button>
+                    <span className="text-xs text-muted font-mono">{state?.masked}</span>
+                    <button onClick={() => { setEditingKey(intg.key); setApiKeyInput(""); }} className="text-xs text-muted hover:text-base-content/70 transition-colors px-2 py-1">Change</button>
+                    <button onClick={() => remove(intg.key)} className="text-xs text-error hover:text-error transition-colors p-1"><RiCloseLine size={14} /></button>
                   </>
                 )}
                 {!configured && !isEditing && (
@@ -1740,7 +1742,7 @@ function IntegrationsTab({ hasPremium }: { hasPremium: boolean }) {
                   </button>
                 )}
                 {isEditing && (
-                  <button onClick={() => { setEditingKey(null); setApiKeyInput(""); }} className="text-xs text-base-content/40 hover:text-base-content/70 transition-colors px-1 py-1">
+                  <button onClick={() => { setEditingKey(null); setApiKeyInput(""); }} className="text-xs text-muted hover:text-base-content/70 transition-colors px-1 py-1">
                     <RiCloseLine size={14} />
                   </button>
                 )}
@@ -1759,7 +1761,7 @@ function IntegrationsTab({ hasPremium }: { hasPremium: boolean }) {
                   onChange={(e) => setApiKeyInput(e.target.value)}
                   required
                 />
-                <button type="submit" disabled={saving} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50">
+                <button type="submit" disabled={saving} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50">
                   {saving ? <span className="loading loading-spinner loading-xs" /> : "Save"}
                 </button>
               </form>
@@ -1810,19 +1812,19 @@ function McpCard() {
         className="flex w-full items-center gap-2 px-4 py-3 text-left"
       >
         <RiFlashlightLine size={13} className="text-primary shrink-0" />
-        <p className="text-xs font-medium text-base-content/40 uppercase tracking-wide">MCP — connect an AI agent</p>
-        <RiArrowDownSLine size={15} className={`ml-auto text-base-content/30 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        <p className="text-xs font-medium text-muted uppercase tracking-wide">MCP — connect an AI agent</p>
+        <RiArrowDownSLine size={15} className={`ml-auto text-muted transition-transform ${expanded ? "rotate-180" : ""}`} />
       </button>
 
       {expanded && (
         <div className="px-4 pb-4">
-          <p className="text-xs text-base-content/50 mb-3 leading-relaxed">
+          <p className="text-xs text-muted mb-3 leading-relaxed">
             Connect Claude Code, Claude.ai, Cursor, or any MCP-compatible AI agent to this MoonSys LinkedIn instance —
             it can read contacts, launch campaigns, and review replies on your behalf.
           </p>
 
           <div className="rounded-lg border border-base-300/50 bg-base-300/30 p-3">
-            <div className="text-[10px] font-medium uppercase tracking-wide text-base-content/40 mb-2">
+            <div className="text-[11px] font-medium uppercase tracking-wide text-muted mb-2">
               MCP server URL
             </div>
             <div className="flex items-center gap-2">
@@ -1839,7 +1841,7 @@ function McpCard() {
             </div>
           </div>
 
-          <div className="mt-3 text-xs text-base-content/50 leading-relaxed">
+          <div className="mt-3 text-xs text-muted leading-relaxed">
             <p className="mb-1.5"><span className="text-base-content/70 font-medium">Claude Code</span> — run this in your terminal:</p>
             <div className="flex items-center gap-2 mb-1.5">
               <code className="flex-1 min-w-0 truncate rounded-md bg-base-300/30 border border-base-300/50 px-3 py-2 text-xs text-base-content font-mono">
@@ -1907,7 +1909,7 @@ function GeneralTab({ hasPremium }: { hasPremium: boolean }) {
     <div className="max-w-sm flex flex-col gap-4">
       {/* Account */}
       <div className="bg-base-200 border border-base-300/50 rounded-xl p-4">
-        <p className="text-xs font-medium text-base-content/40 uppercase tracking-wide mb-2">Account</p>
+        <p className="text-xs font-medium text-muted uppercase tracking-wide mb-2">Account</p>
         <p className="text-sm text-base-content/70">
           Signed in as <span className="text-base-content font-medium">{session?.user?.email ?? "—"}</span>
         </p>
@@ -1916,17 +1918,17 @@ function GeneralTab({ hasPremium }: { hasPremium: boolean }) {
       {/* Daily import limit */}
       <div className="bg-base-200 border border-base-300/50 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-1">
-          <RiDownloadLine size={13} className="text-base-content/40" />
-          <p className="text-xs font-medium text-base-content/40 uppercase tracking-wide">Daily import limit</p>
+          <RiDownloadLine size={13} className="text-muted" />
+          <p className="text-xs font-medium text-muted uppercase tracking-wide">Daily import limit</p>
         </div>
-        <p className="text-xs text-base-content/50 mb-3">
+        <p className="text-xs text-muted mb-3">
           Max contacts imported from Sales Navigator per day (across all lists). Larger lists are split into batches over consecutive days to stay under LinkedIn&apos;s radar.
         </p>
         <form onSubmit={saveImportCap} className="flex items-end gap-2">
           <div className="flex-1">
             <input type="number" min={1} className="input input-bordered input-sm w-full bg-base-300/50" placeholder="1500" value={importCap} onChange={(e) => setImportCap(e.target.value === "" ? "" : Number(e.target.value))} required />
           </div>
-          <button type="submit" disabled={capSaving} className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50">
+          <button type="submit" disabled={capSaving} className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50">
             {capSaving ? <span className="loading loading-spinner loading-xs" /> : "Save"}
           </button>
         </form>
@@ -1938,10 +1940,10 @@ function GeneralTab({ hasPremium }: { hasPremium: boolean }) {
       {/* Product tour */}
       <div className="bg-base-200 border border-base-300/50 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-2">
-          <RiCompassLine size={13} className="text-base-content/40" />
-          <p className="text-xs font-medium text-base-content/40 uppercase tracking-wide">Product tour</p>
+          <RiCompassLine size={13} className="text-muted" />
+          <p className="text-xs font-medium text-muted uppercase tracking-wide">Product tour</p>
         </div>
-        <p className="text-xs text-base-content/50 mb-3">
+        <p className="text-xs text-muted mb-3">
           Replay the guided walkthrough for any page.
         </p>
         <select
@@ -1968,24 +1970,24 @@ function GeneralTab({ hasPremium }: { hasPremium: boolean }) {
       {/* Change password */}
       <div className="bg-base-200 border border-base-300/50 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-3">
-          <RiLockPasswordLine size={13} className="text-base-content/40" />
-          <p className="text-xs font-medium text-base-content/40 uppercase tracking-wide">Change password</p>
+          <RiLockPasswordLine size={13} className="text-muted" />
+          <p className="text-xs font-medium text-muted uppercase tracking-wide">Change password</p>
         </div>
         <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
           <div>
-            <label className="label text-xs text-base-content/50 pb-1">Current password</label>
+            <label className="label text-xs text-muted pb-1">Current password</label>
             <input type="password" className="input input-bordered input-sm w-full bg-base-300/50" placeholder="Current password" value={form.currentPassword} onChange={(e) => setForm({ ...form, currentPassword: e.target.value })} required />
           </div>
           <div>
-            <label className="label text-xs text-base-content/50 pb-1">New password</label>
+            <label className="label text-xs text-muted pb-1">New password</label>
             <input type="password" className="input input-bordered input-sm w-full bg-base-300/50" placeholder="Min. 8 characters" value={form.newPassword} onChange={(e) => setForm({ ...form, newPassword: e.target.value })} minLength={8} required />
           </div>
           <div>
-            <label className="label text-xs text-base-content/50 pb-1">Confirm new password</label>
+            <label className="label text-xs text-muted pb-1">Confirm new password</label>
             <input type="password" className="input input-bordered input-sm w-full bg-base-300/50" placeholder="Repeat new password" value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} required />
           </div>
           <div className="flex justify-end pt-1">
-            <button type="submit" disabled={loading} className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50">
+            <button type="submit" disabled={loading} className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50">
               {loading ? <span className="loading loading-spinner loading-xs" /> : "Update password"}
             </button>
           </div>

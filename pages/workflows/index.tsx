@@ -1,3 +1,5 @@
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader, { PageTitle, PageDescription } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useState } from "react";
 import { GetServerSideProps } from "next";
@@ -214,31 +216,27 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
       <meta name="robots" content="noindex, nofollow" />
     </Head>
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <PageHeader className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold">Campaigns</h1>
-          <p className="text-base-content/50 text-sm mt-0.5">Your outreach sequences</p>
+          <PageTitle className="text-xl font-semibold">Campaigns</PageTitle>
+          <PageDescription className="text-muted text-sm mt-0.5">Your outreach sequences</PageDescription>
         </div>
         <button
           data-tour="workflows-new"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors"
           onClick={() => setShowModal(true)}
         >
           <RiAddLine size={15} /> New Campaign
         </button>
-      </div>
+      </PageHeader>
 
       {workflows.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-base-300/60 rounded-xl text-base-content/30 text-sm">
-          No campaigns yet. Create one to start your outreach.
-        </div>
+        <EmptyState title="Create your first campaign" description="Build a sequence to bring your LinkedIn and email outreach together." />
       ) : (
         <>
         {/* Active campaigns */}
         {activeWorkflows.length === 0 ? (
-          <div className="text-center py-12 border border-dashed border-base-300/60 rounded-xl text-base-content/30 text-sm mb-4">
-            No active campaigns. Create one or restore from the archive below.
-          </div>
+          <EmptyState title="No active campaigns" description="Create a campaign or restore one from the archive below." />
         ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 mb-6">
           {activeWorkflows.map((w) => {
@@ -294,8 +292,8 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
                           const StepIcon = STEP_ICON[type] ?? RiEyeLine;
                           return (
                             <span key={i} className="flex items-center gap-1">
-                              {i > 0 && <RiArrowRightLine size={9} className="text-base-content/25" />}
-                              <span className="inline-flex items-center gap-1 text-xs text-base-content/40">
+                              {i > 0 && <RiArrowRightLine size={9} className="text-muted" />}
+                              <span className="inline-flex items-center gap-1 text-xs text-muted">
                                 <StepIcon size={11} />
                                 {STEP_LABEL[type] ?? type}
                               </span>
@@ -305,7 +303,7 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
                       </div>
                     )}
                     {actionSteps.length === 0 && (
-                      <p className="text-xs text-base-content/30">No steps configured</p>
+                      <p className="text-xs text-muted">No steps configured</p>
                     )}
                   </div>
                 </div>
@@ -313,7 +311,7 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
                 {/* Progress */}
                 {w.total_prospects > 0 ? (
                   <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between text-xs text-base-content/50">
+                    <div className="flex items-center justify-between text-xs text-muted">
                       <span>{w.completed_prospects} / {w.total_prospects} prospects done</span>
                       <span>{progress}%</span>
                     </div>
@@ -321,14 +319,14 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
                       <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
                     </div>
                     {(w.connections_sent > 0 || acceptanceRate !== null) && (
-                      <div className="flex items-center gap-3 text-xs text-base-content/35 mt-0.5">
+                      <div className="flex items-center gap-3 text-xs text-muted mt-0.5">
                         {w.connections_sent > 0 && <span>{w.connections_sent} connected</span>}
                         {acceptanceRate !== null && <span className="text-success">{acceptanceRate}% accepted</span>}
                       </div>
                     )}
                   </div>
                 ) : (
-                  <p className="text-xs text-base-content/30">No prospects enrolled yet</p>
+                  <p className="text-xs text-muted">No prospects enrolled yet</p>
                 )}
 
                 {/* Footer */}
@@ -336,7 +334,7 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
                   className="flex items-center justify-between pt-1 border-t border-base-300/30"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <span className="text-xs text-base-content/30">
+                  <span className="text-xs text-muted">
                     {w.action_step_count} step{w.action_step_count !== 1 ? "s" : ""}
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -358,14 +356,14 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
                     )}
                     <button
                       title="Duplicate workflow"
-                      className="inline-flex items-center p-1.5 rounded-md text-xs bg-base-300/60 text-base-content/50 border border-base-300/50 hover:bg-base-300 hover:text-base-content transition-colors"
+                      className="inline-flex items-center p-1.5 rounded-md text-xs bg-base-300/60 text-muted border border-base-300/50 hover:bg-base-300 hover:text-base-content transition-colors"
                       onClick={() => duplicateWorkflow(w.id, w.name)}
                     >
                       <RiFileCopyLine size={12} />
                     </button>
                     <button
                       title="Archive"
-                      className="inline-flex items-center p-1.5 rounded-md text-xs bg-base-300/60 text-base-content/50 border border-base-300/50 hover:bg-base-300 hover:text-base-content transition-colors"
+                      className="inline-flex items-center p-1.5 rounded-md text-xs bg-base-300/60 text-muted border border-base-300/50 hover:bg-base-300 hover:text-base-content transition-colors"
                       onClick={() => toggleArchive(w.id, true)}
                     >
                       <RiArchiveLine size={12} />
@@ -388,7 +386,7 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
         {archivedWorkflows.length > 0 && (
           <div className="mt-2">
             <button
-              className="flex items-center gap-2 text-xs text-base-content/40 hover:text-base-content/60 transition-colors mb-3 group"
+              className="flex items-center gap-2 text-xs text-muted hover:text-muted transition-colors mb-3 group"
               onClick={() => setArchivedOpen((v) => !v)}
             >
               <RiArrowDownSLine
@@ -414,12 +412,12 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{w.name}</p>
-                        <p className="text-xs text-base-content/30">{w.action_step_count} steps · {w.total_prospects} prospects</p>
+                        <p className="text-xs text-muted">{w.action_step_count} steps · {w.total_prospects} prospects</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <button
                           title="Restore"
-                          className="inline-flex items-center p-1.5 rounded-md text-xs bg-base-300/60 text-base-content/50 border border-base-300/50 hover:bg-base-300 hover:text-base-content transition-colors"
+                          className="inline-flex items-center p-1.5 rounded-md text-xs bg-base-300/60 text-muted border border-base-300/50 hover:bg-base-300 hover:text-base-content transition-colors"
                           onClick={() => toggleArchive(w.id, false)}
                         >
                           <RiInboxUnarchiveLine size={12} />
@@ -448,7 +446,7 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
             <h3 className="font-semibold text-base mb-4">New Campaign</h3>
             <form onSubmit={createWorkflow} className="flex flex-col gap-3">
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Campaign name</label>
+                <label className="label text-xs text-muted pb-1">Campaign name</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-300/50"
                   placeholder="e.g. SaaS Founders Q1"
@@ -459,7 +457,7 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
                 />
               </div>
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Description (optional)</label>
+                <label className="label text-xs text-muted pb-1">Description (optional)</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-300/50"
                   placeholder="e.g. Visit → Connect → Message after 2 days"
@@ -468,10 +466,10 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
                 />
               </div>
               <div className="modal-action mt-2">
-                <button type="button" className="px-4 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300 transition-colors" onClick={() => setShowModal(false)}>
+                <button type="button" className="px-4 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300 transition-colors" onClick={() => setShowModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={loading}>
+                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={loading}>
                   {loading ? <span className="loading loading-spinner loading-xs" /> : "Create"}
                 </button>
               </div>
@@ -486,11 +484,11 @@ export default function WorkflowsPage({ initialWorkflows }: { initialWorkflows: 
         <div className="modal modal-open">
           <div className="modal-box bg-base-200 border border-base-300/50 max-w-sm">
             <h3 className="font-semibold text-base mb-2">Delete campaign?</h3>
-            <p className="text-sm text-base-content/60 mb-4">
+            <p className="text-sm text-muted mb-4">
               This will permanently delete the campaign and all its history. Cannot be undone.
             </p>
             <div className="modal-action">
-              <button className="px-4 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300 transition-colors" onClick={() => setDeleteId(null)}>Cancel</button>
+              <button className="px-4 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300 transition-colors" onClick={() => setDeleteId(null)}>Cancel</button>
               <button className="px-4 py-1.5 rounded-lg text-sm font-medium bg-error/15 text-error border border-error/25 hover:bg-error/25 transition-colors" onClick={() => deleteWorkflow(deleteId)}>Delete</button>
             </div>
           </div>

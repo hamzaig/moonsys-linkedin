@@ -55,8 +55,8 @@ export default function SendEmailModal({ targetId, toName, toEmail, onClose, onS
     onClose();
   }
 
-  const field = "w-full bg-base-200/60 border border-base-300/40 rounded-xl px-3 py-2 text-sm text-base-content/80 placeholder-base-content/25 focus:outline-none focus:border-base-300/80 transition-colors";
-  const label = "block text-[11px] text-base-content/40 uppercase tracking-wide mb-1.5";
+  const field = "w-full bg-base-200/60 border border-base-300/40 rounded-xl px-3 py-2 text-sm text-base-content/80 placeholder:text-muted focus:outline-none focus:border-base-300/80 transition-colors";
+  const label = "block text-[11px] text-muted uppercase tracking-wide mb-1.5";
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center">
@@ -64,7 +64,7 @@ export default function SendEmailModal({ targetId, toName, toEmail, onClose, onS
       <div className="relative z-10 w-full max-w-xl bg-base-100 border border-base-300/60 rounded-2xl shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-base-300/40">
           <h2 className="text-sm font-semibold text-base-content">Send email</h2>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-300/50 transition-colors">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors">
             <RiCloseLine size={16} />
           </button>
         </div>
@@ -84,7 +84,7 @@ export default function SendEmailModal({ targetId, toName, toEmail, onClose, onS
             </div>
             <div>
               <label className={label}>To</label>
-              <div className={`${field} text-base-content/60 truncate`}>{toName ? `${toName} <${toEmail}>` : toEmail}</div>
+              <div className={`${field} text-muted truncate`}>{toName ? `${toName} <${toEmail}>` : toEmail}</div>
             </div>
           </div>
           <div>
@@ -102,16 +102,16 @@ export default function SendEmailModal({ targetId, toName, toEmail, onClose, onS
               className={`${field} leading-relaxed resize-none`}
             />
             {account?.signature && (
-              <button type="button" onClick={() => setBody((b) => `${b}${b ? "\n\n" : ""}${account.signature}`)} className="mt-1.5 text-[11px] text-primary/80 hover:text-primary">
+              <button type="button" onClick={() => setBody((b) => `${b}${b ? "\n\n" : ""}${account.signature}`)} className="mt-1.5 text-[11px] text-primary hover:text-primary">
                 + Insert signature
               </button>
             )}
           </div>
         </div>
         <div className="flex items-center justify-between px-6 py-4 border-t border-base-300/40">
-          <span className="text-[11px] text-base-content/30">Ctrl/⌘ + Enter to send</span>
+          <span className="text-[11px] text-muted">Ctrl/⌘ + Enter to send</span>
           <div className="flex gap-2">
-            <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-base-content/50 hover:text-base-content hover:bg-base-300/40 transition-colors">Cancel</button>
+            <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-muted hover:text-base-content hover:bg-base-300/40 transition-colors">Cancel</button>
             <button
               onClick={send}
               disabled={sending || !accountId || !subject.trim() || !body.trim()}

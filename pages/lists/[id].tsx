@@ -1,3 +1,4 @@
+import PageHeader, { PageTitle } from "@/components/ui/PageHeader";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import { GetServerSideProps } from "next";
@@ -115,7 +116,7 @@ function ConnectionIcon({ t }: { t: Target }) {
     );
   }
   return (
-    <span title={t.degree ? `${t.degree === 2 ? "2nd" : "3rd"} degree` : "Not connected"} className="text-base-content/25">
+    <span title={t.degree ? `${t.degree === 2 ? "2nd" : "3rd"} degree` : "Not connected"} className="text-muted">
       <RiUserLine size={15} />
     </span>
   );
@@ -507,30 +508,30 @@ export default function ListDetailPage({
       <meta name="robots" content="noindex, nofollow" />
     </Head>
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/lists" className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors">
+      <PageHeader className="flex items-center gap-3 mb-6">
+        <Link href="/lists" className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-muted hover:text-base-content hover:bg-base-300/50 transition-colors">
           <RiArrowLeftLine size={16} />
         </Link>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold">{initialList.name}</h1>
+          <PageTitle className="text-xl font-semibold">{initialList.name}</PageTitle>
           {initialList.description && (
-            <p className="text-base-content/50 text-sm mt-0.5">{initialList.description}</p>
+            <p className="text-muted text-sm mt-0.5">{initialList.description}</p>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-base-content/60">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-base-300 text-muted">
             {filteredTargets.length !== targets.length
               ? `${filteredTargets.length} / ${targets.length}`
               : `${targets.length}`} leads
           </span>
           {initialList.sales_nav_url && (
-            <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowSync(true)}>
+            <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowSync(true)}>
               <RiRefreshLine size={15} /> Sync Status
             </button>
           )}
           {apolloConfigured && (
             <button
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-40"
               onClick={() => setShowApolloConfirm(true)}
               disabled={enriching}
               title={effectiveSelectedCount > 0 ? `Enrich ${effectiveSelectedCount} selected contacts` : "Enrich all unenriched contacts"}
@@ -540,31 +541,31 @@ export default function ListDetailPage({
             </button>
           )}
           <button
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
             onClick={() => setShowNewContact(true)}
           >
             <RiAddLine size={15} /> New contact
           </button>
           <button
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50"
             onClick={() => { setImportSource("pick"); setShowImport(true); }}
             disabled={importing}
           >
             <RiDownloadLine size={15} /> {importing ? "Importing…" : "Import"}
           </button>
         </div>
-      </div>
+      </PageHeader>
 
       {/* Search + filter bar */}
       {targets.length > 0 && (
         <div className="flex items-center gap-3 mb-4 flex-wrap">
           <div className="relative">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-base-content/30 pointer-events-none">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none">
               <RiSearchLine size={13} />
             </span>
             <input
               type="text"
-              className="w-52 bg-base-200 border border-base-300/50 rounded-lg pl-8 pr-3 py-1.5 text-sm text-base-content placeholder:text-base-content/30 focus:outline-none focus:border-primary/40"
+              className="w-52 bg-base-200 border border-base-300/50 rounded-lg pl-8 pr-3 py-1.5 text-sm text-base-content placeholder:text-muted focus:outline-none focus:border-primary/40"
               placeholder="Search name, company…"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(0); }}
@@ -601,7 +602,7 @@ export default function ListDetailPage({
                 <span className="loading loading-spinner loading-xs text-primary" />
                 <span className="text-sm font-medium text-primary">{label}</span>
               </div>
-              {!scheduled && <span className="text-xs text-base-content/40 tabular-nums">{pct}%</span>}
+              {!scheduled && <span className="text-xs text-muted tabular-nums">{pct}%</span>}
             </div>
             {!scheduled && (
               <div className="w-full bg-base-300 rounded-full h-1.5">
@@ -611,7 +612,7 @@ export default function ListDetailPage({
                 />
               </div>
             )}
-            <p className="text-xs text-base-content/40 mt-2">
+            <p className="text-xs text-muted mt-2">
               This runs in the background — you can leave this page and come back.
             </p>
           </div>
@@ -625,11 +626,11 @@ export default function ListDetailPage({
       )}
 
       {targets.length === 0 && !importing ? (
-        <div className="text-center py-16 text-base-content/40 text-sm">
+        <div className="text-center py-16 text-muted text-sm">
           No leads yet. Import from a Sales Navigator list URL.
         </div>
       ) : filteredTargets.length === 0 && !importing ? (
-        <div className="text-center py-16 text-base-content/40 text-sm">
+        <div className="text-center py-16 text-muted text-sm">
           No leads match the current filters.
         </div>
       ) : targets.length === 0 && importing ? null : (
@@ -639,7 +640,7 @@ export default function ListDetailPage({
             {effectiveSelectedCount > 0 ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-base-200 border border-base-300/50 rounded-lg">
-                  <span className="text-xs text-base-content/50 flex-1">{effectiveSelectedCount} selected</span>
+                  <span className="text-xs text-muted flex-1">{effectiveSelectedCount} selected</span>
                   {allLists.length > 0 && (
                     <button
                       className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
@@ -656,7 +657,7 @@ export default function ListDetailPage({
                     <RiDeleteBinLine size={12} /> Remove from list
                   </button>
                   <button
-                    className="text-xs text-base-content/30 hover:text-base-content/60 transition-colors px-1"
+                    className="text-xs text-muted hover:text-muted transition-colors px-1"
                     onClick={() => { setSelected(new Set()); setAllFilteredSelected(false); }}
                   >
                     Cancel
@@ -665,7 +666,7 @@ export default function ListDetailPage({
                 {/* Select-all-filtered banner */}
                 {!allFilteredSelected && allPageSelected && filteredTargets.length > PAGE_SIZE && (
                   <div className="flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/15 rounded-lg">
-                    <span className="text-xs text-base-content/50 flex-1">
+                    <span className="text-xs text-muted flex-1">
                       Only the {pageTargets.length} leads on this page are selected.
                     </span>
                     <button
@@ -678,7 +679,7 @@ export default function ListDetailPage({
                 )}
                 {allFilteredSelected && (
                   <div className="flex items-center gap-2 px-3 py-1 bg-primary/5 border border-primary/15 rounded-lg">
-                    <span className="text-xs text-base-content/50 flex-1">
+                    <span className="text-xs text-muted flex-1">
                       All {filteredTargets.length} leads are selected.
                     </span>
                     <button
@@ -695,7 +696,7 @@ export default function ListDetailPage({
           <div className="overflow-x-auto rounded-lg border border-base-300/50">
             <table className="table w-full text-sm">
               <thead>
-                <tr className="border-base-300/50 text-base-content/50 text-xs uppercase tracking-wide">
+                <tr className="border-base-300/50 text-muted text-xs uppercase tracking-wide">
                   <th className="w-8">
                     <input type="checkbox" className="w-3.5 h-3.5 rounded border border-base-300 bg-base-300/50 accent-primary cursor-pointer" checked={allPageSelected} onChange={toggleAll} />
                   </th>
@@ -723,9 +724,9 @@ export default function ListDetailPage({
                       />
                     </td>
                     <td className="font-medium">{t.full_name ?? "—"}</td>
-                    <td className="text-base-content/60 max-w-50 truncate">{t.title ?? "—"}</td>
-                    <td className="text-base-content/60">{t.company ?? "—"}</td>
-                    <td className="text-base-content/40 text-xs">{t.location ?? "—"}</td>
+                    <td className="text-muted max-w-50 truncate">{t.title ?? "—"}</td>
+                    <td className="text-muted">{t.company ?? "—"}</td>
+                    <td className="text-muted text-xs">{t.location ?? "—"}</td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-2">
                         <ConnectionIcon t={t} />
@@ -750,7 +751,7 @@ export default function ListDetailPage({
                           </span>
                         )}
                         {t.apollo_enriched_at && !t.email && (
-                          <span title="Apollo enriched — no email found" className="text-base-content/20">
+                          <span title="Apollo enriched — no email found" className="text-muted">
                             <RiMailLine size={14} />
                           </span>
                         )}
@@ -758,7 +759,7 @@ export default function ListDetailPage({
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
                       {t.linkedin_url && (
-                        <a href={t.linkedin_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center p-1 rounded text-base-content/40 hover:text-base-content transition-colors">
+                        <a href={t.linkedin_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center p-1 rounded text-muted hover:text-base-content transition-colors">
                           <RiExternalLinkLine size={13} />
                         </a>
                       )}
@@ -770,14 +771,14 @@ export default function ListDetailPage({
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-3 text-sm text-base-content/50">
+            <div className="flex items-center justify-between mt-3 text-sm text-muted">
               <span>{page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filteredTargets.length)} of {filteredTargets.length}</span>
               <div className="flex items-center gap-1">
-                <button className="inline-flex items-center justify-center w-6 h-6 rounded text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" onClick={() => setPage((p) => p - 1)} disabled={page === 0}>
+                <button className="inline-flex items-center justify-center w-6 h-6 rounded text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" onClick={() => setPage((p) => p - 1)} disabled={page === 0}>
                   <RiArrowLeftSLine size={15} />
                 </button>
                 <span className="px-2">{page + 1} / {totalPages}</span>
-                <button className="inline-flex items-center justify-center w-6 h-6 rounded text-base-content/50 hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages - 1}>
+                <button className="inline-flex items-center justify-center w-6 h-6 rounded text-muted hover:text-base-content hover:bg-base-300/50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages - 1}>
                   <RiArrowRightSLine size={15} />
                 </button>
               </div>
@@ -790,13 +791,13 @@ export default function ListDetailPage({
       {runHistory.length > 0 && (
         <div className="mt-8">
           <div className="flex items-center gap-2 mb-3">
-            <RiHistoryLine size={14} className="text-base-content/40" />
-            <h2 className="text-sm font-medium text-base-content/60 uppercase tracking-wide">Campaign History</h2>
+            <RiHistoryLine size={14} className="text-muted" />
+            <h2 className="text-sm font-medium text-muted uppercase tracking-wide">Campaign History</h2>
           </div>
           <div className="overflow-x-auto rounded-lg border border-base-300/50">
             <table className="table w-full text-sm">
               <thead>
-                <tr className="border-base-300/50 text-base-content/50 text-xs uppercase tracking-wide">
+                <tr className="border-base-300/50 text-muted text-xs uppercase tracking-wide">
                   <th>Campaign</th>
                   <th>Account</th>
                   <th>Status</th>
@@ -810,16 +811,16 @@ export default function ListDetailPage({
                   const statusColors: Record<string, string> = {
                     running: "text-success",
                     paused: "text-warning",
-                    completed: "text-base-content/40",
+                    completed: "text-muted",
                     failed: "text-error",
-                    pending: "text-base-content/30",
+                    pending: "text-muted",
                   };
                   return (
                     <tr key={r.id} className="border-base-300/30">
                       <td className="font-medium">{r.workflow_name ?? "—"}</td>
-                      <td className="text-base-content/50 text-xs">{r.account_name ?? "—"}</td>
+                      <td className="text-muted text-xs">{r.account_name ?? "—"}</td>
                       <td>
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium ${statusColors[r.status] ?? "text-base-content/40"}`}>
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium ${statusColors[r.status] ?? "text-muted"}`}>
                           {r.status === 'running' && <RiPlayLine size={11} />}
                           {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
                         </span>
@@ -830,13 +831,13 @@ export default function ListDetailPage({
                             <div className="w-16 bg-base-300 rounded-full h-1">
                               <div className="bg-primary h-1 rounded-full" style={{ width: `${pct}%` }} />
                             </div>
-                            <span className="text-xs text-base-content/40 tabular-nums">{r.completed_profiles}/{r.total_profiles}</span>
+                            <span className="text-xs text-muted tabular-nums">{r.completed_profiles}/{r.total_profiles}</span>
                           </div>
                         ) : (
-                          <span className="text-base-content/20 text-xs">—</span>
+                          <span className="text-muted text-xs">—</span>
                         )}
                       </td>
-                      <td className="text-base-content/40 text-xs">{r.started_at ? new Date(r.started_at).toLocaleDateString() : new Date(r.created_at).toLocaleDateString()}</td>
+                      <td className="text-muted text-xs">{r.started_at ? new Date(r.started_at).toLocaleDateString() : new Date(r.created_at).toLocaleDateString()}</td>
                     </tr>
                   );
                 })}
@@ -854,7 +855,7 @@ export default function ListDetailPage({
             <form onSubmit={createContact} className="flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <label className="label text-xs text-base-content/50 pb-1">Full name *</label>
+                  <label className="label text-xs text-muted pb-1">Full name *</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="Jane Smith"
@@ -864,7 +865,7 @@ export default function ListDetailPage({
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="label text-xs text-base-content/50 pb-1">LinkedIn URL</label>
+                  <label className="label text-xs text-muted pb-1">LinkedIn URL</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="https://linkedin.com/in/…"
@@ -874,7 +875,7 @@ export default function ListDetailPage({
                   />
                 </div>
                 <div className="">
-                  <label className="label text-xs text-base-content/50 pb-1">Title</label>
+                  <label className="label text-xs text-muted pb-1">Title</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="VP Sales"
@@ -884,7 +885,7 @@ export default function ListDetailPage({
                   />
                 </div>
                 <div className="">
-                  <label className="label text-xs text-base-content/50 pb-1">Company</label>
+                  <label className="label text-xs text-muted pb-1">Company</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="Acme"
@@ -894,7 +895,7 @@ export default function ListDetailPage({
                   />
                 </div>
                 <div className="">
-                  <label className="label text-xs text-base-content/50 pb-1">Location</label>
+                  <label className="label text-xs text-muted pb-1">Location</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="Berlin"
@@ -904,7 +905,7 @@ export default function ListDetailPage({
                   />
                 </div>
                 <div className="">
-                  <label className="label text-xs text-base-content/50 pb-1">Email</label>
+                  <label className="label text-xs text-muted pb-1">Email</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="jane@acme.com"
@@ -914,7 +915,7 @@ export default function ListDetailPage({
                   />
                 </div>
                 <div className="">
-                  <label className="label text-xs text-base-content/50 pb-1">Phone</label>
+                  <label className="label text-xs text-muted pb-1">Phone</label>
                   <input
                     className="input input-bordered input-sm w-full bg-base-300/50"
                     placeholder="+49 30 1234567"
@@ -925,12 +926,12 @@ export default function ListDetailPage({
                 </div>
               </div>
               <div className="modal-action mt-2">
-                <button type="button" className="btn btn-ghost btn-sm text-base-content/60" onClick={() => setShowNewContact(false)}>
+                <button type="button" className="btn btn-ghost btn-sm text-muted" onClick={() => setShowNewContact(false)}>
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50"
                   disabled={creatingContact}
                 >
                   {creatingContact ? <span className="loading loading-spinner loading-xs" /> : "Create"}
@@ -949,7 +950,7 @@ export default function ListDetailPage({
             {importSource === "pick" && (
               <>
                 <h3 className="font-semibold text-base mb-1">Import leads</h3>
-                <p className="text-base-content/50 text-xs mb-4">Choose where these leads are coming from.</p>
+                <p className="text-muted text-xs mb-4">Choose where these leads are coming from.</p>
                 <div className="flex flex-col gap-2">
                   <button
                     type="button"
@@ -959,7 +960,7 @@ export default function ListDetailPage({
                     <RiSearchLine size={18} className="text-primary mt-0.5" />
                     <span>
                       <span className="block text-sm font-medium">Sales Navigator search</span>
-                      <span className="block text-xs text-base-content/50 mt-0.5">Paste a Sales Nav list/search URL — MoonSys LinkedIn scrapes it using a connected LinkedIn account.</span>
+                      <span className="block text-xs text-muted mt-0.5">Paste a Sales Nav list/search URL — MoonSys LinkedIn scrapes it using a connected LinkedIn account.</span>
                     </span>
                   </button>
                   <button
@@ -970,7 +971,7 @@ export default function ListDetailPage({
                     <RiDownloadLine size={18} className="text-primary mt-0.5" />
                     <span>
                       <span className="block text-sm font-medium">CSV file</span>
-                      <span className="block text-xs text-base-content/50 mt-0.5">Upload leads you already have — from another export, or emails scraped from websites.</span>
+                      <span className="block text-xs text-muted mt-0.5">Upload leads you already have — from another export, or emails scraped from websites.</span>
                     </span>
                   </button>
                   {apolloConfigured && (
@@ -982,13 +983,13 @@ export default function ListDetailPage({
                       <RiSparklingLine size={18} className="text-primary mt-0.5" />
                       <span>
                         <span className="block text-sm font-medium">Apollo list</span>
-                        <span className="block text-xs text-base-content/50 mt-0.5">Import an existing list from Apollo — no size cap, great for lists bigger than Sales Nav can handle.</span>
+                        <span className="block text-xs text-muted mt-0.5">Import an existing list from Apollo — no size cap, great for lists bigger than Sales Nav can handle.</span>
                       </span>
                     </button>
                   )}
                 </div>
                 <div className="modal-action mt-4">
-                  <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={closeImportModal}>Cancel</button>
+                  <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={closeImportModal}>Cancel</button>
                 </div>
               </>
             )}
@@ -997,19 +998,19 @@ export default function ListDetailPage({
             {importSource === "sales_nav" && (
               <>
                 <h3 className="font-semibold text-base mb-1">Import from Sales Navigator</h3>
-                <p className="text-base-content/50 text-xs mb-3">
+                <p className="text-muted text-xs mb-3">
                   Paste a Sales Navigator people list URL. The selected account must be authenticated.
                 </p>
-                <div className="bg-base-300/40 border border-base-300/60 rounded-lg p-3 mb-4 space-y-1.5 text-xs text-base-content/50">
+                <div className="bg-base-300/40 border border-base-300/60 rounded-lg p-3 mb-4 space-y-1.5 text-xs text-muted">
                   <p className="font-medium text-base-content/70">What gets fetched and when</p>
-                  <p><span className="text-base-content/60">Now —</span> Basic profile data only (name, title, company, location). One page load per 25 contacts with ~90s gaps.</p>
-                  <p><span className="text-base-content/60">When a run starts —</span> LinkedIn URL resolved per contact right before first action.</p>
-                  <p><span className="text-base-content/60">Before message —</span> Full Sales Nav profile (headline, positions) fetched for AI context.</p>
-                  <p><span className="text-base-content/60">Before email —</span> Apollo enrichment runs to get email address + company data.</p>
+                  <p><span className="text-muted">Now —</span> Basic profile data only (name, title, company, location). One page load per 25 contacts with ~90s gaps.</p>
+                  <p><span className="text-muted">When a run starts —</span> LinkedIn URL resolved per contact right before first action.</p>
+                  <p><span className="text-muted">Before message —</span> Full Sales Nav profile (headline, positions) fetched for AI context.</p>
+                  <p><span className="text-muted">Before email —</span> Apollo enrichment runs to get email address + company data.</p>
                 </div>
                 <form onSubmit={runImport} className="flex flex-col gap-3">
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">Sales Navigator URL</label>
+                    <label className="label text-xs text-muted pb-1">Sales Navigator URL</label>
                     <input
                       className="input input-bordered input-sm w-full bg-base-300/50 font-mono text-xs"
                       placeholder="https://www.linkedin.com/sales/lists/people/..."
@@ -1019,7 +1020,7 @@ export default function ListDetailPage({
                     />
                   </div>
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">Account to use</label>
+                    <label className="label text-xs text-muted pb-1">Account to use</label>
                     <select
                       className="w-full px-3 py-1.5 rounded-lg text-sm bg-base-300 border border-base-300/80 text-base-content focus:outline-none focus:border-primary/50 cursor-pointer"
                       value={importForm.account_id}
@@ -1035,8 +1036,8 @@ export default function ListDetailPage({
                     </select>
                   </div>
                   <div className="modal-action mt-1">
-                    <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setImportSource("pick")} disabled={importing}>Back</button>
-                    <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={importing}>
+                    <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setImportSource("pick")} disabled={importing}>Back</button>
+                    <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={importing}>
                       {importing ? <><span className="loading loading-spinner loading-xs" /> Importing...</> : "Start Import"}
                     </button>
                   </div>
@@ -1048,16 +1049,16 @@ export default function ListDetailPage({
             {importSource === "csv" && (
               <>
                 <h3 className="font-semibold text-base mb-1">Import from CSV</h3>
-                <p className="text-base-content/50 text-xs mb-3">
+                <p className="text-muted text-xs mb-3">
                   One template for everything — leads you already have, whether that&apos;s a LinkedIn export, an email list, or both.
                 </p>
 
-                <div className="bg-base-300/40 border border-base-300/60 rounded-lg p-3 mb-4 space-y-1.5 text-xs text-base-content/50">
+                <div className="bg-base-300/40 border border-base-300/60 rounded-lg p-3 mb-4 space-y-1.5 text-xs text-muted">
                   <p className="font-medium text-base-content/70">Rules</p>
-                  <p>• Each row needs a <span className="text-base-content/60">linkedin_url</span> and/or an <span className="text-base-content/60">email</span> — fill in whichever you have, or both.</p>
-                  <p>• <span className="text-base-content/60">linkedin_url</span> must be a real linkedin.com/in/ profile URL — used for connect/message/visit steps.</p>
-                  <p>• <span className="text-base-content/60">sales_nav_url</span> is optional — speeds up enrichment and InMail if you have it.</p>
-                  <p>• <span className="text-base-content/60">email</span> can be personal or generic (info@, contact@…) — used for email steps.</p>
+                  <p>• Each row needs a <span className="text-muted">linkedin_url</span> and/or an <span className="text-muted">email</span> — fill in whichever you have, or both.</p>
+                  <p>• <span className="text-muted">linkedin_url</span> must be a real linkedin.com/in/ profile URL — used for connect/message/visit steps.</p>
+                  <p>• <span className="text-muted">sales_nav_url</span> is optional — speeds up enrichment and InMail if you have it.</p>
+                  <p>• <span className="text-muted">email</span> can be personal or generic (info@, contact@…) — used for email steps.</p>
                   <p>• Rows missing both are skipped and reported as errors.</p>
                   <p>• first_name, last_name, title, company, location, city, country, phone, headline, summary, notes are all optional.</p>
                 </div>
@@ -1071,7 +1072,7 @@ export default function ListDetailPage({
                     <RiDownloadLine size={13} /> Download template
                   </button>
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">CSV file</label>
+                    <label className="label text-xs text-muted pb-1">CSV file</label>
                     <input
                       type="file"
                       accept=".csv,text/csv"
@@ -1083,9 +1084,9 @@ export default function ListDetailPage({
 
                   {csvResult && (
                     <div className="bg-base-300/40 border border-base-300/60 rounded-lg p-3 text-xs space-y-1">
-                      <p><span className="text-success font-medium">{csvResult.imported}</span> new, <span className="text-info font-medium">{csvResult.updated}</span> updated, <span className="text-base-content/50">{csvResult.skipped} already in list</span></p>
+                      <p><span className="text-success font-medium">{csvResult.imported}</span> new, <span className="text-info font-medium">{csvResult.updated}</span> updated, <span className="text-muted">{csvResult.skipped} already in list</span></p>
                       {csvResult.errors.length > 0 && (
-                        <div className="text-error/80 max-h-24 overflow-y-auto">
+                        <div className="text-error max-h-24 overflow-y-auto">
                           {csvResult.errors.slice(0, 20).map((err, i) => <p key={i}>{err}</p>)}
                           {csvResult.errors.length > 20 && <p>…and {csvResult.errors.length - 20} more</p>}
                         </div>
@@ -1094,11 +1095,11 @@ export default function ListDetailPage({
                   )}
 
                   <div className="modal-action mt-1">
-                    <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setImportSource("pick")} disabled={csvImporting}>Back</button>
+                    <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setImportSource("pick")} disabled={csvImporting}>Back</button>
                     {csvResult ? (
-                      <button type="button" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors" onClick={closeImportModal}>Done</button>
+                      <button type="button" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors" onClick={closeImportModal}>Done</button>
                     ) : (
-                      <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={csvImporting}>
+                      <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={csvImporting}>
                         {csvImporting ? <><span className="loading loading-spinner loading-xs" /> Importing...</> : "Import CSV"}
                       </button>
                     )}
@@ -1111,14 +1112,14 @@ export default function ListDetailPage({
             {importSource === "apollo" && (
               <>
                 <h3 className="font-semibold text-base mb-1">Import from Apollo</h3>
-                <p className="text-base-content/50 text-xs mb-3">
+                <p className="text-muted text-xs mb-3">
                   Pick a list you&apos;ve already built in Apollo. Assumes it&apos;s already enriched there — enable enrichment below only if you want MoonSys LinkedIn to re-check each contact (costs 1 Apollo credit each).
                 </p>
                 <form onSubmit={runApolloImport} className="flex flex-col gap-3">
                   <div>
-                    <label className="label text-xs text-base-content/50 pb-1">Apollo list</label>
+                    <label className="label text-xs text-muted pb-1">Apollo list</label>
                     {apolloListsLoading ? (
-                      <div className="flex items-center gap-2 text-xs text-base-content/50 py-2">
+                      <div className="flex items-center gap-2 text-xs text-muted py-2">
                         <span className="loading loading-spinner loading-xs" /> Loading lists...
                       </div>
                     ) : (
@@ -1137,7 +1138,7 @@ export default function ListDetailPage({
                       </select>
                     )}
                   </div>
-                  <label className="flex items-center gap-2 text-xs text-base-content/60 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs text-muted cursor-pointer">
                     <input
                       type="checkbox"
                       className="checkbox checkbox-xs"
@@ -1147,8 +1148,8 @@ export default function ListDetailPage({
                     Re-enrich each contact on import (1 Apollo credit per contact)
                   </label>
                   <div className="modal-action mt-1">
-                    <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setImportSource("pick")} disabled={importing}>Back</button>
-                    <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={importing || apolloListsLoading}>
+                    <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setImportSource("pick")} disabled={importing}>Back</button>
+                    <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={importing || apolloListsLoading}>
                       {importing ? <><span className="loading loading-spinner loading-xs" /> Importing...</> : "Start Import"}
                     </button>
                   </div>
@@ -1174,38 +1175,38 @@ export default function ListDetailPage({
                 <RiSparklingLine size={16} className="text-primary" />
                 <h3 className="font-semibold text-base">Apollo Enrichment</h3>
               </div>
-              <p className="text-base-content/60 text-sm mb-4 leading-relaxed">
+              <p className="text-muted text-sm mb-4 leading-relaxed">
                 This will look up each contact on Apollo to find their career history, seniority, email, and company data.
                 Each lookup costs <span className="text-base-content font-medium">1 Apollo credit</span>.
               </p>
               <div className="rounded-lg bg-base-300/50 border border-base-300/50 p-3 mb-4 flex flex-col gap-1.5 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-base-content/50">Contacts to enrich</span>
+                  <span className="text-muted">Contacts to enrich</span>
                   <span className="font-medium">{pool.length}</span>
                 </div>
                 {alreadyEnriched > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-base-content/50">Skipped (already enriched)</span>
+                    <span className="text-muted">Skipped (already enriched)</span>
                     <span className="text-success">{alreadyEnriched}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-base-300/50 pt-1.5 mt-0.5">
-                  <span className="text-base-content/50">Credits used</span>
+                  <span className="text-muted">Credits used</span>
                   <span className="font-medium text-warning">{pool.length}</span>
                 </div>
               </div>
               {pool.length === 0 ? (
-                <p className="text-sm text-base-content/40 mb-4">No contacts to enrich — all selected contacts already have career data.</p>
+                <p className="text-sm text-muted mb-4">No contacts to enrich — all selected contacts already have career data.</p>
               ) : null}
               <div className="flex items-center justify-end gap-2">
                 <button
-                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                   onClick={() => setShowApolloConfirm(false)}
                 >
                   Cancel
                 </button>
                 <button
-                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-40"
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-40"
                   onClick={enrichWithApollo}
                   disabled={pool.length === 0}
                 >
@@ -1224,12 +1225,12 @@ export default function ListDetailPage({
         <div className="modal modal-open">
           <div className="modal-box bg-base-200 border border-base-300/50 max-w-sm">
             <h3 className="font-semibold text-base mb-1">Sync Connection Status</h3>
-            <p className="text-base-content/50 text-xs mb-4">
+            <p className="text-muted text-xs mb-4">
               Re-fetches the Sales Navigator list to check who accepted your connection requests.
             </p>
             <form onSubmit={runSync} className="flex flex-col gap-3">
               <div>
-                <label className="label text-xs text-base-content/50 pb-1">Account to use</label>
+                <label className="label text-xs text-muted pb-1">Account to use</label>
                 <select
                   className="w-full px-3 py-1.5 rounded-lg text-sm bg-base-300 border border-base-300/80 text-base-content focus:outline-none focus:border-primary/50 cursor-pointer"
                   value={syncAccountId}
@@ -1245,8 +1246,8 @@ export default function ListDetailPage({
                 </select>
               </div>
               <div className="modal-action mt-1">
-                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowSync(false)} disabled={syncing}>Cancel</button>
-                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-50" disabled={syncing}>
+                <button type="button" className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors" onClick={() => setShowSync(false)} disabled={syncing}>Cancel</button>
+                <button type="submit" className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-50" disabled={syncing}>
                   {syncing ? <><span className="loading loading-spinner loading-xs" /> Syncing...</> : "Sync Now"}
                 </button>
               </div>
@@ -1261,7 +1262,7 @@ export default function ListDetailPage({
         <div className="modal modal-open">
           <div className="modal-box bg-base-200 border border-base-300/50 max-w-sm">
             <h3 className="font-semibold text-base mb-1">Move to another list</h3>
-            <p className="text-base-content/50 text-xs mb-4">
+            <p className="text-muted text-xs mb-4">
               {effectiveSelectedCount} lead{effectiveSelectedCount !== 1 ? "s" : ""} will be removed from <span className="text-base-content/70">{initialList.name}</span> and added to the selected list.
             </p>
             <select
@@ -1276,13 +1277,13 @@ export default function ListDetailPage({
             </select>
             <div className="flex items-center justify-end gap-2">
               <button
-                className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-base-content/60 hover:text-base-content hover:bg-base-300/50 transition-colors"
+                className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm text-muted hover:text-base-content hover:bg-base-300/50 transition-colors"
                 onClick={() => { setShowMoveModal(false); setDestListId(""); }}
               >
                 Cancel
               </button>
               <button
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-content hover:bg-primary/90 transition-colors disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium bg-accent text-accent-content hover:bg-accent/90 transition-colors disabled:opacity-40"
                 onClick={moveToList}
                 disabled={!destListId}
               >

@@ -1,0 +1,33 @@
+@font-face {
+  font-family: "MoonSys Inter";
+  src: url("/brand/fonts/Inter-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "MoonSys Mulish";
+  src: url("/brand/fonts/Mulish-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+}
+:root {
+  --ms-font-heading: "MoonSys Inter", system-ui, -apple-system, sans-serif;
+  --ms-font-body: "MoonSys Mulish", system-ui, -apple-system, sans-serif;
+  --ms-navy: #0a2540;
+  --ms-pink: #f8abbd;
+  --ms-pink-soft: #fff0f4;
+  --ms-canvas: #f7f9fc;
+  --ms-surface: #ffffff;
+  --ms-border: #dfe5ed;
+  --ms-content-muted: #52687b;
+  --ms-teal-soft: #e8f4f3;
+  --ms-lavender-soft: #f0edf8;
+  --ms-yellow-soft: #fff8dc;
+  --ms-shadow: 0 4px 24px rgb(10 37 64 / 4%);
+  --ms-shadow-overlay: 0 16px 56px rgb(10 37 64 / 14%);
+  --ms-sidebar-width: 256px;
+  --ms-header-height: 72px;
+  --ms-page-padding: 32px;
+}
