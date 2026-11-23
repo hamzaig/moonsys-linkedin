@@ -1,3 +1,4 @@
+import { checkQueuedOutreach, holdForInbox } from "@/lib/linkedin/inbox/guard";
 import { renderTemplate } from "@/lib/template";
 import { getDb } from "@/lib/db";
 import { randomUUID } from "crypto";
@@ -425,6 +426,12 @@ async function executeStep(
   campaignPrompt?: string | null
 ): Promise<void> {
   const stepIndex = tr.current_step;
+  const inboxGate = checkQueuedOutreach(db, tr.id, accountId, steps[stepIndex]?.step_type ?? "done");
+  if (inboxGate) {
+    if (inboxGate === "sync_stale" && holdForInbox(db, tr.id))
+      log(db, runId, target.id, "info", "LinkedIn message held: waiting for a fresh inbox check");
+    return;
+  }
   if (stepIndex >= steps.length) {
     db.prepare("UPDATE run_profile_tracks SET state = 'completed', last_step_at = datetime('now') WHERE id = ?").run(tr.id);
     return;
@@ -583,11 +590,17 @@ async function executeStep(
         return;
       }
 
-      db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ?").run(tr.id);
-      log(db, runId, target.id, "info", `Sending message to ${name}`);
       const messageLinkedinUrl = await getLinkedinUrl(db, target, accountId);
       const page = await getSessionPage(accountId);
       try {
+        const finalGate = checkQueuedOutreach(db, tr.id, accountId, "message");
+        if (finalGate) {
+          if (finalGate === "sync_stale" && holdForInbox(db, tr.id))
+            log(db, runId, target.id, "info", "LinkedIn message held: inbox check became unavailable");
+          return;
+        }
+        db.prepare("UPDATE run_profile_tracks SET last_step_at = datetime('now') WHERE id = ?").run(tr.id);
+        log(db, runId, target.id, "info", `Sending message to ${name}`);
         if (!target.full_name) throw new Error(`Target ${target.id} has no full_name — cannot search messaging`);
         const result = await sendMessage(page, target.full_name, messageText, messageLinkedinUrl, freshTarget.messaging_urn);
         if (result.messagingUrn) {
@@ -961,25 +974,7 @@ async function tick(db: ReturnType<typeof getDb>): Promise<void> {
     }
   }
 
-  // LinkedIn inbox reply detection (messaging GraphQL) — once per 15min per
-  // account. Sets targets.last_replied_at so the runner auto-unenrolls repliers.
-  // LinkedIn reply detection is a premium feature (AI classifier layer) — no-op without ee/.
-  for (const accountId of seenAccounts) {
-    if (premium?.replies?.shouldSyncInbox(accountId)) {
-      try {
-        console.log(`[runner] Starting LinkedIn inbox sync for account ${accountId}`);
-        const replies = await premium.replies.syncAccountInbox(accountId);
-        console.log(`[runner] LinkedIn inbox sync complete — ${replies} new repl${replies === 1 ? "y" : "ies"}`);
-        if (replies > 0) {
-          for (const r of activeRuns.filter(x => x.account_id === accountId)) {
-            log(db, r.run_id, null, "info", `LinkedIn inbox sync: ${replies} new repl${replies === 1 ? "y" : "ies"} detected`);
-          }
-        }
-      } catch (e) {
-        console.warn("[runner] LinkedIn inbox sync error:", e instanceof Error ? e.message : e);
-      }
-    }
-  }
+  // LinkedIn replies are read by the independent core inbox worker.
 
   // Sync email IMAP inboxes for each unique email account in active run profiles
   const activeRunIds = activeRuns.map(r => r.run_id);
