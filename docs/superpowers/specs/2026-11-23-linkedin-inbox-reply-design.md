@@ -1,6 +1,6 @@
 # Feature 2: reply from the LinkedIn Inbox
 
-Status: proposed design for owner approval. The owner asked to start this feature after reviewing its scope: compose a reply inside Inbox, send through the correct account/thread, avoid accidental duplicate sends, and show truthful send status. Goal: build the useful MoonSys outreach workflows feature by feature.
+Status: owner approved this reviewed design on 2026-11-24. The owner asked to start this feature after reviewing its scope: compose a reply inside Inbox, send through the correct account/thread, avoid accidental duplicate sends, and show truthful send status. Goal: build the useful MoonSys outreach workflows feature by feature.
 
 ## Current state and constraints
 
@@ -18,7 +18,7 @@ Status: proposed design for owner approval. The owner asked to start this featur
 2. **Reuse the existing profile/name-based browser sender.** Shares code but needs page navigation and recipient resolution, and does not bind delivery to the opened stored thread. Its recipient-resolution assumptions do not meet this feature's identity requirement.
 3. **Background delivery queue.** Could survive brief UI disconnects, but resuming queued external writes after a crash introduces delivery/replay decisions beyond an explicit immediate reply. A durable status ledger gives recovery without an automatic retry worker.
 
-Proposed implementation choice: approach 1. The builder may choose internal helper names/file boundaries, but must preserve the behavior and bounds below. The choices not stated by the owner are proposals for approval, not claims that the owner selected them.
+Approved implementation choice: approach 1. The builder may choose internal helper names/file boundaries, but must preserve the behavior and bounds below. The choices not stated by the owner are proposals for approval, not claims that the owner selected them.
 
 ## User flow
 
