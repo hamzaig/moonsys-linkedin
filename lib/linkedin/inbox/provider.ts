@@ -1,6 +1,6 @@
 import type { InboxMessage, Participant } from "./store.ts";
 
-export interface ConversationSummary { urn: string; participants: Participant[]; isGroup: boolean; lastActivityAt: number }
+export interface ConversationSummary { urn: string; participants: Participant[]; isGroup: boolean; oneToOneVerified?: boolean; lastActivityAt: number }
 export interface InboxProvider {
   identity(): Promise<Participant>;
   list(cursor?: string | null): Promise<{ conversations: ConversationSummary[]; nextCursor: string | null }>;
@@ -59,7 +59,7 @@ export function parseConversationPage(json: unknown): { conversations: Conversat
     const raw=row["*conversationParticipants"]??row.conversationParticipants;
     if(!urn||typeof at!=="number"||!Number.isFinite(at)||!Array.isArray(raw)||!raw.length)return unsupported("conversation identity");
     const participants=raw.map(p=>participant(p,r.resolve));
-    return {urn,participants,isGroup:row.groupChat===true||raw.length>2,lastActivityAt:at};
+    return {urn,participants,isGroup:row.groupChat===true||raw.length>2,oneToOneVerified:row.groupChat===false&&raw.length===2,lastActivityAt:at};
   });
   return {conversations,nextCursor:nextCursor(root)};
 }

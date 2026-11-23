@@ -1,3 +1,4 @@
+import { initReplySchema } from "@/lib/linkedin/inbox/reply-store";
 import { initInboxSchema } from "@/lib/linkedin/inbox/store";
 import Database from "better-sqlite3";
 import path from "path";
@@ -17,6 +18,7 @@ export function getDb(): Database.Database {
     initDb(db);
     runMigrations(db);
     initInboxSchema(db);
+    initReplySchema(db);
     scheduleUpdateCheck();
   }
   return db;

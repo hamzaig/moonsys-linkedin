@@ -1,3 +1,4 @@
+import { ReplyDraftRegistry } from "@/lib/inbox/reply-client";
 import { loadInboxReplies } from "@/lib/inbox/loader";
 import LinkedInThread from "@/components/inbox/LinkedInThread";
 import LinkedInInboxControls from "@/components/inbox/LinkedInInboxControls";
@@ -353,6 +354,7 @@ function ReplyModal({ reply, onClose, onActionDone, hasPremium }: ReplyModalProp
 
 export default function InboxPage() {
   const inboxRequest = useRef<AbortController | null>(null);
+  const [replyDrafts] = useState(() => new ReplyDraftRegistry());
   const [replies, setReplies] = useState<InboxReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -450,7 +452,7 @@ export default function InboxPage() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      {selectedReply?.linkedin_conversation_id ? <LinkedInThread id={selectedReply.linkedin_conversation_id} onClose={() => setSelectedReply(null)} /> : selectedReply && (
+      {selectedReply?.linkedin_conversation_id ? <LinkedInThread key={selectedReply.linkedin_conversation_id} drafts={replyDrafts} id={selectedReply.linkedin_conversation_id} onClose={() => setSelectedReply(null)} /> : selectedReply && (
         <ReplyModal
           reply={selectedReply}
           onClose={() => setSelectedReply(null)}
